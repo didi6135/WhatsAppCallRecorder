@@ -1,6 +1,13 @@
 import { NativeModules, Platform } from 'react-native';
 
 export type DriveBackupPhase = 'disconnected' | 'ready' | 'uploading' | 'paused' | 'needsConsent' | 'error';
+export interface DriveBackupActionError {
+  action: 'connect' | 'folder';
+  stage: 'authorize' | 'pickerResult' | 'selection';
+  code: string;
+  authStatusCode?: number;
+  activityResultCode?: number;
+}
 export interface DriveBackupStatus {
   enabled: boolean;
   connected: boolean;
@@ -16,6 +23,8 @@ export interface DriveBackupStatus {
   totalBytes: number;
   errorCode: string | null;
   errorMessage: string | null;
+  // A failed setup attempt is separate from the current destination/upload queue.
+  lastActionError?: DriveBackupActionError | null;
   items?: Array<{ id: string; state: 'pending' | 'uploading' | 'uploaded' | 'failed'; errorCode?: string | null }>;
 }
 
@@ -54,8 +63,51 @@ const messages: Record<string, string> = {
   CREATE_CONFLICT: 'לא ניתן היה להשלים את יצירת קובץ הגיבוי. הוא אינו מסומן כמגובה; נסו שוב.',
 };
 
-export const driveErrorMessage = (code: string | null, nativeMessage?: string | null): string =>
-  (code && messages[code]) || nativeMessage || 'הפעולה לא הושלמה. ההקלטות בטלפון נשמרות; נסו שוב.';
+const knownCode = (code: unknown): code is string => typeof code === 'string' && Object.prototype.hasOwnProperty.call(messages, code);
+// UI copy is always app-owned, including failures from newer or incompatible native builds.
+export const driveErrorMessage = (code: string | null, _nativeMessage?: string | null): string =>
+  knownCode(code) ? messages[code] : 'הפעולה לא הושלמה. ההקלטות בטלפון נשמרות; נסו שוב.';
+
+const diagnosticCodes = new Set([
+  'CONFIGURATION_REQUIRED', 'AUTH_REQUIRED', 'ACCOUNT_CHANGED', 'FOLDER_UNAVAILABLE',
+  'NETWORK', 'RATE_LIMIT', 'STORAGE_FULL', 'LOCAL_QUEUE_UNAVAILABLE', 'FOREGROUND_REQUIRED',
+  'RECORDING_BUSY', 'CONNECTION_BUSY', 'NOT_CONNECTED', 'UPLOAD_FAILED', 'HTTP_ERROR', 'REMOTE_MISMATCH',
+]);
+const attemptMessages: Record<string, string> = {
+  CONFIGURATION_REQUIRED: 'Google לא אישר את ניסיון החיבור עבור גרסה זו. נדרשת בדיקה של הגדרת האפליקציה ב־Google Cloud.',
+  AUTH_REQUIRED: 'Google מבקש אישור לחשבון. נסו את חיבור החשבון שוב.',
+  ACCOUNT_CHANGED: 'לא ניתן היה לאמת את החשבון שנבחר בניסיון הזה. נסו לחבר את החשבון הרצוי שוב.',
+  FOLDER_UNAVAILABLE: 'לא ניתן היה לאמת גישה לתיקייה בניסיון הבחירה. נסו לבחור תיקייה זמינה.',
+  NETWORK: 'ניסיון החיבור ל־Google Drive לא הושלם בגלל הרשת. אפשר לנסות שוב כשהחיבור חוזר.',
+  RATE_LIMIT: 'Google הגביל זמנית את הבקשה. אפשר לנסות שוב בהמשך.',
+  STORAGE_FULL: 'Google מדווח שאין מספיק מקום פנוי בחשבון. פנו מקום ונסו שוב.',
+  LOCAL_QUEUE_UNAVAILABLE: 'לא ניתן היה לקרוא את הגדרות הגיבוי המקומיות בניסיון הזה. נסו שוב.',
+  UPLOAD_FAILED: 'Google לא השלים את ניסיון החיבור או הבחירה. אפשר לנסות שוב.',
+  HTTP_ERROR: 'הבקשה ל־Google Drive לא הושלמה. בדקו את החיבור ונסו שוב.',
+  REMOTE_MISMATCH: 'לא ניתן היה לאמת את התשובה מ־Google Drive בניסיון הזה. נסו שוב.',
+};
+export const driveActionErrorMessage = (code: string): string =>
+  Object.prototype.hasOwnProperty.call(attemptMessages, code) ? attemptMessages[code] : driveErrorMessage(code);
+const boundedInteger = (value: unknown, min: number, max: number): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max;
+
+// Optional diagnostics cannot invalidate a healthy upload queue. Never copy provider bodies or extras.
+const actionErrorOrNull = (value: unknown): DriveBackupActionError | null => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const raw = value as Record<string, unknown>;
+  if ((raw.action !== 'connect' && raw.action !== 'folder') ||
+    !['authorize', 'pickerResult', 'selection'].includes(raw.stage as string) ||
+    typeof raw.code !== 'string' || !diagnosticCodes.has(raw.code) ||
+    (raw.authStatusCode !== undefined && !boundedInteger(raw.authStatusCode, 0, 65535)) ||
+    (raw.activityResultCode !== undefined && !boundedInteger(raw.activityResultCode, -65535, 65535))) return null;
+  return {
+    action: raw.action,
+    stage: raw.stage as DriveBackupActionError['stage'],
+    code: raw.code,
+    ...(raw.authStatusCode === undefined ? {} : { authStatusCode: raw.authStatusCode as number }),
+    ...(raw.activityResultCode === undefined ? {} : { activityResultCode: raw.activityResultCode as number }),
+  };
+};
 
 export class DriveBackupError extends Error {
   constructor(readonly code: string, message: string) { super(message); this.name = 'DriveBackupError'; }
@@ -71,13 +123,17 @@ export function normalizeDriveBackupStatus(value: unknown): DriveBackupStatus {
   const raw = value as Record<string, unknown>;
   const phases: DriveBackupPhase[] = ['disconnected', 'ready', 'uploading', 'paused', 'needsConsent', 'error'];
   if (typeof raw.enabled !== 'boolean' || typeof raw.connected !== 'boolean' || !phases.includes(raw.phase as DriveBackupPhase)) return invalidStatus();
+  const rawErrorCode = textOrNull(raw.errorCode);
+  const rawErrorMessage = textOrNull(raw.errorMessage);
+  const errorCode = rawErrorCode === null ? null : knownCode(rawErrorCode) ? rawErrorCode : 'DRIVE_ACTION_FAILED';
   const status: DriveBackupStatus = {
     enabled: raw.enabled, connected: raw.connected, phase: raw.phase as DriveBackupPhase,
     accountEmail: textOrNull(raw.accountEmail), folderId: textOrNull(raw.folderId), folderName: textOrNull(raw.folderName),
     queuedCount: count(raw.queuedCount), uploadedCount: count(raw.uploadedCount), failedCount: count(raw.failedCount),
     uploadingId: textOrNull(raw.uploadingId), uploadedBytes: count(raw.uploadedBytes), totalBytes: count(raw.totalBytes),
-    errorCode: textOrNull(raw.errorCode), errorMessage: textOrNull(raw.errorMessage),
+    errorCode, errorMessage: rawErrorMessage === null ? null : driveErrorMessage(errorCode),
   };
+  if (raw.lastActionError !== undefined) status.lastActionError = actionErrorOrNull(raw.lastActionError);
   if (raw.items !== undefined) {
     if (!Array.isArray(raw.items) || raw.items.length > 1000) return invalidStatus();
     status.items = raw.items.map((item: unknown) => {
@@ -101,7 +157,8 @@ async function call(action: (module: DriveBackupModule) => Promise<unknown>): Pr
   try { return normalizeDriveBackupStatus(await action(moduleFor())); }
   catch (failure) {
     if (failure instanceof DriveBackupError) throw failure;
-    const code = failure && typeof failure === 'object' && 'code' in failure && typeof failure.code === 'string' ? failure.code : 'DRIVE_ACTION_FAILED';
+    const reportedCode = failure && typeof failure === 'object' && 'code' in failure ? failure.code : null;
+    const code = knownCode(reportedCode) ? reportedCode : 'DRIVE_ACTION_FAILED';
     // Unknown bridge/provider failures use generic copy; do not surface raw server responses.
     throw new DriveBackupError(code, driveErrorMessage(code));
   }

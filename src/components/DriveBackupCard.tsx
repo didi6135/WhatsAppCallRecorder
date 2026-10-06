@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Alert, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useDriveBackup } from '../hooks/useDriveBackup';
-import { DriveBackupStatus, NativeDriveBackup, driveErrorMessage } from '../services/NativeDriveBackup';
+import { DriveBackupActionError, DriveBackupStatus, NativeDriveBackup, driveActionErrorMessage, driveErrorMessage } from '../services/NativeDriveBackup';
 import { colors, ui } from '../theme';
 
 const phaseLabel = (status: DriveBackupStatus): string => {
@@ -16,14 +16,18 @@ const phaseLabel = (status: DriveBackupStatus): string => {
 };
 
 export default function DriveBackupCard({ isRecording, recorderBusy }: { isRecording: boolean; recorderBusy: boolean }) {
-  const { status, checking, action, error, refresh, run } = useDriveBackup();
+  const { status, checking, action, error, errorAction, refresh, run } = useDriveBackup();
   const busy = action !== null || recorderBusy;
   const destinationReady = status?.connected === true && !!status.folderId;
   const setupDisabled = busy || isRecording || !status;
   const enableDisabled = busy || isRecording || !destinationReady;
   const switchDisabled = busy || (!status?.enabled && enableDisabled);
   const percent = status && status.totalBytes > 0 ? Math.max(0, Math.min(100, Math.round(status.uploadedBytes * 100 / status.totalBytes))) : null;
-  const actualError = error?.message || (status?.errorCode || status?.errorMessage ? driveErrorMessage(status.errorCode, status.errorMessage) : null);
+  const setupError = error && (errorAction === 'connect' || errorAction === 'folder')
+    ? { action: errorAction, code: error.code } : null;
+  const lastActionError: (Pick<DriveBackupActionError, 'action' | 'code'> & Partial<DriveBackupActionError>) | null = setupError || status?.lastActionError || null;
+  const actualError = (error && !setupError ? driveErrorMessage(error.code) : null) ||
+    (status?.errorCode || status?.errorMessage ? driveErrorMessage(status.errorCode) : null);
 
   const enable = () => {
     if (enableDisabled || !status) return;
@@ -66,6 +70,15 @@ export default function DriveBackupCard({ isRecording, recorderBusy }: { isRecor
     </View>}
     {destinationReady && status && (status.queuedCount > 0 || status.failedCount > 0 || status.phase === 'error') && <TouchableOpacity style={[styles.secondary, (busy || !status.enabled || status.phase === 'uploading' || status.phase === 'needsConsent') && ui.disabled]} onPress={() => { void run('retry', NativeDriveBackup.retryPending); }} disabled={busy || !status.enabled || status.phase === 'uploading' || status.phase === 'needsConsent'} accessibilityRole="button"><Text style={ui.secondaryText}>ניסיון גיבוי נוסף</Text></TouchableOpacity>}
     {actualError && <Text style={styles.error} accessibilityLiveRegion="polite">{actualError}</Text>}
+    {lastActionError && <View style={styles.attemptError} accessibilityLiveRegion="polite">
+      <Text style={styles.attemptTitle}>{lastActionError.action === 'connect' ? 'ניסיון החיבור האחרון לא הושלם' : 'ניסיון בחירת התיקייה האחרון לא הושלם'}</Text>
+      <Text style={styles.attemptBody}>{driveActionErrorMessage(lastActionError.code)}</Text>
+      {lastActionError.stage && <Text style={styles.attemptNote}>שלב: {lastActionError.stage === 'authorize' ? 'אישור החשבון' : lastActionError.stage === 'pickerResult' ? 'תוצאת בחירת התיקייה' : 'אימות הבחירה'}</Text>}
+      <Text style={styles.diagnosticCode} selectable>{lastActionError.code}</Text>
+      {lastActionError.authStatusCode !== undefined && <Text style={styles.attemptNote}>קוד אישור Google: {lastActionError.authStatusCode}</Text>}
+      {lastActionError.activityResultCode !== undefined && <Text style={styles.attemptNote}>קוד תוצאת הבחירה: {lastActionError.activityResultCode}</Text>}
+      <Text style={styles.attemptNote}>מצב הגיבוי שמוצג למעלה מתייחס לחשבון ולתיקייה הנוכחיים.</Text>
+    </View>}
     {isRecording && <Text style={styles.note}>אפשר לשנות חשבון או תיקייה אחרי שההקלטה תסתיים. אפשר לכבות את הגיבוי גם בזמן ההקלטה.</Text>}
     <View style={styles.footer}>
       <TouchableOpacity style={[styles.textButton, (busy || checking) && ui.disabled]} onPress={() => { void refresh(); }} disabled={busy || checking} accessibilityRole="button"><Text style={styles.link}>בדיקת הגיבוי</Text></TouchableOpacity>
@@ -99,6 +112,11 @@ const styles = StyleSheet.create({
   track: { height: 6, backgroundColor: colors.border, borderRadius: 4, overflow: 'hidden' },
   fill: { height: 6, backgroundColor: colors.green, borderRadius: 4 },
   error: { ...ui.warning, marginTop: 12 },
+  attemptError: { backgroundColor: colors.amberSoft, borderRadius: 16, padding: 14, marginTop: 12 },
+  attemptTitle: { ...ui.label, color: colors.amber, fontSize: 13, marginBottom: 5 },
+  attemptBody: { ...ui.body, color: colors.amber, fontSize: 13, lineHeight: 22 },
+  attemptNote: { ...ui.subtitle, color: colors.amber, fontSize: 11, lineHeight: 19, marginTop: 5 },
+  diagnosticCode: { color: colors.amber, fontSize: 11, lineHeight: 19, writingDirection: 'ltr', textAlign: 'right', marginTop: 5 },
   footer: { flexDirection: 'row-reverse', gap: 12, marginTop: 10 },
   textButton: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
   link: { color: colors.green, fontSize: 13, fontWeight: '600', writingDirection: 'rtl', textAlign: 'center' },

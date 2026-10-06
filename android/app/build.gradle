@@ -178,14 +178,21 @@ android {
 androidComponents {
     onVariants(selector().withBuildType('release')) { variant ->
         variant.outputs.each { output ->
-            output.versionCode.set(9)
-            output.versionName.set('1.4.0')
+            output.versionCode.set(10)
+            output.versionName.set('1.4.1')
         }
     }
 }
 
 project.ext.vectoricons = [iconFontNames: ["MaterialIcons.ttf"]]
 apply from: file("../../node_modules/react-native-vector-icons/fonts.gradle")
+
+// The legacy font plugin wires vital lint only. Full AGP lint also reads its assets.
+tasks.configureEach { task ->
+    if (task.name ==~ /generate.*LintReportModel/ || task.name ==~ /lintAnalyze.*/) {
+        task.dependsOn('copyReactNativeVectorIconFonts')
+    }
+}
 
 // Apply static values from `gradle.properties` to the `android.packagingOptions`
 // Accepts values in comma delimited lists, example:

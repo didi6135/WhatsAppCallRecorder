@@ -1,7 +1,7 @@
 {
-  "sourceCommit": "f6bd566f4f4be6c0f3580258b1bfa44866d60189",
-  "fileCount": 210,
-  "excludedCount": 82,
+  "sourceCommit": "c431c0257d16946a322d1fc1026bcceadf78c26b",
+  "fileCount": 214,
+  "excludedCount": 84,
   "files": [
     {
       "path": ".gitignore",
@@ -45,8 +45,8 @@
     },
     {
       "path": "android/app/build.gradle",
-      "bytes": 11001,
-      "sha256": "00ec2267e0830787a00090d22d1b2cd348a3628bb1106360b10a9bb7d7fe126e"
+      "bytes": 11270,
+      "sha256": "9d8fcfa7d97f136458def8d9bba3dd268035c894a2c86615da7c645e964c16a9"
     },
     {
       "path": "android/app/debug.keystore",
@@ -109,6 +109,16 @@
       "sha256": "ee879009f516696c4362694e3d1358769c3e3f9e9cdf2095f7db059f37552c43"
     },
     {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveAuthorizationResultGate.java",
+      "bytes": 2098,
+      "sha256": "a89efe09909f0020e4f76b9215c4b70694e8bae0e3182e0d2de4dc88d1f134a4"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupActionDiagnostics.java",
+      "bytes": 3119,
+      "sha256": "22874d9f7d31ad43c3220c5f0d3c5edc4c85eb710b0b695bc4326026d3d023c6"
+    },
+    {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupClient.kt",
       "bytes": 7345,
       "sha256": "af3265d126d8693b4ff53dac3142610c78d09484117727c1025c250fa7a39df8"
@@ -125,8 +135,8 @@
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupModule.kt",
-      "bytes": 6065,
-      "sha256": "d78ef38379df88e5f27ccc0db7b39b856c2df0dedf87e689272d4d61cc604058"
+      "bytes": 8101,
+      "sha256": "ec3eca35fe528b882ebb5da683b31a4dfa312c52fbf49f2fe5b0dec88a0005a9"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupPackage.kt",
@@ -419,6 +429,16 @@
       "sha256": "10d8cc299a905dc430102f1de09e1aa60627914a55591f9a1778c038186712d2"
     },
     {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/DriveAuthorizationResultGateTest.java",
+      "bytes": 4809,
+      "sha256": "9c607685a3b318e211be1adb9fd773132b96349b1ab2ddc79b876f88ff9737da"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/DriveBackupActionDiagnosticsTest.java",
+      "bytes": 5926,
+      "sha256": "89cee929d918fa74d5004e853ef7e1953fb756fbe90d673f3a49d1ee4f37d145"
+    },
+    {
       "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/DriveBackupClientTest.kt",
       "bytes": 7364,
       "sha256": "6fe7067a1497cf647cee5e69e58fa9b126d33ce25528c2ef3b7102609a0729d0"
@@ -601,7 +621,7 @@
     {
       "path": "app.json",
       "bytes": 746,
-      "sha256": "03af52dfdcff391b0a4013d8f78917bdd232fd11612b0bb18ac2548c2a883ab7"
+      "sha256": "91c4c41a471075af34432a191850b939705012a1a742d28feaa56c2160ebd617"
     },
     {
       "path": "assets/adaptive-icon.png",
@@ -685,8 +705,8 @@
     },
     {
       "path": "src/components/DriveBackupCard.tsx",
-      "bytes": 11617,
-      "sha256": "726b3e9b65690c638af959ae66769b13c668fb47d1ff2556dae310014fb1d514"
+      "bytes": 13749,
+      "sha256": "34b9502f8774434e0e7e043f8dfaf3cab2a9a1a23606f95e6c32d1b344b6c3d9"
     },
     {
       "path": "src/components/RecordButton.tsx",
@@ -710,8 +730,8 @@
     },
     {
       "path": "src/hooks/useDriveBackup.ts",
-      "bytes": 3540,
-      "sha256": "02317aa746adda9387d62dabd7f6346a3f03632db73c7a1fdec87b24b8290da5"
+      "bytes": 4209,
+      "sha256": "04287b4a065ded43aed1580eed0cf53d27e65f41161ff54da9c487ce739c0e12"
     },
     {
       "path": "src/navigation/AppNavigator.tsx",
@@ -745,8 +765,8 @@
     },
     {
       "path": "src/services/NativeDriveBackup.ts",
-      "bytes": 8241,
-      "sha256": "75669f48a425f0a53e53815b00c6a532b75358041ff742644e8951ec16c12cac"
+      "bytes": 12423,
+      "sha256": "3c3a1b7a94dea7474bc91e0035132e2c2521902bde4c62a1a92979cb47d229ac"
     },
     {
       "path": "src/services/NativeRecorder.ts",
@@ -820,8 +840,8 @@
     },
     {
       "path": "tools/test-drive-ui.cjs",
-      "bytes": 5829,
-      "sha256": "a28024c90bd73877223992af7d2abb45180213577a8dd923f21352a99d433ca4"
+      "bytes": 20342,
+      "sha256": "b295cdc1eee0ab24240807b1d85cdbde24962fcbb8050e8db641a5310c6e72f9"
     },
     {
       "path": "tools/ui-preview/README.md",
@@ -850,8 +870,8 @@
     },
     {
       "path": "tools/ui-preview/review.js",
-      "bytes": 18872,
-      "sha256": "2d1eb3b9dee0deecec67f4653b7456e0224a9cf2cd9c361cb694f8cfd3c92d61"
+      "bytes": 20349,
+      "sha256": "236e21ad23185387b8309f0c014e25b0bd9d22f9ac99b7af57939a3eace8d8c6"
     },
     {
       "path": "tools/ui-preview/screens.css",

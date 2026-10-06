@@ -10,12 +10,14 @@ export function useDriveBackup() {
   const [checking, setChecking] = useState(true);
   const [action, setAction] = useState<DriveBackupAction | null>(null);
   const [error, setError] = useState<DriveBackupError | null>(null);
+  const [errorAction, setErrorAction] = useState<DriveBackupAction | null>(null);
   const mounted = useRef(true);
   const focused = useRef(false);
   const polling = useRef(false);
   const acting = useRef(false);
   const revision = useRef(0);
   const errorSource = useRef<'poll' | 'action' | null>(null);
+  const failedAction = useRef<DriveBackupAction | null>(null);
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
@@ -27,11 +29,17 @@ export function useDriveBackup() {
       const next = await NativeDriveBackup.getStatus();
       if (mounted.current && focused.current && requestedAt === revision.current) {
         setStatus(next);
-        if (errorSource.current === 'poll') { errorSource.current = null; setError(null); }
+        if (errorSource.current === 'poll' ||
+          ((failedAction.current === 'connect' || failedAction.current === 'folder') && next.lastActionError !== undefined)) {
+          // New native builds retain/clear setup diagnostics across remounts. Use that authoritative result.
+          errorSource.current = null; failedAction.current = null; setError(null); setErrorAction(null);
+        }
       }
     } catch (failure) {
       if (mounted.current && focused.current && requestedAt === revision.current && errorSource.current !== 'action') {
         errorSource.current = 'poll';
+        failedAction.current = null;
+        setErrorAction(null);
         setError(failure instanceof DriveBackupError ? failure : new DriveBackupError('DRIVE_ACTION_FAILED', 'לא ניתן לבדוק את הגיבוי כרגע. נסו שוב.'));
       }
     } finally {
@@ -58,18 +66,23 @@ export function useDriveBackup() {
     acting.current = true;
     revision.current += 1;
     errorSource.current = null;
-    if (mounted.current) { setAction(name); setError(null); }
+    failedAction.current = null;
+    if (mounted.current) { setAction(name); setError(null); setErrorAction(null); }
     try {
       const next = await operation();
       if (mounted.current) setStatus(next);
     } catch (failure) {
       errorSource.current = 'action';
-      if (mounted.current) setError(failure instanceof DriveBackupError ? failure : new DriveBackupError('DRIVE_ACTION_FAILED', 'הפעולה לא הושלמה. נסו שוב.'));
+      failedAction.current = name;
+      if (mounted.current) {
+        setErrorAction(name);
+        setError(failure instanceof DriveBackupError ? failure : new DriveBackupError('DRIVE_ACTION_FAILED', 'הפעולה לא הושלמה. נסו שוב.'));
+      }
     } finally {
       acting.current = false;
       if (mounted.current) { setAction(null); setChecking(false); }
     }
   }, []);
 
-  return { status, checking, action, error, refresh, run };
+  return { status, checking, action, error, errorAction, refresh, run };
 }
