@@ -1,0 +1,48 @@
+# WhatsAppCallRecorder
+
+Hebrew-first Android recorder with three main screens: record, recordings and settings. The app includes guided setup, optional automatic WhatsApp/WhatsApp Business call detection and optional backup to each user's own Google Drive folder. It has no recording upload server.
+
+## Use the app
+
+Follow the setup walkthrough on the phone. Microphone permission, notification access and user-approved wireless debugging activation have distinct purposes. Developer options and wireless pairing require the phone owner's actions; ordinary microphone permission does not grant call-audio access. Initial activation needs Wi-Fi; an already activated helper can continue without Wi-Fi, subject to the phone's process lifecycle. Reboot or process termination may require activation again.
+
+Google Drive backup is optional. In Settings, connect **your own Google account**, choose a writable folder and explicitly enable backup of existing and future completed recordings. Uploads go directly from your phone to the selected Drive destination. Disconnecting preserves local recordings and uploaded files. The app publisher's OAuth registration identifies the app; it is not the destination account. See [Drive setup](docs/google-drive-setup.md).
+
+## Compatibility and verification
+
+- Installation: Android 7/API 24 or newer, ARM64. Installation does not imply two-sided call recording support.
+- Call-recording helper: Android 14/15 experimental candidates; Android 16 behavior has been exercised on a Samsung S26 Ultra. Other phones, OEM policies, headphones/Bluetooth and call cases require device tests.
+- Android 13 and older: ordinary microphone recording is separate; the current two-sided call helper rejects these versions.
+- Native Drive authorization requires Google Play services and a registered Android OAuth client. Real Google consent, folder selection and upload verification for this integration are still pending. Google services are external dependencies; an open-source app does not make these SDKs or services open source.
+- This repository does not provide an iPhone implementation that records both parties of another app's WhatsApp call.
+
+## Build your own Android app
+
+Use Node.js 22, npm, JDK 17 and Android SDK 36/build tools 36.0.0/NDK 28.2.13676358. Local checks used Node.js 22.23.2. The checked-in native project uses React Native 0.77.3, Expo 52, Gradle 8.11.1 and Android Gradle Plugin 8.9.2. Keep the native Android project; `expo prebuild --clean` would replace the custom native services.
+
+```sh
+npm ci
+npm run typecheck
+cd android
+./gradlew :app:assembleDebug
+```
+
+On Windows, use `gradlew.bat` and quote dotted property arguments, for example `'-PwaRecorder.applicationId=org.example.myrecorder'` in PowerShell. Configure your own Android SDK location through `ANDROID_HOME` or an ignored `android/local.properties`. The debug APK contains its JavaScript bundle and uses the conventional public Android debug key. It must not be used as a release key.
+
+For a release, create your own private keystore and copy [the signing template](docs/signing.properties.example) to a private location outside the checkout. Set `WA_RECORDER_SIGNING_PROPERTIES` to that file's absolute path, then build:
+
+```sh
+./gradlew :app:assembleRelease -PwaRecorder.applicationId=org.example.myrecorder
+```
+
+The release build adds `.standalone`, producing `org.example.myrecorder.standalone`; debug adds `.diagnostic`. Register that exact installed ID and **your own signing certificate SHA-1** with Google. The Java/Kotlin namespace can remain unchanged. Forks should use a distinct application ID and key; they cannot update the publisher's installed APK with a different signing key. Release builds fail when private signing configuration is missing and never fall back to the debug key. No `.env`, Telegram account, Google API key or Google client secret is required to build or run the app.
+
+To print a built APK's public certificate fingerprint, use Android SDK `apksigner verify --print-certs path/to/app-release.apk`. Certificate fingerprints are public; keystore passwords and private keys are not.
+
+## Source distribution
+
+Original project code uses [0BSD](LICENSE). Dependencies retain their own licenses, including Apache/BSD/MIT and LGPL; read [third-party notices](THIRD_PARTY_NOTICES.md) before distributing modified binaries.
+
+For a public source snapshot, run `python tools/export-public-source.py --output artifacts/whatsapp-recorder-source.zip` after committing the intended changes. The exporter uses committed files, excludes private planning/Git history, recordings, environment/signing files and local artifacts, and rejects obvious credential material. Inspect its manifest before creating a new public repository. The development checkout's private Git history is not the public source snapshot.
+
+Local compile/unit checks are separate from real phone recording, Google OAuth and cloud upload acceptance. No public repository URL or Google production registration is established by this source package.

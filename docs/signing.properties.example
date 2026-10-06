@@ -1,0 +1,6 @@
+# Copy outside the checkout and supply your own private signing values.
+# Use an absolute keystore path; forward slashes also work on Windows.
+storeFile=/absolute/path/to/your-private-release.jks
+storePassword=CHANGE_ME
+keyAlias=your-release-key
+keyPassword=CHANGE_ME

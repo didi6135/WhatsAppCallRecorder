@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "WhatsAppCallRecorder",
+    "slug": "WhatsAppCallRecorder",
+    "version": "1.4.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F6F8F6"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/monochrome-icon.png",
+        "backgroundColor": "#102A2E"
+      },
+      "package": "com.didi4164.WhatsAppCallRecorder"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

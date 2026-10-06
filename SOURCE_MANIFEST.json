@@ -1,0 +1,1057 @@
+{
+  "sourceCommit": "f6bd566f4f4be6c0f3580258b1bfa44866d60189",
+  "fileCount": 210,
+  "excludedCount": 82,
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 688,
+      "sha256": "98eb8e6b10a97b55eb87bc036c0ac5458ca40b034e928843dceb2eebb0e7ce14"
+    },
+    {
+      "path": "App.tsx",
+      "bytes": 1015,
+      "sha256": "ed9833a9965b6767b523eb150ad102963d523d3f7d065dc723d83777611c12d9"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 840,
+      "sha256": "b4e24f45230a9afe26c679d9489ec56c236cf0dd9786b5964e2e3603d350dfd3"
+    },
+    {
+      "path": "LICENSES/GPL-3.0.txt",
+      "bytes": 35657,
+      "sha256": "4cf69a0c7c6f0eea4f323a85554a11cd2e16fa2a92c97a2d5de1d2c696d8e597"
+    },
+    {
+      "path": "LICENSES/LGPL-3.0.txt",
+      "bytes": 7651,
+      "sha256": "a5681bf9b05db14d86776930017c647ad9e6e56ff6bbcfdf21e5848288dfaf1b"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5053,
+      "sha256": "adc3db6125153923c3d950bfc92252a2e86fe8da0afbdcff8c2387c12fb90169"
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "bytes": 4840,
+      "sha256": "7806c3364c99e9043fdf8de497d4174dac520ee3c889d65e9febf95d3369a93e"
+    },
+    {
+      "path": "android/.gitignore",
+      "bytes": 138,
+      "sha256": "c7a8adacd59ca85042c0a10b2277d9c664c3fc08cc1f47c914772ac9ac02e8d0"
+    },
+    {
+      "path": "android/app/build.gradle",
+      "bytes": 11001,
+      "sha256": "00ec2267e0830787a00090d22d1b2cd348a3628bb1106360b10a9bb7d7fe126e"
+    },
+    {
+      "path": "android/app/debug.keystore",
+      "bytes": 2257,
+      "sha256": "221e0a3106aa4c3ccc154e0a418b55020b3f9ea6e84f92e8749cd9e2f39f5e58"
+    },
+    {
+      "path": "android/app/proguard-rules.pro",
+      "bytes": 562,
+      "sha256": "8bd4d7b69a1d78e8322b459b5e8d48234adce7481df04da34c0140d52ffb367a"
+    },
+    {
+      "path": "android/app/src/debug/AndroidManifest.xml",
+      "bytes": 374,
+      "sha256": "fb1795032c764d975376e1612ab7022058eca2268a45efbe731a47a5d3ac0f60"
+    },
+    {
+      "path": "android/app/src/main/AndroidManifest.xml",
+      "bytes": 3807,
+      "sha256": "671d616ed14ef67783ec8472568116e9fd96c6da171dc0b3831ee25f0edff49c"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/AdbIdentityCertificate.java",
+      "bytes": 3028,
+      "sha256": "09562f54150e85b6cdbfbc94f9f31c29daed04eddd92c9843d69f46ec90bf9a4"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/AutoCallPolicy.kt",
+      "bytes": 12916,
+      "sha256": "bfea6d0a70677ed96803be877c9fdf4ea4156a38c0fa52cc5b3acf3f0c395814"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/AutoEvidenceRecoveryWatchdog.kt",
+      "bytes": 821,
+      "sha256": "567fe07868d3e6149995aca851cbad4c5a0f83a7be6de84d3281c76e622b1c4b"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/AutoRecordingController.kt",
+      "bytes": 23352,
+      "sha256": "019b1d5355219239b9b43ce46cd24c51d0da135894cc0011d3ebb03793040c44"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/BootstrapHandoffSignal.java",
+      "bytes": 1061,
+      "sha256": "5d1e8189fb193f27504c528c6ba4f80ab442efab8dfd3a1d1d22c7c62e73fd27"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/CallRecorderModule.kt",
+      "bytes": 8754,
+      "sha256": "7618c03805289d30ed017c408964cc7b16506d214fbaad655c569d2e0142e6e1"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/CallRecorderPackage.kt",
+      "bytes": 513,
+      "sha256": "226c2b3db63b2e77b83a5fcc168a49a0a8065f0f08f03288a5b51b4cc3939985"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/CaptureQuality.kt",
+      "bytes": 370,
+      "sha256": "ee879009f516696c4362694e3d1358769c3e3f9e9cdf2095f7db059f37552c43"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupClient.kt",
+      "bytes": 7345,
+      "sha256": "af3265d126d8693b4ff53dac3142610c78d09484117727c1025c250fa7a39df8"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupErrors.kt",
+      "bytes": 2323,
+      "sha256": "c4de49a30d9c54509ee59ac41d3e15195fe8dec27e32cf32e9487a20669dd8b1"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupManager.kt",
+      "bytes": 7733,
+      "sha256": "08de4f0ac848d6b55919c87fba4f0b9e26204ce55f2cd81ad2f8c45d231e5673"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupModule.kt",
+      "bytes": 6065,
+      "sha256": "d78ef38379df88e5f27ccc0db7b39b856c2df0dedf87e689272d4d61cc604058"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupPackage.kt",
+      "bytes": 511,
+      "sha256": "8f3fa5b51a75af16cc54fb4588187c58df030da429c68e92b1496f88da86bb4a"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupPolicy.java",
+      "bytes": 3069,
+      "sha256": "735e94b61d5c39fcedf1008ad6127d9a4e74aede8220c14dcd3fac1fabfc942a"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupQueue.kt",
+      "bytes": 10580,
+      "sha256": "945404ed29082d8fcd58a986412c7ecb17853519de5734523b8d8770891d75fc"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupSecrets.kt",
+      "bytes": 1785,
+      "sha256": "5357dfa95b807f5a02dc7885a16cc05451a8d44c0235fab55c93fd16d2041730"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupWorker.kt",
+      "bytes": 10519,
+      "sha256": "890895845e347787ca7ebeaff1ae033f75eae3b8a5b63b2a7264036e0a21accc"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveHttpTransport.java",
+      "bytes": 4650,
+      "sha256": "a4e7aa2f41f4daa7783325c45444eaacd407fd56ee4c813e16051e9842c356f4"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/MainActivity.kt",
+      "bytes": 2203,
+      "sha256": "9b1bbf2417cb21f1067310d21c9189c050c5ee5a860c30eda9c713ecf07bd413"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/MainApplication.kt",
+      "bytes": 2392,
+      "sha256": "cfd9ef6104435cd1dc389ea154b5783de496c612073cf0c5c5a3f5b3dde73484"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/NativeWirelessAudioBridge.kt",
+      "bytes": 17919,
+      "sha256": "7c3dba529c0a3d9570d1849d54a07702ae42f680f7520865d2291e34a126b7a8"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/NotificationActionPresence.java",
+      "bytes": 718,
+      "sha256": "b8a08ff2f8475ba32fa72c7308cb402be21597c1e93d543a512e003146e31f9b"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/PairingNotificationController.kt",
+      "bytes": 16616,
+      "sha256": "1e14f4a709bde513571bc572ad251efd10f7038e900c2c9267e64a90a1a0a9c4"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/PairingNotificationReceiver.kt",
+      "bytes": 590,
+      "sha256": "637818da6cef26d102e58fbbf6a6a2cc24843386daae45d338c8c5fb73d6a17e"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/PairingNotificationRules.kt",
+      "bytes": 742,
+      "sha256": "713ecf8fc03d87537a19f9ed596c829aa89c865b62fb5a7056f88d7342115547"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/PairingNotificationService.kt",
+      "bytes": 2202,
+      "sha256": "f86b5592d3e9e17dd6260b471f175842b19a9e6498048818ce405fd039317f4a"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/RecorderReadinessService.kt",
+      "bytes": 10123,
+      "sha256": "bf898c4bfb019dd0f4a41cf3d1526ff602f0697054bb331f88fd8e4409dfd007"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/RecordingService.kt",
+      "bytes": 26608,
+      "sha256": "d02889cf34d6d73a6e9b7c17ac98c4787e43525d03af2b30cd5cd5c269242661"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/RecordingStore.kt",
+      "bytes": 5733,
+      "sha256": "76223bf49d057462c3230b7e76ea502d4657ccf7fa177c4a3d98b6eb5ff1e279"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/UsbAudioBridge.kt",
+      "bytes": 12099,
+      "sha256": "2dce681f33fb8500d2b07549959194ee7a1c6c86be106e8be4af559bd4a752d3"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/WavFile.kt",
+      "bytes": 1184,
+      "sha256": "71e9e366f85d35233e281c75c1381d89c1d380780390d4a9224cb47b4e2453c1"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/WhatsAppCallNotificationService.kt",
+      "bytes": 3418,
+      "sha256": "32c16f0cbfab742e018ca312bbada14ab8a0caa22786c55f5e5e773b2ec67870"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-hdpi/splashscreen_logo.png",
+      "bytes": 16763,
+      "sha256": "6bfc366b254f3b5b888427e610734dc6ed72d568b9a6e42675930adea651f54f"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-mdpi/splashscreen_logo.png",
+      "bytes": 10983,
+      "sha256": "321dfb2121d8a02010781436ec74ad679ab7db4ff2bfffb2aae9deb3b94386de"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-xhdpi/splashscreen_logo.png",
+      "bytes": 22768,
+      "sha256": "787debfb73cdd5b0bbccb08dd2ce5a1f72cc7c39669c0cab491c1ca90f1b6caa"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-xxhdpi/splashscreen_logo.png",
+      "bytes": 34749,
+      "sha256": "4baa504259cf7ad6f78b5c3e92412acdd0573606464d222e86d26b20280c7dcb"
+    },
+    {
+      "path": "android/app/src/main/res/drawable-xxxhdpi/splashscreen_logo.png",
+      "bytes": 47416,
+      "sha256": "5ac3d7ff61b8880f047fbc14db589c52009a0bcf2acc16e4f63dbf105ddb6694"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_launcher_background.xml",
+      "bytes": 245,
+      "sha256": "51fca95679d075ddbe2b9fe7ad2efb5ef545c5770a9ad6cafe8bf610c18c67be"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_launcher_monochrome.xml",
+      "bytes": 721,
+      "sha256": "ec225a9de2d1fb46bd47fed920fdd88c42ba37574eb93d7ecde8dbfddb110b67"
+    },
+    {
+      "path": "android/app/src/main/res/drawable/rn_edit_text_material.xml",
+      "bytes": 1917,
+      "sha256": "738e3aaad53180caba1419a6d5db8465a0742662fe59a4bbaf05f1061cbc3390"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "bytes": 257,
+      "sha256": "03d70962a0beea2bb6ab1a838b015d90da6c33adb045ff85f7b198aca70df08d"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml",
+      "bytes": 257,
+      "sha256": "03d70962a0beea2bb6ab1a838b015d90da6c33adb045ff85f7b198aca70df08d"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v33/ic_launcher.xml",
+      "bytes": 328,
+      "sha256": "17d68180ca068baf79d2f2f73ad2e74cdbc3b605da36a636a6ba58731d343a63"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v33/ic_launcher_round.xml",
+      "bytes": 328,
+      "sha256": "17d68180ca068baf79d2f2f73ad2e74cdbc3b605da36a636a6ba58731d343a63"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher.webp",
+      "bytes": 1624,
+      "sha256": "bfac480213028fc634d99391989818b54512bbff48e096e079a712dde7b33c22"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp",
+      "bytes": 1876,
+      "sha256": "3946362b82dbb0a704199eebd82ec1a21316b5afa1e38f431ddd3085de409b77"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.webp",
+      "bytes": 2048,
+      "sha256": "512b994b643b9ffc3571620bcb1a54c4993c06e17fcc2bf41a12e9163fad6477"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher.webp",
+      "bytes": 1170,
+      "sha256": "9c6260dfe5f03b50f7effe51f097de0a30b4ced913a642ad34029ad2f7e42caf"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp",
+      "bytes": 1412,
+      "sha256": "35f596e329b56c888af8c1be443bdf0689934c94247727c55dc59c2755048df9"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.webp",
+      "bytes": 1410,
+      "sha256": "239c608d22a3f17f70bdd71abec1bce333b5b23fe33e30e37440cae0f59fdd4c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher.webp",
+      "bytes": 1958,
+      "sha256": "621571d1410be96ffc8bd0808f2dbc5bae4ab7a3fb2d0e5154bf2848fa8b74bd"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp",
+      "bytes": 2420,
+      "sha256": "036d2dfed95b3d942e3e82d0e806ad126abb94177c5219f1c9db34e0c92ec2ee"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp",
+      "bytes": 2506,
+      "sha256": "4417a06f13061975e881addc28526ec1895a19c597d1e504ae3d4e7c9d49b905"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.webp",
+      "bytes": 2766,
+      "sha256": "ac29607aa0f3c10e53b5ae448c7feb8ac981e4a55cdbad1ccad40cfbe370d09c"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp",
+      "bytes": 3314,
+      "sha256": "bb132e55c6731620f54827237ec852557c7ab9ffe6ad26189d408bb480be0c84"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp",
+      "bytes": 3626,
+      "sha256": "51d31915d60464515d6b03272eaa84f8f6db015dcda845fb73716373483cdb3e"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp",
+      "bytes": 3710,
+      "sha256": "fb723330ac1d321ea5e6e2b1523a2176f618543bf97d1bb4ba544cf22fb0f62a"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp",
+      "bytes": 4314,
+      "sha256": "fe916d6e16233af953022d3f205c1bb02bea10b8aaeab045679a8205bbe17f99"
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp",
+      "bytes": 4804,
+      "sha256": "a441acc9001e8bf38aa17f4351a78c30b35268d13796e6f47b68b3f9d4617479"
+    },
+    {
+      "path": "android/app/src/main/res/values-night/colors.xml",
+      "bytes": 12,
+      "sha256": "c30a9f37e6b34372e1db8c812d64a18719acf7c52c11ff2f7e5e5ed5e05c2072"
+    },
+    {
+      "path": "android/app/src/main/res/values/colors.xml",
+      "bytes": 222,
+      "sha256": "10b04e8db323ddb196d0b25f7cd42dfe4a4de4cd39a7f7f6c732ec49d66fb717"
+    },
+    {
+      "path": "android/app/src/main/res/values/strings.xml",
+      "bytes": 276,
+      "sha256": "8efead5fee6be865d615d172940577333d7252b95c175eeaefe2bc143cc9a562"
+    },
+    {
+      "path": "android/app/src/main/res/values/styles.xml",
+      "bytes": 929,
+      "sha256": "7d2cd01b5ad5bc0660a6fab49699f08a08200388cf3af3fc189903f51874eb6d"
+    },
+    {
+      "path": "android/app/src/main/res/xml/recording_paths.xml",
+      "bytes": 168,
+      "sha256": "fa0ecc5f5573985e44c7b2d796f64661b3341a7870c9834bc896fe83eeadea68"
+    },
+    {
+      "path": "android/app/src/release/res/values/strings.xml",
+      "bytes": 82,
+      "sha256": "a2cae7425bb2a89e926d4a1af0f80a9437b2e756f15c5352c93b6ded08b71323"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/AdbIdentityCertificateTest.java",
+      "bytes": 1659,
+      "sha256": "ec02cd9b6b3c603522fc0bca36bd252493c60976002e6b0fc6f339382cc7c2c2"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/AutoCallPolicyTest.kt",
+      "bytes": 13499,
+      "sha256": "31e79eb72581f4cb887637c7098f1f627de7589a76c4107db7a7473ee3d68477"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/AutoCallTelecomPolicyTest.kt",
+      "bytes": 15025,
+      "sha256": "8534b0af1d7091a78e4d1f810961e6afead75151494c913b0d80d8d4c8eed685"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/AutoEvidenceRecoveryWatchdogTest.kt",
+      "bytes": 4337,
+      "sha256": "703ee55af5d7205a0f2e1c7b2daadac69dc6020b65fc0bbe1ae61531f668f9e3"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/BootstrapHandoffSignalTest.java",
+      "bytes": 1956,
+      "sha256": "10d8cc299a905dc430102f1de09e1aa60627914a55591f9a1778c038186712d2"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/DriveBackupClientTest.kt",
+      "bytes": 7364,
+      "sha256": "6fe7067a1497cf647cee5e69e58fa9b126d33ce25528c2ef3b7102609a0729d0"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/PairingNotificationRulesTest.kt",
+      "bytes": 2239,
+      "sha256": "505efbc873602f45f8b841b2b0efe7a91e960885eb311a72e25d9a477c45fc16"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/RecorderFormatTest.kt",
+      "bytes": 1655,
+      "sha256": "3fabc9dd3f88786aa3ccf0fb0ad6704bbda716f5bbad59161af9f720975aff8c"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/ShellAudioCompatibilityNativeTest.kt",
+      "bytes": 1087,
+      "sha256": "d496d322f03a3b23d04f8fa0442874e60f7098e2f934267adcb3bc071db25a60"
+    },
+    {
+      "path": "android/build.gradle",
+      "bytes": 2732,
+      "sha256": "d6195f78af80ae91d4e4327d1d2b472a6ee4ef2c2166687b02f9265a445971e7"
+    },
+    {
+      "path": "android/gradle.properties",
+      "bytes": 2269,
+      "sha256": "b5715d5d02a6babcc7806ad6721959e80a3761c06d76876dfae3e6f4f3779eb8"
+    },
+    {
+      "path": "android/gradle/wrapper/gradle-wrapper.jar",
+      "bytes": 43583,
+      "sha256": "2db75c40782f5e8ba1fc278a5574bab070adccb2d21ca5a6e5ed840888448046"
+    },
+    {
+      "path": "android/gradle/wrapper/gradle-wrapper.properties",
+      "bytes": 253,
+      "sha256": "f7fafb1ddd0a2a1d2ef01ead773d9a88c1f889ef341e4e93c09c0724ade79b32"
+    },
+    {
+      "path": "android/gradlew",
+      "bytes": 8762,
+      "sha256": "a3648413b47ef77af21d5ebc36c687c7d103aaef3e17f33de7d4f080a6f300a3"
+    },
+    {
+      "path": "android/gradlew.bat",
+      "bytes": 2872,
+      "sha256": "2209f919a22528af59a2af2ad97e8d056cca18e39f7d87aa3fd549a73b180150"
+    },
+    {
+      "path": "android/settings.gradle",
+      "bytes": 1543,
+      "sha256": "090f4a9c2f37fd1710f00834e404750c41cd67ddba3f1f9bbf55182c9d6cc02b"
+    },
+    {
+      "path": "android/vendor/libadb/LICENSES/Apache-2.0",
+      "bytes": 10001,
+      "sha256": "4557de501c3a82094c239a4d74e2e29993c188f6ebb28b668fedf942938e44f1"
+    },
+    {
+      "path": "android/vendor/libadb/LICENSES/BSD-3-Clause",
+      "bytes": 1844,
+      "sha256": "8a094def3661adcb92d2e9f462052fe2bd6365ecf659f229ae9703bd4c412024"
+    },
+    {
+      "path": "android/vendor/libadb/LICENSES/GPL-3.0-or-later",
+      "bytes": 35657,
+      "sha256": "4cf69a0c7c6f0eea4f323a85554a11cd2e16fa2a92c97a2d5de1d2c696d8e597"
+    },
+    {
+      "path": "android/vendor/libadb/LICENSES/MIT",
+      "bytes": 1568,
+      "sha256": "57a5669100695db12465be9fb3995322e87da6aa64d06cccdbccbb53b1839821"
+    },
+    {
+      "path": "android/vendor/libadb/UPSTREAM.md",
+      "bytes": 877,
+      "sha256": "3e9ce7bf3857676b71be580c944279c46ad10dd840ded372df623b2cb4509de7"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/AbsAdbConnectionManager.java",
+      "bytes": 22180,
+      "sha256": "a3c404522d71295ac1a97509d9b23cf032d3fd8a97e446dbfdf53a519d14c1e5"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/AdbAuthenticationFailedException.java",
+      "bytes": 504,
+      "sha256": "a78fa66cafa8a76806973b9740dae12d2e5657d36dd15989813bb5dbb6536c5b"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/AdbConnection.java",
+      "bytes": 30645,
+      "sha256": "46960aefec050b4227b71cb291c43ce010d45ad23fb5e0054c509a5a0ae5570a"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/AdbInputStream.java",
+      "bytes": 969,
+      "sha256": "319c4519ef758ad9d774d3d52e30f343c250543fef2d98a1b165f027309af5b9"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/AdbOutputStream.java",
+      "bytes": 874,
+      "sha256": "b593961ee48d13ea35e9fa2b8f854381fe0c4f139b5ce5c6d15cf58e180fdb75"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/AdbPairingRequiredException.java",
+      "bytes": 188,
+      "sha256": "ed5412b1782ebaab9acf36be60b5a7e0c1c4fb4f6dbe6ea21776a1696f5914a5"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/AdbProtocol.java",
+      "bytes": 16666,
+      "sha256": "80ca45b44c4bce807f7ef22bd08a5d10a618e9054d7267e37319b7bd151d782b"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/AdbStream.java",
+      "bytes": 10068,
+      "sha256": "2244b27b475b6c4a9a2edaddd2d081a7e266425cd49e64ad30dce1caf67c1c54"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/AndroidPubkey.java",
+      "bytes": 10620,
+      "sha256": "9b43262809250d16d4d9188e2160c81908d1b4ff911b1794d05370bd8b3912a8"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/ByteArrayNoThrowOutputStream.java",
+      "bytes": 486,
+      "sha256": "60ec26142f0675140f2f4d1a3d12395b7ac734d8d9176dcfab30e94692ddd85b"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/KeyPair.java",
+      "bytes": 922,
+      "sha256": "9c721834e8ca7186422653f0713239b400955e820ff780c004dacee5d93d539a"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/LocalServices.java",
+      "bytes": 11253,
+      "sha256": "9937c31afa15f191f15394299655a8a20cfe69cd92f2324f698a6f1f4890bb49"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/PRNGFixes.java",
+      "bytes": 11877,
+      "sha256": "f8f17b6d350a358f0f6ce0faee3755317552c6d8df42328a96c7f434b879e696"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/PairingAuthCtx.java",
+      "bytes": 5085,
+      "sha256": "45479417fa9244ec49ef77c89d99ab00858cffb97e5c9e1307447fea6b8aa7a4"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/PairingConnectionCtx.java",
+      "bytes": 16147,
+      "sha256": "4f7483cc203240831830defdc3c31261c7d1f974d1c81bdfcde3358ee8d8cc1a"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/SslUtils.java",
+      "bytes": 4391,
+      "sha256": "6123b205a1b1a57a2bf93817edb931b0252f03bcb43e8f9760b650e1021a63f0"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/StringCompat.java",
+      "bytes": 845,
+      "sha256": "6c282874083a318ea2fb993beb9d61eabb827be23be252ff621643d7d4010090"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/android/AdbMdns.java",
+      "bytes": 6281,
+      "sha256": "ebc10f7dd7cc167c1129bd2f20343794e734288193bd4931c183a558e274f5c4"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/android/AndroidUtils.java",
+      "bytes": 2056,
+      "sha256": "565081e51525595c34b226bbf86644f0f514bdaa9bd542775c7e3c7a75df27dd"
+    },
+    {
+      "path": "android/vendor/libadb/java/io/github/muntashirakon/adb/android/package.html",
+      "bytes": 79,
+      "sha256": "395a894dceb60dbfffd50ca6233ece0573527b9648f8fed48a6fce7b2e0cea30"
+    },
+    {
+      "path": "app.json",
+      "bytes": 746,
+      "sha256": "03af52dfdcff391b0a4013d8f78917bdd232fd11612b0bb18ac2548c2a883ab7"
+    },
+    {
+      "path": "assets/adaptive-icon.png",
+      "bytes": 31121,
+      "sha256": "abe15d53e17ec238bc823edf30c137d642633231e1c01b489cb77507cb5de902"
+    },
+    {
+      "path": "assets/brand/generate_icons.py",
+      "bytes": 6662,
+      "sha256": "79664f5f29582feaeaad085f9fcf2d489ed8ce3ce5f40ec59e40a0462ccd48c0"
+    },
+    {
+      "path": "assets/brand/recorder-icon.svg",
+      "bytes": 502,
+      "sha256": "6cd251664f5cf1339940722cd0775390ed79a9fd965aa7243b3c972872376a3a"
+    },
+    {
+      "path": "assets/brand/recorder-mark.svg",
+      "bytes": 459,
+      "sha256": "ba091144c69eacaa9893225136f9fbb7f4789c8ca4fa516469958a9ab32443c8"
+    },
+    {
+      "path": "assets/brand/recorder-monochrome.svg",
+      "bytes": 512,
+      "sha256": "4cb44bad6669e469352879a4ca3cf9d5995e802665aad81c74c52d8154605fc3"
+    },
+    {
+      "path": "assets/brand/recorder-splash.svg",
+      "bytes": 561,
+      "sha256": "dbc75993ad34aa15169a0573ad7ab02aaab27fdf7e73f74fb39e61e69b17e3df"
+    },
+    {
+      "path": "assets/favicon.png",
+      "bytes": 1750,
+      "sha256": "f834220eaf4c33487b4fad24aad01c1969f81562bc737d1829f73aad2f81a495"
+    },
+    {
+      "path": "assets/icon.png",
+      "bytes": 30226,
+      "sha256": "bdd501a9cbf6757f3399e930e11e46cce84bd883d1cdcc61e71daf8732d86451"
+    },
+    {
+      "path": "assets/monochrome-icon.png",
+      "bytes": 25987,
+      "sha256": "f0da5b0b5ed95406333b190ae37b1c1c1a164f577f556938544086a353d2efb9"
+    },
+    {
+      "path": "assets/splash-icon.png",
+      "bytes": 41912,
+      "sha256": "e0e4df8ffbc669bdd503f1b0b6494c8772fdbf20af6d7a98e8d2a859ee598484"
+    },
+    {
+      "path": "docs/google-drive-setup.md",
+      "bytes": 5475,
+      "sha256": "459b7c2c1772f11e5b3355a76b7dd5d84e5556d6ed4a4de87be87fc1fed95552"
+    },
+    {
+      "path": "docs/signing.properties.example",
+      "bytes": 268,
+      "sha256": "c81b1aa538bcba39e21b4716c0fa8b6f381f5e90061dae058376b14a2bce7d26"
+    },
+    {
+      "path": "index.ts",
+      "bytes": 346,
+      "sha256": "de6376c682aa67fba59fbba41a568e6a3a3f8c9a32da184825d89995ab559fe2"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 434464,
+      "sha256": "40c0ed51a0f1c7462af059b4bc711b57958b50a70338fa5916dddc6ea755d1af"
+    },
+    {
+      "path": "package.json",
+      "bytes": 1430,
+      "sha256": "4d6007b423f935fada90462b1b0a249bd5df3441dd3c8a07d01a379763dc030e"
+    },
+    {
+      "path": "src/components/AutoRecordingCard.tsx",
+      "bytes": 6650,
+      "sha256": "dc281fc1e9b47be113a3788a7bd39af4f341d884ddea0bc8e743ffde9e81211f"
+    },
+    {
+      "path": "src/components/DriveBackupCard.tsx",
+      "bytes": 11617,
+      "sha256": "726b3e9b65690c638af959ae66769b13c668fb47d1ff2556dae310014fb1d514"
+    },
+    {
+      "path": "src/components/RecordButton.tsx",
+      "bytes": 1560,
+      "sha256": "a92bc0f08fd1ee93cd578ebf3fafb2f78a29c55ba20423eef8ab72513712d55b"
+    },
+    {
+      "path": "src/components/SystemSetupWizard.tsx",
+      "bytes": 28270,
+      "sha256": "6f68868882708f1e98b1a9bd68e61007559872eff5475946fdba45733410ef0e"
+    },
+    {
+      "path": "src/components/Visuals.tsx",
+      "bytes": 6068,
+      "sha256": "bfd1227dfc081887f83ab6f0925f23619d7fe7123fb4b7deff20293287c60a31"
+    },
+    {
+      "path": "src/context/RecordingContext.tsx",
+      "bytes": 21425,
+      "sha256": "0d40d2bfda8e5d23d018d0271a621b982ab094ac4d0a5702b7cf112ce7902a2a"
+    },
+    {
+      "path": "src/hooks/useDriveBackup.ts",
+      "bytes": 3540,
+      "sha256": "02317aa746adda9387d62dabd7f6346a3f03632db73c7a1fdec87b24b8290da5"
+    },
+    {
+      "path": "src/navigation/AppNavigator.tsx",
+      "bytes": 2692,
+      "sha256": "d97f1aeb2b4db62cf44d35f2b658f7f3619cd7a9acf78dcf9cdf28d0123f854b"
+    },
+    {
+      "path": "src/screens/HomeScreen.tsx",
+      "bytes": 11353,
+      "sha256": "02bd958a8e2825889c09b0849d4edc53aa1ec788c5d72b5684acf81d4bfe91d0"
+    },
+    {
+      "path": "src/screens/PlaybackScreen.tsx",
+      "bytes": 10114,
+      "sha256": "0e11fce0f24e97b44b2293ded24ee907802f5c21779b9b1ad5e96b7f2d7c446f"
+    },
+    {
+      "path": "src/screens/RecordingsScreen.tsx",
+      "bytes": 8297,
+      "sha256": "e7bb28b2d1b52412af0e5efe00fbd725b43bc16f2ff9f1c4b81dbc1a529f4f2c"
+    },
+    {
+      "path": "src/screens/SettingsScreen.tsx",
+      "bytes": 7197,
+      "sha256": "02a5b50ce1369d71d869514b21be7d9b378112ee7e77c51fd69228ad5c7f8cd6"
+    },
+    {
+      "path": "src/screens/SetupScreen.tsx",
+      "bytes": 14696,
+      "sha256": "c004f8ad7bd72076def4c197195d9ecca915a864ae60c8f7627fc1f645665e23"
+    },
+    {
+      "path": "src/services/NativeDriveBackup.ts",
+      "bytes": 8241,
+      "sha256": "75669f48a425f0a53e53815b00c6a532b75358041ff742644e8951ec16c12cac"
+    },
+    {
+      "path": "src/services/NativeRecorder.ts",
+      "bytes": 5778,
+      "sha256": "31478cef310589b9499eeb3af7fe3ccd5e37c3886ee952aebc71cf84bb8f8499"
+    },
+    {
+      "path": "src/setup/SetupContext.tsx",
+      "bytes": 6808,
+      "sha256": "2c278e58043f236e0c80ba91028de8313a03580c810077acba42a39838696b13"
+    },
+    {
+      "path": "src/setup/__tests__/readiness.test.cjs",
+      "bytes": 5602,
+      "sha256": "158a39716572979c5123e29ac4891ff4b70cc333c788841ad14aab98e2de035d"
+    },
+    {
+      "path": "src/setup/readiness.ts",
+      "bytes": 2971,
+      "sha256": "2d5634f68c5bf2d57fe5d4be389da7ed4479a936e492cd33b7bbc66dae6853a2"
+    },
+    {
+      "path": "src/theme/index.ts",
+      "bytes": 1892,
+      "sha256": "26880c5a43441ee705a2d33cfb3b7e52d0c7924915beba975f68a0182886c120"
+    },
+    {
+      "path": "src/utils/permissions.ts",
+      "bytes": 1814,
+      "sha256": "a26b89f9ef148850c6571ee1d8cfa56456d02e9adb8a57567a00d8b54f000015"
+    },
+    {
+      "path": "tools/drive-backup-tests/DriveBackupPolicyTest.java",
+      "bytes": 4781,
+      "sha256": "3263a6ddce25b083352102637bd44c079526f4683a7501eea64aad15f83b4ab7"
+    },
+    {
+      "path": "tools/drive-backup-tests/DriveBackupQueueHostTest.kt",
+      "bytes": 5924,
+      "sha256": "a25b761b6d55d0c74741e22943d2c5b80eb7afd547283e2a8683255776ae3516"
+    },
+    {
+      "path": "tools/drive-backup-tests/DriveHttpTransportTest.java",
+      "bytes": 5042,
+      "sha256": "b8c11ba2b50edb6fb090cbc15e344f30863fd4329e90bedcceece25f2ed6b906"
+    },
+    {
+      "path": "tools/drive-backup-tests/run-host-tests.ps1",
+      "bytes": 3276,
+      "sha256": "73a3d189340d51390624b57f56f54f52971b7db5e8b9b83de075bb50b29d5e8d"
+    },
+    {
+      "path": "tools/drive-backup-tests/stubs/android/content/Context.java",
+      "bytes": 298,
+      "sha256": "4c0edcacd628194e5f61ada46003153fb7cbb0c7892106ced3768317de336972"
+    },
+    {
+      "path": "tools/drive-backup-tests/stubs/android/util/AtomicFile.java",
+      "bytes": 1249,
+      "sha256": "1a2abfbf1bb7d685a000f5f894fc3bfa132e9c16192d8c9a7a660061de82aa61"
+    },
+    {
+      "path": "tools/export-public-source.py",
+      "bytes": 5671,
+      "sha256": "337548862c3bd708acfe6db972f2c9eaaed6b920e4234a9dffefb72b1ced30b5"
+    },
+    {
+      "path": "tools/public-source-tests/test_export.py",
+      "bytes": 2627,
+      "sha256": "a52478755adf82916c9c63da2bc8a32355e2adafca9a1c214b8e12bda4e393c7"
+    },
+    {
+      "path": "tools/test-drive-ui.cjs",
+      "bytes": 5829,
+      "sha256": "a28024c90bd73877223992af7d2abb45180213577a8dd923f21352a99d433ca4"
+    },
+    {
+      "path": "tools/ui-preview/README.md",
+      "bytes": 2179,
+      "sha256": "5cabc91d08761bb4ae1d31f56b8f703b03271b9fb4efa907986c3bbecac5bcfb"
+    },
+    {
+      "path": "tools/ui-preview/capture.py",
+      "bytes": 5258,
+      "sha256": "b4fc551c644187dbe004a05f9848ce5ed8068430a1baf4313fee2b8abf34a4bb"
+    },
+    {
+      "path": "tools/ui-preview/index.html",
+      "bytes": 824,
+      "sha256": "c51e0aad95d6a9e13e01a9c54a4747fc19f7ebe31dfafdfb129a0d268c2f8d0d"
+    },
+    {
+      "path": "tools/ui-preview/preview.css",
+      "bytes": 6647,
+      "sha256": "59a6bf52062ee550b09fb20217dfbc233a8bed563ca96c313eeef3cbc9851db5"
+    },
+    {
+      "path": "tools/ui-preview/review.css",
+      "bytes": 6086,
+      "sha256": "931412dff39e230851fa080654a03175bcac00707b6928c779fb42ff3a9e96b7"
+    },
+    {
+      "path": "tools/ui-preview/review.js",
+      "bytes": 18872,
+      "sha256": "2d1eb3b9dee0deecec67f4653b7456e0224a9cf2cd9c361cb694f8cfd3c92d61"
+    },
+    {
+      "path": "tools/ui-preview/screens.css",
+      "bytes": 7436,
+      "sha256": "03d98b1bd87a257670bbc1e1b11fcd2a34e116867d4fc727a1dce5160ba28ea5"
+    },
+    {
+      "path": "tools/usb-audio-helper/.gitignore",
+      "bytes": 13,
+      "sha256": "702efd9b7b934c05cdae6c78978ea476c1e203f95a9b51fa051074a80167b974"
+    },
+    {
+      "path": "tools/usb-audio-helper/README.md",
+      "bytes": 11384,
+      "sha256": "1d3259ae9c583d6ea095dcb6d16254765904af9b33fdc7f1c24bfe421d1757e9"
+    },
+    {
+      "path": "tools/usb-audio-helper/build-helper.ps1",
+      "bytes": 1386,
+      "sha256": "f1cb12024f19c1e9d1fed4dbe69499ecceb7d2f5633e3746cbb14edd51818ed3"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/AudioCaptureApi.java",
+      "bytes": 3247,
+      "sha256": "7d5d0715f223a109cf3e295eae6f048adeefb776fc7c081132dc02a659b8c249"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/BootstrapHandoff.java",
+      "bytes": 1594,
+      "sha256": "d0af84f48d71dbf0d357731716e012b8286c63f0e88588820b8ef31e4c2b7d4f"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/CallAttributionFrame.java",
+      "bytes": 6367,
+      "sha256": "08d1926d07ef7fb8b55f3bc317b97ae7ded0aaa64100b732f7eb7b87a952b309"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/CallAttributionMonitor.java",
+      "bytes": 5086,
+      "sha256": "9c86b5a996cf1f9cbe7f62d0c04a280183aacb7f520db26fef848388d86e20ba"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/CallAudioOwnerMonitor.java",
+      "bytes": 3468,
+      "sha256": "e467d65a8c2f535118313cbb00c4909aaffbbe3ba8834e6eb47951eab2947d79"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/CallAudioOwnerParser.java",
+      "bytes": 6468,
+      "sha256": "7d0acd5b473949c2cf2f4cb8fa7816e083fcc500fd8f7a35060d18ed9b27f778"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/CallAudioOwnerProbe.java",
+      "bytes": 3569,
+      "sha256": "7d1c7a37c7fcb10f4659455de0a9709baf124f7e1a116c80b39d7c8be3e1e551"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/PcmFifo.java",
+      "bytes": 5451,
+      "sha256": "fdcfae70cecbc38158333738ae5373779879aa5d3efff6d70609f797060444b4"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/PcmStopTail.java",
+      "bytes": 2092,
+      "sha256": "216434afd100abc9d02d18560c77c79306170c1acd32a6e00be15cefa05e3501"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/ShellAudioBootstrap.java",
+      "bytes": 7385,
+      "sha256": "5e63427d4de674f5c53a0624f3079aeb0e48026edc5385ca4f839e07fa8dda5d"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/ShellAudioCompatibility.java",
+      "bytes": 1759,
+      "sha256": "ab31a7358f182201cdd9d980dc6b01eed8978b517c3930be95638541438c5132"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/ShellAudioContext.java",
+      "bytes": 5551,
+      "sha256": "8aeb4e9269c749abf8a1bbc4e55e7691eac99119063189994005e77dc27850fa"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/TelecomCallParser.java",
+      "bytes": 22900,
+      "sha256": "153210fcbc4eb4363e4fe130bcf534a2545b0458a17a9f53258845a7088553b2"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/TelecomCallProbe.java",
+      "bytes": 4716,
+      "sha256": "43b9e8b1a643a054f9cbae37bfe8c9ca58143cf2e5f6674b6122ff520b3f1c3d"
+    },
+    {
+      "path": "tools/usb-audio-helper/src/com/codaki/usbaudio/UsbAudioHelper.java",
+      "bytes": 31010,
+      "sha256": "4c02e1f691b2a37aa643fbc3604eeb4e96de3ab1f64be3e9f5b7ff817c62317d"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/.gitignore",
+      "bytes": 8,
+      "sha256": "020c2606e8ed484089c2083e0be438b9d0736bee1558a6b76af0d58bd23f69cf"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/AudioCaptureApiTest.java",
+      "bytes": 5315,
+      "sha256": "b8dceaa903195c52a55602077812b65ea1dfde65f7007267f0e4d52f6482493f"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/BootstrapHandoffTest.java",
+      "bytes": 5063,
+      "sha256": "3a7e965a1d2b9fa081c28e6ac19f974ca3c6fd222d59f0d20f691d5ab700aad4"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/CallAttributionFrameTest.java",
+      "bytes": 14012,
+      "sha256": "447faa7c3c16b98bdfd43cec6c663da6e83cc270dbfc8036d9cca6e72031c53f"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/CallAttributionMonitorTest.java",
+      "bytes": 6672,
+      "sha256": "e39bb94209afdf972f176625bae1e3373640ce26037db702364c711d02a93642"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/CallAudioOwnerTest.java",
+      "bytes": 14981,
+      "sha256": "fa40bd47f42a8ddbb5b5c7cf4a4ce5c459687f9f23289b3b854fd2d5a9897325"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/PcmFifoTest.java",
+      "bytes": 11374,
+      "sha256": "b49c35a32d68f100998c85929c7bd70455488b77979c69426a77564b17c3d5b6"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/PcmStopTailTest.java",
+      "bytes": 6912,
+      "sha256": "3062da27138edc41f7d3d96dc6d0bc2940627ee3bc7fcd62c27d82854dfb08d8"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/ShellApplicationPolicyTest.java",
+      "bytes": 1034,
+      "sha256": "bb49ba56342961300280f31ab6d2593ced986794175d5383d06caa3e82f80745"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/ShellAudioCompatibilityTest.java",
+      "bytes": 2844,
+      "sha256": "1f0ae39f295b811c0217967ceb39dbe14cf586e8586fe2863f7b88042530a34f"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/com/codaki/usbaudio/TelecomCallTest.java",
+      "bytes": 34596,
+      "sha256": "3a5d0f28b765ff2ebfb875ad6d5857ddae9bf79b823b7b23804c32bdb39dc5b3"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/run-attribution-frame-tests.ps1",
+      "bytes": 778,
+      "sha256": "e00fdfaf4de9dd1daea00fbfee4783d41dc48a7460a3cc4ef565a194448a7978"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/run-attribution-monitor-tests.ps1",
+      "bytes": 875,
+      "sha256": "48d409d83f6f4bbcc700d0560c13b1c680fe3296151709eb5126692fd5efbf4c"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/run-bootstrap-tests.ps1",
+      "bytes": 741,
+      "sha256": "b972718b4f45df12ada3f192fb956f5d43a62dbaa4b5946e96bf495baf1c66fb"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/run-call-owner-tests.ps1",
+      "bytes": 855,
+      "sha256": "7937c2d986ffa12c77eaab4faea50319082b478a7df5095a530e809e2a4e6594"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/run-compatibility-tests.ps1",
+      "bytes": 1064,
+      "sha256": "10a1bdb4c2947b929b0e3a4e8a2ab3b0c6bc05ea81d0eaec4ef6336efb7f9615"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/run-host-tests.ps1",
+      "bytes": 646,
+      "sha256": "67617e8d258d368af2485a76c3027598e4226e00e289cc48139d2ba3f462ae64"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/run-shell-context-tests.ps1",
+      "bytes": 874,
+      "sha256": "7b95fd4c7fe8466736ebffdde11fcbbc7f5eaa834374545d85e972d81b7ceca3"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/run-stop-tail-tests.ps1",
+      "bytes": 737,
+      "sha256": "cfc5957c08ad3dcbef3548a41d7c63c36881132651c929212fad88888a6bc5a8"
+    },
+    {
+      "path": "tools/usb-audio-helper/tests/run-telecom-tests.ps1",
+      "bytes": 731,
+      "sha256": "43c44c8564bd2c8e6c69845e4552b9ad29ad4ac65e6dc84011a8687e1b0d1d34"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 85,
+      "sha256": "712583ff9cdb4b4e4f9b000a4a56d68db8dc1921cbfbc36d490a3a9f2be3dd72"
+    }
+  ]
+}
