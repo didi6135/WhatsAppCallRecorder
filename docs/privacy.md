@@ -31,4 +31,4 @@ Telegram's encrypted receipt history is retained after disconnect so confirmed p
 
 The presentation website uses local browser storage for its language preference. It has no project analytics, recording upload form or microphone access. Hosting providers handle their own platform/network data. Download/source/issue links lead to GitHub; bot setup leads to Telegram; cloud connection uses Google services.
 
-Service policies: [Google](https://policies.google.com/privacy), [Telegram](https://telegram.org/privacy), [GitHub](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). Source and questions: [project repository](https://github.com/didi6135/WhatsAppCallRecorder).
+Service policies: [Google](https://policies.google.com/privacy), [Telegram](https://telegram.org/privacy), [GitHub](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). Source and questions: [project repository](https://github.com/didi6135/wa-reco).

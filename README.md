@@ -49,7 +49,7 @@ Original project code uses [0BSD](LICENSE). Dependencies retain their own licens
 
 For a public source snapshot, run `python tools/export-public-source.py --output artifacts/whatsapp-recorder-source.zip` after committing the intended changes. The exporter uses committed files, excludes private planning/Git history, recordings, environment/signing files and local artifacts, and rejects obvious credential material. Inspect its manifest before creating a new public repository. The development checkout's private Git history is not the public source snapshot.
 
-The sanitized public source is at [GitHub](https://github.com/didi6135/WhatsAppCallRecorder). The bilingual presentation/download website source is in [website](website/README.md). APK download links are enabled only with verified release metadata and accompanying source/notices.
+The sanitized public source is at [GitHub](https://github.com/didi6135/wa-reco). The bilingual presentation/download website source is in [website](website/README.md). APK download links are enabled only with verified release metadata and accompanying source/notices. See [repository history and frozen release snapshots](docs/repository-history.md).
 
 Local compile/unit checks are separate from real phone recording, Google OAuth and cloud upload acceptance. Existing-folder Drive uploads were verified on the owner's S26 in1.5.2. Default-folder creation/reuse, personal-bot Telegram pairing/upload and actual call-label availability remain separate device/provider checks. This source package does not establish Google branding/domain verification or compatibility with every device.
 
