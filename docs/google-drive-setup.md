@@ -11,6 +11,10 @@ This optional integration uses the native Google AuthorizationClient hosted fold
 
 The phone sends recordings directly to that selected account/folder. There is no maintainer storage account, shared user token or upload backend. Each installation has its own destination, private queue and Google authorization. Ordinary app users do **not** need a Google Cloud developer project.
 
+The user's part is choosing an account and approving access. The publisher separately registers the Android app with Google using its package name and signing certificate so Google can identify the app making that request. Registering the app does not select the user's storage account or replace their consent; users do not need to register an app or complete a developer verification process themselves.
+
+This app requests only `drive.file`, which Google classifies as **non-sensitive**. According to [Google's OAuth verification guidance](https://support.google.com/cloud/answer/13463073?hl=en), an app using only non-sensitive scopes does not need the sensitive/restricted-scope app verification process. Displaying a custom app name and logo on Google's consent screen requires a separate, lighter **brand verification**. These are distinct from Android OAuth client registration and the user's permission approval. See also [Google's Drive scope classifications](https://developers.google.com/workspace/drive/api/guides/api-specific-auth).
+
 ## Current publisher APK identity
 
 - Release application ID: `com.didi4164.WhatsAppCallRecorder.standalone`
@@ -23,7 +27,7 @@ These fingerprints identify the public signing certificate, not private signing 
 
 1. Choose or create a dedicated Google Cloud project for the application. Its maintainers manage the app registration; this does not give them access to users' Drive accounts or select a shared upload destination.
 2. Enable Google Drive API (`drive.googleapis.com`) and Google Picker API (`picker.googleapis.com`).
-3. Configure Google Auth Platform branding, homepage/privacy policy/terms, support contact, audience and the Drive file scope. For public Google-account use, choose External and complete Google's production publishing requirements. Testing is limited to listed test users and is not general public availability; production OAuth publishing/review is a separate release step.
+3. Configure Google Auth Platform branding, homepage/privacy policy/terms, support contact, audience and only the non-sensitive `drive.file` scope. For general Google-account use, choose **External** and publish the OAuth app with status **In production**. **Testing** is limited to listed test users and is not general public availability. Production publishing does not itself mean sensitive/restricted-scope verification is needed; brand verification for the displayed app name/logo is a separate publisher step.
 4. Create an **Android** OAuth client with the exact installed package and signing SHA-1. The values above apply only to the current publisher APK. AuthorizationClient discovers this registration from the installed package and signing certificate; there is no secret to copy into app configuration.
 5. Install the signed release on a phone with Google Play services. Choose Connect Drive in Settings, personally approve Google consent and select exactly one writable folder. Cancel must preserve the previous destination.
 6. Explicitly enable the backup of existing and future completed recordings. Test with a disclosed synthetic recording first. Verify the chosen account/folder, remote WAV byte count/checksum and successful upload state, including an interrupted-network retry and process restart.
@@ -40,10 +44,14 @@ The native AuthorizationClient flow has no runtime field for selecting an arbitr
 
 Compilation, unit tests and a mock HTTP server do not establish Google OAuth registration, real folder access or a real upload. Current source/review APK implementation is complete locally; real Google authorization and upload acceptance remain pending. Record these results separately. Test a disclosed synthetic recording in the tester's own account; do not upload private recordings or accept Google consent using an agent's account as a validation shortcut.
 
+The observed Google status **8** is the SDK's `INTERNAL_ERROR`, not proof that the user failed to approve access or that app registration or verification is the cause. The SDK can also produce this status when the returned authorization result is missing. Its underlying cause remains unconfirmed. Verify the publisher configuration and the exact failing authorization stage before attributing the error to either.
+
 ## Primary references
 
 - https://developers.google.com/workspace/drive/picker/guides/desktop-mobile-picker#use_the_google_picker_with_android_apps
 - https://developer.android.com/identity/authorization
 - https://developers.google.com/workspace/drive/api/guides/api-specific-auth
+- https://support.google.com/cloud/answer/13463073?hl=en
+- https://developers.google.com/android/reference/com/google/android/gms/common/api/CommonStatusCodes#INTERNAL_ERROR
 - https://developers.google.com/workspace/drive/api/guides/manage-uploads
 - https://developers.google.com/workspace/drive/api/reference/rest/v3/about/get
