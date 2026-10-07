@@ -15,6 +15,8 @@ export interface DriveBackupStatus {
   accountEmail: string | null;
   folderId: string | null;
   folderName: string | null;
+  // Older builds omit this; they keep the existing selected-folder connection flow.
+  folderSource?: 'managed' | 'selected' | null;
   phase: DriveBackupPhase;
   queuedCount: number;
   uploadedCount: number;
@@ -31,6 +33,7 @@ export interface DriveBackupStatus {
 
 interface DriveBackupModule {
   getStatus(): Promise<unknown>;
+  connectDefaultFolder(): Promise<unknown>;
   connect(): Promise<unknown>;
   chooseFolder(): Promise<unknown>;
   setEnabled(enabled: boolean): Promise<unknown>;
@@ -137,6 +140,10 @@ export function normalizeDriveBackupStatus(value: unknown): DriveBackupStatus {
     uploadingId: textOrNull(raw.uploadingId), uploadedBytes: count(raw.uploadedBytes), totalBytes: count(raw.totalBytes),
     errorCode, errorMessage: rawErrorMessage === null ? null : driveErrorMessage(errorCode),
   };
+  if (raw.folderSource !== undefined) {
+    status.folderSource = !status.connected || !status.folderId ? null
+      : raw.folderSource === 'managed' ? 'managed' : 'selected';
+  }
   if (raw.lastActionError !== undefined) status.lastActionError = actionErrorOrNull(raw.lastActionError);
   if (raw.items !== undefined) {
     if (!Array.isArray(raw.items) || raw.items.length > 1000) return invalidStatus();
@@ -170,6 +177,7 @@ async function call(action: (module: DriveBackupModule) => Promise<unknown>): Pr
 
 export const NativeDriveBackup = {
   getStatus: (): Promise<DriveBackupStatus> => call(module => module.getStatus()),
+  connectDefaultFolder: (): Promise<DriveBackupStatus> => call(module => module.connectDefaultFolder()),
   connect: (): Promise<DriveBackupStatus> => call(module => module.connect()),
   chooseFolder: (): Promise<DriveBackupStatus> => call(module => module.chooseFolder()),
   setEnabled: (enabled: boolean): Promise<DriveBackupStatus> => call(module => module.setEnabled(enabled)),

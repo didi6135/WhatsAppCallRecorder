@@ -53,6 +53,21 @@ public final class TelegramBackupLedgerTest {
         TelegramBackupLedger.retry(restarted, true);
         check(selected(restarted) == null); // Known receipt is preserved through explicit retry.
         TelegramBackupLedger.validate(restarted);
+        // A delayed positive dialog callback can authorize only the destination generation it captured.
+        JSONObject approved = connected(99);
+        long approvedGeneration = TelegramBackupLedger.config(approved).generation;
+        TelegramBackupLedger.disconnect(approved);
+        TelegramBackupLedger.prepareConnection(approved, "123456" + ":" + "x".repeat(35), 123456, "OwnPrivateBot", "wa_" + "f".repeat(32), 1000);
+        TelegramBackupLedger.completeConnection(approved, 100, 100);
+        String beforeOldApproval = approved.toString();
+        try {
+            TelegramBackupLedger.setEnabled(approved, true, approvedGeneration);
+            throw new AssertionError("Old dialog approval must be rejected");
+        } catch (TelegramBackupFailure failure) { check("CANCELED".equals(failure.code)); }
+        check(beforeOldApproval.equals(approved.toString()));
+        check(!TelegramBackupLedger.config(approved).enabled);
+        TelegramBackupLedger.setEnabled(approved, true, TelegramBackupLedger.config(approved).generation);
+        check(TelegramBackupLedger.config(approved).enabled);
         // Two parts: only the failed/unknown part retries; successful part never sends again.
         JSONObject longCall = connected(99); TelegramBackupLedger.setEnabled(longCall, true);
         enqueue(longCall, "2-bbbbbbbb", 48_000_048);

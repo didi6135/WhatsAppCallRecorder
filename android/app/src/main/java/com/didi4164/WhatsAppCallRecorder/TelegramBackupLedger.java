@@ -153,6 +153,10 @@ public final class TelegramBackupLedger {
         if (enabled && !config(value).connected) throw new TelegramBackupFailure("NOT_CONNECTED");
         changed(value); value.put("enabled", enabled); clearError(value);
     }
+    public static void setEnabled(JSONObject value, boolean enabled, long expectedGeneration) throws Exception {
+        if (config(value).generation != expectedGeneration) throw new TelegramBackupFailure("CANCELED");
+        setEnabled(value, enabled);
+    }
     public static void disconnect(JSONObject value) throws Exception {
         changed(value); value.put("enabled", false); clearError(value);
         for (String key : new String[]{"token", "botId", "chatId", "botUsername", "nonce", "expiresAt", "pendingAck"}) value.remove(key);

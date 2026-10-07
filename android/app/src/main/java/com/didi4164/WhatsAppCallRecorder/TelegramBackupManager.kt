@@ -151,9 +151,14 @@ object TelegramBackupManager {
     foreground(isForeground); sameGeneration(context, cfg.generation)
     TelegramBackupStore.change(context) { if (TelegramBackupLedger.config(it).generation == cfg.generation) it.remove("pendingAck") }
   }
-  fun setEnabled(context: Context, enabled: Boolean, isForeground: () -> Boolean) {
+  fun setEnabled(context: Context, enabled: Boolean, expectedGeneration: Long? = null, isForeground: () -> Boolean) {
     if (enabled) { foreground(isForeground); acknowledge(context, isForeground); foreground(isForeground) }
-    TelegramBackupStore.change(context) { TelegramBackupLedger.setEnabled(it, enabled) }; cancel(context)
+    TelegramBackupStore.change(context) {
+      if (expectedGeneration != null && TelegramBackupLedger.config(it).generation != expectedGeneration) throw TelegramBackupFailure("CANCELED")
+      if (enabled) foreground(isForeground) // Recheck within the store lock, immediately before enabling.
+      if (expectedGeneration == null) TelegramBackupLedger.setEnabled(it, enabled)
+      else TelegramBackupLedger.setEnabled(it, enabled, expectedGeneration)
+    }; cancel(context)
     if (enabled) scans.execute { reconcile(context, true) }
   }
   fun retry(context: Context, confirmPossibleDuplicates: Boolean, isForeground: () -> Boolean) {

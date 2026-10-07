@@ -1,6 +1,8 @@
 package com.didi4164.WhatsAppCallRecorder
 
 import android.content.Context
+import android.system.Os
+import android.system.OsConstants
 import android.util.AtomicFile
 import org.json.JSONArray
 import org.json.JSONObject
@@ -40,6 +42,17 @@ object DriveBackupQueue {
     require(value.optInt("version") == 1 && value.optLong("generation") > 0)
     val cfg = config(value)
     require(!cfg.enabled || cfg.connected)
+    if (value.has("managedFolders")) {
+      val managed = value.getJSONArray("managedFolders")
+      require(managed.length() <= 512)
+      val accounts = mutableSetOf<String>(); val remoteIds = mutableSetOf<String>()
+      for (i in 0 until managed.length()) {
+        val entry = managed.getJSONObject(i)
+        require(entry.get("confirmed") is Boolean)
+        val intent = managed(entry)
+        require(accounts.add(intent.accountId) && remoteIds.add(intent.folderId))
+      }
+    }
     val jobs = value.getJSONArray("jobs")
     val identities = mutableSetOf<String>()
     for (i in 0 until jobs.length()) {
@@ -61,9 +74,25 @@ object DriveBackupQueue {
     state(context)
     check(!unavailable) { "LOCAL_QUEUE_UNAVAILABLE" }
     val disk = file(context)
-    val stream = disk.startWrite()
-    try { stream.write(value.toString().toByteArray(Charsets.UTF_8)); disk.finishWrite(stream); cached = value }
-    catch (failure: Exception) { disk.failWrite(stream); throw failure }
+    val bytes = value.toString().toByteArray(Charsets.UTF_8)
+    if (bytes.size > 8 * 1024 * 1024) throw DriveBackupFailure("LOCAL_QUEUE_UNAVAILABLE")
+    val stream = try { disk.startWrite() } catch (_: Exception) { throw DriveBackupFailure("LOCAL_QUEUE_UNAVAILABLE") }
+    try {
+      stream.write(bytes)
+      // Framework AtomicFile can log sync/rename failures instead of throwing. Never trust its return alone.
+      stream.fd.sync()
+      disk.finishWrite(stream)
+      val committed = disk.baseFile
+      check(committed.length() == bytes.size.toLong() && committed.readBytes().contentEquals(bytes))
+      val parent = committed.parentFile!!
+      check(parent.isDirectory)
+      val directory = Os.open(parent.absolutePath, OsConstants.O_RDONLY, 0)
+      try { Os.fsync(directory) } finally { Os.close(directory) }
+      cached = value
+    } catch (_: Exception) {
+      runCatching { disk.failWrite(stream) }
+      throw DriveBackupFailure("LOCAL_QUEUE_UNAVAILABLE")
+    }
   }
   private fun copy(context: Context) = JSONObject(state(context).toString())
   private fun config(value: JSONObject) = Config(value.optLong("generation", 1), value.optBoolean("enabled"),
@@ -85,21 +114,63 @@ object DriveBackupQueue {
     }
     return null
   }
-  @Synchronized fun select(context: Context, email: String, accountId: String, folderId: String, folderName: String) {
-    require(email.length in 3..320 && accountId.length in 1..256 && DriveBackupPolicy.validDriveId(folderId))
-    val next = copy(context).put("generation", config(context).generation + 1).put("enabled", false)
-      .put("email", email).put("accountId", accountId).put("folderId", folderId).put("folderName", folderName.take(240))
-      .put("phase", "paused")
-    next.remove("errorCode"); save(context, next)
+  private fun managed(entry: JSONObject) = DriveManagedFolder(entry.getString("accountId"), entry.getString("folderId"),
+    entry.getString("marker"), entry.getBoolean("confirmed"))
+  private fun managedEntries(value: JSONObject): JSONArray = if (value.has("managedFolders")) value.getJSONArray("managedFolders") else JSONArray()
+  @Synchronized fun managed(context: Context, accountId: String): DriveManagedFolder? {
+    val value = state(context)
+    if (unavailable) throw DriveBackupFailure("LOCAL_QUEUE_UNAVAILABLE")
+    val entries = managedEntries(value)
+    for (i in 0 until entries.length()) {
+      val candidate = managed(entries.getJSONObject(i))
+      if (candidate.accountId == accountId) return candidate
+    }
+    return null
   }
-  @Synchronized fun setEnabled(context: Context, enabled: Boolean) {
+  /** Reservation changes no current destination/generation. Its ID survives disconnects and uncertain creates. */
+  @Synchronized fun reserveManaged(context: Context, expectedGeneration: Long, accountId: String, folderId: String, marker: String): DriveManagedFolder {
+    if (config(context).generation != expectedGeneration) throw DriveBackupFailure("ACCOUNT_CHANGED")
+    val intent = DriveManagedFolder(accountId, folderId, marker, false)
+    managed(context, accountId)?.let { return it }
+    val next = copy(context); val entries = managedEntries(next)
+    if (entries.length() >= 512) throw DriveBackupFailure("LOCAL_QUEUE_UNAVAILABLE")
+    entries.put(JSONObject().put("accountId", accountId).put("folderId", folderId).put("marker", marker).put("confirmed", false))
+    next.put("managedFolders", entries); save(context, next)
+    return intent
+  }
+  private fun selection(value: JSONObject, email: String, accountId: String, folderId: String, folderName: String): JSONObject {
+    require(email.length in 3..320 && accountId.length in 1..256 && DriveBackupPolicy.validDriveId(folderId))
+    return value.put("generation", config(value).generation + 1).put("enabled", false)
+      .put("email", email).put("accountId", accountId).put("folderId", folderId).put("folderName", folderName.take(240))
+      .put("phase", "paused").also { it.remove("errorCode") }
+  }
+  @Synchronized fun select(context: Context, email: String, accountId: String, folderId: String, folderName: String, expectedGeneration: Long? = null) {
+    if (expectedGeneration != null && config(context).generation != expectedGeneration) throw DriveBackupFailure("ACCOUNT_CHANGED")
+    save(context, selection(copy(context), email, accountId, folderId, folderName))
+  }
+  /** Exact reservation confirmation and paused selection are one generation-conditional durable commit. */
+  @Synchronized fun selectManaged(context: Context, expectedGeneration: Long, email: String, intent: DriveManagedFolder, folderName: String) {
+    if (config(context).generation != expectedGeneration) throw DriveBackupFailure("ACCOUNT_CHANGED")
+    if (managed(context, intent.accountId) != intent) throw DriveBackupFailure("REMOTE_MISMATCH")
+    val next = copy(context); val entries = managedEntries(next)
+    for (i in 0 until entries.length()) {
+      val entry = entries.getJSONObject(i)
+      if (entry.getString("accountId") == intent.accountId) entry.put("confirmed", true)
+    }
+    save(context, selection(next, email, intent.accountId, intent.folderId, folderName))
+  }
+  @Synchronized fun setEnabled(context: Context, enabled: Boolean, expectedGeneration: Long? = null, beforeCommit: () -> Unit = {}) {
     val cfg = config(context)
+    if (expectedGeneration != null && cfg.generation != expectedGeneration) throw DriveBackupFailure("ACCOUNT_CHANGED")
+    beforeCommit()
     require(!enabled || cfg.connected)
     val next = copy(context).put("enabled", enabled).put("generation", cfg.generation + 1)
       .put("phase", if (!cfg.connected) "disconnected" else if (enabled) "ready" else "paused")
     next.remove("errorCode"); save(context, next)
   }
-  @Synchronized fun disconnect(context: Context) {
+  @Synchronized fun disconnect(context: Context, expectedGeneration: Long? = null, beforeCommit: () -> Unit = {}) {
+    if (expectedGeneration != null && config(context).generation != expectedGeneration) throw DriveBackupFailure("ACCOUNT_CHANGED")
+    beforeCommit()
     val next = copy(context).put("enabled", false).put("generation", config(context).generation + 1).put("phase", "disconnected")
     arrayOf("email", "accountId", "folderId", "folderName", "errorCode").forEach { next.remove(it) }
     // Keep upload receipts/remote IDs for a later reconnection to the same destination.
@@ -175,6 +246,7 @@ object DriveBackupQueue {
     val code = value.optString("errorCode").takeIf { it.isNotEmpty() }
     return mapOf("enabled" to cfg.enabled, "connected" to cfg.connected, "accountEmail" to cfg.email.takeIf { it.isNotEmpty() },
       "folderId" to cfg.folderId.takeIf { it.isNotEmpty() }, "folderName" to cfg.folderName.takeIf { it.isNotEmpty() },
+      "folderSource" to if (!cfg.connected) null else if (managed(context, cfg.accountId)?.let { it.confirmed && it.folderId == cfg.folderId } == true) "managed" else "selected",
       "phase" to phase, "queuedCount" to pending, "uploadedCount" to uploaded, "failedCount" to failed,
       "uploadingId" to active?.takeIf { phase == "uploading" }?.optString("id"),
       "uploadedBytes" to (active?.takeIf { phase == "uploading" }?.optLong("offset") ?: 0).toDouble(),

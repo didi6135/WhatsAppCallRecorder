@@ -1,5 +1,5 @@
 param(
-  [string]$GradleCache = 'C:\g\caches\modules-2\files-2.1',
+  [string]$GradleCache = (Join-Path $env:USERPROFILE '.gradle\caches\modules-2\files-2.1'),
   [string]$KotlinVersion = '2.0.21'
 )
 $ErrorActionPreference = 'Stop'
@@ -10,9 +10,14 @@ New-Item -ItemType Directory -Force -Path $driveBuild | Out-Null
 $driveSources = @(
   (Join-Path $driveMain 'DriveBackupPolicy.java'),
   (Join-Path $driveMain 'DriveHttpTransport.java'),
+  (Join-Path $driveMain 'DriveConnectionAttempt.java'),
+  (Join-Path $driveMain 'ForegroundMutationGate.java'),
   (Join-Path $PSScriptRoot 'DriveBackupPolicyTest.java'),
   (Join-Path $PSScriptRoot 'DriveHttpTransportTest.java'),
   (Join-Path $PSScriptRoot 'stubs\android\content\Context.java'),
+  (Join-Path $PSScriptRoot 'stubs\android\system\Os.java'),
+  (Join-Path $PSScriptRoot 'stubs\android\system\OsConstants.java'),
+  (Join-Path $PSScriptRoot 'stubs\AppText.java'),
   (Join-Path $PSScriptRoot 'stubs\android\util\AtomicFile.java')
 )
 & javac --release 8 -encoding UTF-8 -d $driveBuild $driveSources
@@ -41,8 +46,18 @@ $driveCompilerJars = @(
   (Find-DriveTestJar 'org.jetbrains\annotations')
 )
 $driveRuntime = @($driveBuild, $driveStdlib, $driveJson) -join [IO.Path]::PathSeparator
-& java -classpath ($driveCompilerJars -join [IO.Path]::PathSeparator) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-stdlib -no-reflect -jvm-target 1.8 -classpath $driveRuntime -d $driveBuild (Join-Path $driveMain 'DriveBackupQueue.kt') (Join-Path $driveMain 'DriveBackupErrors.kt') (Join-Path $PSScriptRoot 'DriveBackupQueueHostTest.kt')
+& java -classpath ($driveCompilerJars -join [IO.Path]::PathSeparator) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-stdlib -no-reflect -jvm-target 1.8 -classpath $driveRuntime -d $driveBuild (Join-Path $driveMain 'DriveBackupFailure.kt') (Join-Path $driveMain 'DriveManagedFolder.kt') (Join-Path $driveMain 'DriveBackupQueue.kt') (Join-Path $driveMain 'DriveBackupErrors.kt') (Join-Path $PSScriptRoot 'DriveBackupQueueHostTest.kt')
 if ($LASTEXITCODE -ne 0) { throw 'Drive journal host Kotlin compilation failed.' }
 & java -classpath $driveRuntime com.didi4164.WhatsAppCallRecorder.DriveBackupQueueHostTest $driveBuild
 if ($LASTEXITCODE -ne 0) { throw 'Drive journal host tests failed.' }
+$driveJUnit = Find-DriveTestJar 'junit\junit' '4.13.2'
+$driveHamcrest = Find-DriveTestJar 'org.hamcrest\hamcrest-core' '1.3'
+$driveProtocolRuntime = @($driveRuntime, $driveJUnit, $driveHamcrest) -join [IO.Path]::PathSeparator
+$driveUnit = Join-Path $driveRepo 'android\app\src\test\java\com\didi4164\WhatsAppCallRecorder'
+& javac --release 8 -encoding UTF-8 -classpath $driveProtocolRuntime -d $driveBuild (Join-Path $driveUnit 'DriveConnectionAttemptTest.java') (Join-Path $driveUnit 'ForegroundMutationGateTest.java')
+if ($LASTEXITCODE -ne 0) { throw 'Drive action gate host compilation failed.' }
+& java -classpath ($driveCompilerJars -join [IO.Path]::PathSeparator) org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-stdlib -no-reflect -jvm-target 1.8 -classpath $driveProtocolRuntime -d $driveBuild (Join-Path $driveMain 'DriveBackupClient.kt') (Join-Path $driveMain 'DriveDefaultFolderProvisioner.kt') (Join-Path $driveUnit 'DriveBackupClientTest.kt') (Join-Path $driveUnit 'DriveDefaultFolderProvisionerTest.kt')
+if ($LASTEXITCODE -ne 0) { throw 'Drive protocol host Kotlin compilation failed.' }
+& java -classpath $driveProtocolRuntime org.junit.runner.JUnitCore com.didi4164.WhatsAppCallRecorder.DriveConnectionAttemptTest com.didi4164.WhatsAppCallRecorder.ForegroundMutationGateTest com.didi4164.WhatsAppCallRecorder.DriveBackupClientTest com.didi4164.WhatsAppCallRecorder.DriveDefaultFolderProvisionerTest
+if ($LASTEXITCODE -ne 0) { throw 'Drive protocol/action gate host tests failed.' }
 Write-Output 'All Drive host checks passed. Synthetic HTTP and journal tests do not verify OAuth, Android WorkManager or a real Drive upload.'

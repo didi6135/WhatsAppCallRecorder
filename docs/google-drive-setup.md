@@ -1,15 +1,17 @@
 # Google Drive: independent accounts and app registration
 
-This optional integration uses the native Google AuthorizationClient hosted folder picker and only `https://www.googleapis.com/auth/drive.file`. No backend, web OAuth redirect, API key or client secret belongs in the APK. Completed WAV files remain locally available. Backup starts only after the person chooses an account/folder and explicitly enables uploading existing and future completed recordings.
+This optional integration uses the native Google AuthorizationClient and only `https://www.googleapis.com/auth/drive.file`. The default connection creates or reuses this installation's `wa-reco` folder; Google's hosted picker remains available for choosing an existing folder. No backend, web OAuth redirect, API key or client secret belongs in the APK. Completed WAV files remain locally available. Backup starts only after the person chooses an account/folder and explicitly enables uploading existing and future completed recordings.
 
 ## Each user's account and folder
 
 1. Open Settings and choose Connect Drive. Select your own Google account in Google's account selector and approve the app's requested access.
-2. Select one writable Drive folder using Google's hosted picker.
+2. The default route creates or reuses a `wa-reco` folder in your My Drive and shows the account and folder. Alternatively, choose the existing-folder action, find a writable folder in Google's picker and confirm with its bottom **Insert / Select** button. Entering a folder alone does not confirm it.
 3. Explicitly enable uploading existing and future completed recordings. Account/folder selection alone does not enable backup.
 4. Check upload status; recording and local playback remain available while backup is disconnected or offline. Pending uploads need internet through Wi-Fi or mobile data.
 
 The phone sends recordings directly to that selected account/folder. There is no maintainer storage account, shared user token or upload backend. Each installation has its own destination, private queue and Google authorization. Ordinary app users do **not** need a Google Cloud developer project.
+
+Default-folder reuse depends on preserved app data, not the folder's name. A fresh installation or cleared app data can create another `wa-reco` folder; use the existing-folder action to select a previous destination. See the [creation and retry contract](drive-default-folder.md).
 
 The user's part is choosing an account and approving access. The publisher separately registers the Android app with Google using its package name and signing certificate so Google can identify the app making that request. Registering the app does not select the user's storage account or replace their consent; users do not need to register an app or complete a developer verification process themselves.
 
@@ -50,7 +52,7 @@ The earlier generic Google status **8** is the SDK's `INTERNAL_ERROR`, not proof
 
 ## Acceptance limits
 
-Compilation, unit tests and a mock HTTP server do not establish Google OAuth registration, real folder access or a real upload. The publisher reports that Audience now shows **In production**, and the physical phone reaches Google's hosted folder picker. Confirmed folder storage and actual uploads remain pending. These results do not establish that publisher branding is verified/published or that domain ownership is verified. Record those results separately. Test a disclosed synthetic recording in the tester's own account; do not upload private recordings or accept Google consent using an agent's account as a validation shortcut.
+Compilation, unit tests and a mock HTTP server do not establish Google OAuth registration, real folder access or a real upload. The publisher reports that Audience now shows **In production**. The owner completed hosted folder selection, and the physical phone displays the selected account/folder with backup off. Actual uploads and the new default-folder creation/reuse route remain pending. These results do not establish that publisher branding is verified/published or that domain ownership is verified. Record those results separately. Test a disclosed synthetic recording in the tester's own account; do not upload private recordings or accept Google consent using an agent's account as a validation shortcut.
 
 ## Primary references
 

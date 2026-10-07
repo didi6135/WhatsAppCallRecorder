@@ -84,6 +84,86 @@ object DriveBackupQueueHostTest {
     }
     journal.writeBytes(ByteArray(8 * 1024 * 1024 + 1)); reset()
     verify(DriveBackupQueue.status(context)["errorCode"] == "LOCAL_QUEUE_UNAVAILABLE")
+
+    val managedContext = Context(Files.createTempDirectory(root.toPath(), "managed-journal-").toFile())
+    reset()
+    DriveBackupQueue.setEnabled(managedContext, false)
+    val disconnected = DriveBackupQueue.config(managedContext)
+    val marker = "0123456789abcdef0123456789abcdef"
+    val beforeReservation = File(managedContext.noBackupFilesDir, "drive-backup-v1.json").readText()
+    android.util.AtomicFile.failNextFinish = true
+    reject { DriveBackupQueue.reserveManaged(managedContext, disconnected.generation, "account_A", "managed_A", marker) }
+    verify(DriveBackupQueue.managed(managedContext, "account_A") == null)
+    verify(File(managedContext.noBackupFilesDir, "drive-backup-v1.json").readText() == beforeReservation)
+    android.util.AtomicFile.silentlySkipNextCommit = true
+    reject { DriveBackupQueue.reserveManaged(managedContext, disconnected.generation, "account_A", "managed_A", marker) }
+    verify(DriveBackupQueue.managed(managedContext, "account_A") == null)
+    verify(File(managedContext.noBackupFilesDir, "drive-backup-v1.json").readText() == beforeReservation)
+    android.system.Os.failNextSync = true
+    reject { DriveBackupQueue.reserveManaged(managedContext, disconnected.generation, "account_A", "managed_A", marker) }
+    verify(DriveBackupQueue.managed(managedContext, "account_A") == null)
+    val syncsBeforeReservation = android.system.Os.directorySyncs
+    val reserved = DriveBackupQueue.reserveManaged(managedContext, disconnected.generation, "account_A", "managed_A", marker)
+    verify(android.system.Os.directorySyncs == syncsBeforeReservation + 1)
+    verify(!reserved.confirmed && reserved.accountId == "account_A")
+    verify(!DriveBackupQueue.config(managedContext).connected && !DriveBackupQueue.config(managedContext).enabled)
+    verify(DriveBackupQueue.reserveManaged(managedContext, disconnected.generation, "account_A", "discarded_id", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa") == reserved)
+    reset() // Process loss before/after POST does not allocate another folder identity.
+    verify(DriveBackupQueue.managed(managedContext, "account_A") == reserved)
+    verify(DriveBackupQueue.managed(managedContext, "account_B") == null)
+    reject { DriveBackupQueue.selectManaged(managedContext, disconnected.generation + 1, "synthetic@example.invalid", reserved, "wa-reco") }
+    reject { DriveBackupQueue.selectManaged(managedContext, disconnected.generation, "synthetic@example.invalid", reserved.copy(marker = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"), "wa-reco") }
+    verify(!DriveBackupQueue.config(managedContext).connected)
+    DriveBackupQueue.selectManaged(managedContext, disconnected.generation, "synthetic@example.invalid", reserved, "wa-reco")
+    verify(DriveBackupQueue.status(managedContext)["folderSource"] == "managed")
+    verify(DriveBackupQueue.managed(managedContext, "account_A")!!.confirmed)
+    verify(DriveBackupQueue.config(managedContext).connected && !DriveBackupQueue.config(managedContext).enabled)
+    DriveBackupQueue.enqueue(managedContext, "4-deadbeef", 100)
+    verify(DriveBackupQueue.status(managedContext)["queuedCount"] == 0)
+    DriveBackupQueue.setEnabled(managedContext, true)
+    DriveBackupQueue.enqueue(managedContext, "4-deadbeef", 100)
+    val connected = DriveBackupQueue.config(managedContext)
+    DriveBackupQueue.disconnect(managedContext)
+    reject { DriveBackupQueue.selectManaged(managedContext, connected.generation, "synthetic@example.invalid", reserved, "wa-reco") }
+    reset()
+    verify(DriveBackupQueue.managed(managedContext, "account_A")!!.folderId == reserved.folderId)
+    verify(DriveBackupQueue.managed(managedContext, "account_A")!!.confirmed)
+    verify(DriveBackupQueue.status(managedContext)["folderSource"] == null)
+    DriveBackupQueue.select(managedContext, "synthetic@example.invalid", "account_A", "selected_A", "User folder")
+    verify(DriveBackupQueue.status(managedContext)["folderSource"] == "selected")
+    val selected = DriveBackupQueue.config(managedContext)
+    reject { DriveBackupQueue.reserveManaged(managedContext, selected.generation - 1, "account_B", "managed_B", marker) }
+    verify(DriveBackupQueue.managed(managedContext, "account_B") == null)
+    verify(DriveBackupQueue.config(managedContext) == selected)
+    val managedJournal = File(managedContext.noBackupFilesDir, "drive-backup-v1.json")
+    val approvedGeneration = selected.generation
+    DriveBackupQueue.select(managedContext, "other@example.invalid", "account_B", "selected_B", "Other destination")
+    val replacement = DriveBackupQueue.config(managedContext)
+    val beforeApproval = managedJournal.readText()
+    reject { DriveBackupQueue.setEnabled(managedContext, true, approvedGeneration) }
+    reject { DriveBackupQueue.disconnect(managedContext, approvedGeneration) }
+    verify(DriveBackupQueue.config(managedContext) == replacement && !replacement.enabled)
+    verify(managedJournal.readText() == beforeApproval)
+    var commitChecks = 0
+    reject { DriveBackupQueue.setEnabled(managedContext, true, replacement.generation) {
+      commitChecks++; throw DriveBackupFailure("FOREGROUND_REQUIRED")
+    } }
+    reject { DriveBackupQueue.disconnect(managedContext, replacement.generation) {
+      commitChecks++; throw DriveBackupFailure("FOREGROUND_REQUIRED")
+    } }
+    verify(commitChecks == 2 && DriveBackupQueue.config(managedContext) == replacement)
+    verify(managedJournal.readText() == beforeApproval)
+    DriveBackupQueue.setEnabled(managedContext, true, replacement.generation) { commitChecks++ }
+    verify(commitChecks == 3 && DriveBackupQueue.config(managedContext).enabled)
+    DriveBackupQueue.setEnabled(managedContext, false)
+    val managedBytes = managedJournal.readText()
+    val badManaged = JSONObject(managedBytes).getJSONArray("managedFolders").getJSONObject(0)
+    badManaged.put("marker", "invalid marker")
+    val corrupted = JSONObject(managedBytes).put("managedFolders", org.json.JSONArray().put(badManaged)).toString()
+    managedJournal.writeText(corrupted); reset()
+    verify(DriveBackupQueue.status(managedContext)["errorCode"] == "LOCAL_QUEUE_UNAVAILABLE")
+    reject { DriveBackupQueue.reserveManaged(managedContext, 1, "account_A", "managed_A", marker) }
+    verify(managedJournal.readText() == corrupted)
     println("Drive backup queue: $checks checks passed (host Context/AtomicFile shims; no Android lifecycle claim).")
   }
 }

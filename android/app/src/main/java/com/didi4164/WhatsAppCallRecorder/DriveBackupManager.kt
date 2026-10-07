@@ -22,6 +22,8 @@ object DriveBackupManager {
   const val SCOPE = "https://www.googleapis.com/auth/drive.file"
   private const val WORK = "codaki-drive-completed-recordings"
   internal val io = Executors.newSingleThreadExecutor { action -> Thread(action, "DriveBackupControl") }
+  internal data class Selection(val account: DriveBackupClient.AccountInfo, val folder: DriveBackupClient.Folder,
+    val managed: DriveManagedFolder? = null)
 
   /** Always asynchronous: RecordingStore.finish calls this while holding its own lock. */
   fun enqueueCompleted(context: Context, id: String) {
@@ -47,9 +49,9 @@ object DriveBackupManager {
       DriveBackupQueue.enqueue(context, item.getString("id"), item.optLong("fileSize"))
     }
   }
-  fun setEnabled(context: Context, enabled: Boolean) {
+  fun setEnabled(context: Context, enabled: Boolean, expectedGeneration: Long? = null, beforeCommit: () -> Unit = {}) {
     if (enabled && !DriveBackupQueue.config(context).connected) throw DriveBackupFailure("NOT_CONNECTED")
-    DriveBackupQueue.setEnabled(context, enabled)
+    DriveBackupQueue.setEnabled(context, enabled, expectedGeneration, beforeCommit)
     cancel(context)
     if (enabled) { scan(context); schedule(context, replace = true) }
   }
@@ -77,24 +79,46 @@ object DriveBackupManager {
     if (changeFolder && config.connected) builder.setAccount(Account(config.email, "com.google"))
     return builder.build()
   }
-  fun acceptSelection(context: Context, result: com.google.android.gms.auth.api.identity.AuthorizationResult,
-      original: DriveBackupQueue.Config, changeFolder: Boolean) {
-    if (RecordingService.isBusy()) throw DriveBackupFailure("RECORDING_BUSY")
-    if (DriveBackupQueue.config(context).generation != original.generation) throw DriveBackupFailure("ACCOUNT_CHANGED")
+  fun defaultFolderRequest(): AuthorizationRequest = AuthorizationRequest.builder()
+    .setRequestedScopes(listOf(Scope(SCOPE))).setOptOutIncludingGrantedScopes(true)
+    .setPrompt(AuthorizationRequest.Prompt.CONSENT or AuthorizationRequest.Prompt.SELECT_ACCOUNT).build()
+  internal fun prepareSelection(result: com.google.android.gms.auth.api.identity.AuthorizationResult,
+      original: DriveBackupQueue.Config, changeFolder: Boolean, client: DriveBackupClient, checkActive: () -> Unit): Selection {
+    checkActive()
     val ids = result.tokenResponseParams?.getString("picked_file_ids")?.split(',')?.filter { it.isNotEmpty() }.orEmpty()
     if (ids.size != 1 || !DriveBackupPolicy.validDriveId(ids[0])) throw DriveBackupFailure("FOLDER_UNAVAILABLE")
     val token = result.accessToken?.takeIf { it.isNotEmpty() } ?: throw DriveBackupFailure("AUTH_REQUIRED", auth = true)
-    val client = DriveBackupClient(); val account = client.account(token); val folder = client.folder(token, ids[0])
+    val account = client.account(token)
+    checkActive()
+    val folder = client.folder(token, ids[0])
     if (changeFolder && original.connected && account.permissionId != original.accountId) throw DriveBackupFailure("ACCOUNT_CHANGED")
-    // A canceled picker never reaches here. Confirmed selection pauses until a fresh explicit opt-in.
-    if (RecordingService.isBusy() || DriveBackupQueue.config(context).generation != original.generation) throw DriveBackupFailure("ACCOUNT_CHANGED")
-    DriveBackupQueue.select(context, account.email, account.permissionId, folder.id, folder.name)
-    cancel(context)
+    checkActive()
+    return Selection(account, folder)
   }
-  fun disconnect(context: Context) {
+  internal fun prepareDefaultFolder(context: Context, result: com.google.android.gms.auth.api.identity.AuthorizationResult,
+      original: DriveBackupQueue.Config, client: DriveBackupClient, checkActive: () -> Unit,
+      reserveGate: (() -> DriveManagedFolder) -> DriveManagedFolder, commit: (Selection) -> Unit) {
+    val token = result.accessToken?.takeIf { it.isNotEmpty() } ?: throw DriveBackupFailure("AUTH_REQUIRED", auth = true)
+    DriveDefaultFolderProvisioner(client,
+      { accountId -> DriveBackupQueue.managed(context, accountId) },
+      { account, id, marker -> reserveGate { DriveBackupQueue.reserveManaged(context, original.generation, account.permissionId, id, marker) } },
+      { account, intent, folder -> commit(Selection(account, folder, intent)) }, checkActive).connect(token)
+  }
+  /** Caller holds its live action gate. Destination/confirmed receipt are committed atomically and remain paused. */
+  internal fun commitSelection(context: Context, original: DriveBackupQueue.Config, selection: Selection) {
+    if (RecordingService.isBusy()) throw DriveBackupFailure("RECORDING_BUSY")
+    val intent = selection.managed
+    if (intent != null) {
+      if (selection.account.permissionId != intent.accountId || selection.folder.id != intent.folderId) throw DriveBackupFailure("REMOTE_MISMATCH")
+      DriveBackupQueue.selectManaged(context, original.generation, selection.account.email, intent, selection.folder.name)
+    } else {
+      DriveBackupQueue.select(context, selection.account.email, selection.account.permissionId, selection.folder.id, selection.folder.name, original.generation)
+    }
+  }
+  fun disconnect(context: Context, expectedGeneration: Long? = null, beforeCommit: () -> Unit = {}) {
     if (RecordingService.isBusy()) throw DriveBackupFailure("RECORDING_BUSY")
     val old = DriveBackupQueue.config(context)
-    DriveBackupQueue.disconnect(context); cancel(context)
+    DriveBackupQueue.disconnect(context, expectedGeneration, beforeCommit); cancel(context)
     if (old.connected) {
       try {
         Tasks.await(Identity.getAuthorizationClient(context).revokeAccess(RevokeAccessRequest.builder()

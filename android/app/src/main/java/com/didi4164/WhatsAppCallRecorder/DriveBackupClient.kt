@@ -5,8 +5,6 @@ import org.json.JSONObject
 import java.io.IOException
 import java.net.URLEncoder
 
-class DriveBackupFailure(val code: String, val retryable: Boolean = false, val auth: Boolean = false) : Exception(code)
-
 /** REST calls are only made by the user-authorized manager/worker; tokens remain native memory. */
 class DriveBackupClient(private val transport: DriveHttpTransport = DriveHttpTransport()) {
   fun cancel() = transport.cancel()
@@ -55,6 +53,30 @@ class DriveBackupClient(private val transport: DriveHttpTransport = DriveHttpTra
     requireSuccess(response); val id = json(response).getJSONArray("ids").optString(0)
     if (!DriveBackupPolicy.validDriveId(id)) throw DriveBackupFailure("REMOTE_MISMATCH")
     return id
+  }
+  /** A 404 only means this exact reservation is not accessible; caller decides whether a create is permitted. */
+  fun managedFolder(token: String, intent: DriveManagedFolder): Folder? {
+    val response = request("GET", "https://www.googleapis.com/drive/v3/files/${enc(intent.folderId)}?fields=${enc("id,name,mimeType,trashed,ownedByMe,driveId,capabilities(canAddChildren),appProperties")}", token)
+    if (response.status == 404) return null
+    requireSuccess(response)
+    val item = json(response)
+    if (item.optString("id") != intent.folderId || item.optString("mimeType") != "application/vnd.google-apps.folder" ||
+        item.optBoolean("trashed") || item.optBoolean("ownedByMe") != true || item.optString("driveId").isNotEmpty() ||
+        item.optJSONObject("capabilities")?.optBoolean("canAddChildren") != true ||
+        item.optJSONObject("appProperties")?.optString(DriveManagedFolder.PROPERTY) != intent.marker) {
+      throw DriveBackupFailure("REMOTE_MISMATCH")
+    }
+    return Folder(intent.folderId, item.optString("name").take(240))
+  }
+  /** ID/marker must already be durable. Both successful creates and 409 conflicts require a subsequent exact GET. */
+  fun createManagedFolder(token: String, intent: DriveManagedFolder) {
+    if (intent.confirmed) throw DriveBackupFailure("FOLDER_UNAVAILABLE")
+    val metadata = JSONObject().put("id", intent.folderId).put("name", "wa-reco")
+      .put("mimeType", "application/vnd.google-apps.folder")
+      .put("appProperties", JSONObject().put(DriveManagedFolder.PROPERTY, intent.marker))
+    val response = request("POST", "https://www.googleapis.com/drive/v3/files?fields=id", token,
+      metadata.toString().toByteArray(Charsets.UTF_8), mapOf("Content-Type" to "application/json; charset=UTF-8"))
+    if (response.status != 409) requireSuccess(response)
   }
   /** Reconcile a possibly committed create before ever starting/restarting an upload. */
   fun verifiedRemote(token: String, job: JSONObject, folderId: String): Boolean {
