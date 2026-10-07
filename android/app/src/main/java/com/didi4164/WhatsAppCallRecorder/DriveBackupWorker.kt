@@ -179,6 +179,9 @@ class DriveBackupWorker(context: Context, parameters: WorkerParameters) : Worker
     checkLocal(file, job); ensureCurrent(config, deadline)
     if (digest(file, config, deadline) != job.optString("md5")) throw DriveBackupFailure("LOCAL_FILE_CHANGED")
     job.put("state", "uploaded").put("offset", job.getLong("size")).put("uploadedAt", System.currentTimeMillis())
-    job.remove("session"); job.remove("errorCode"); persist(config, job)
+    job.remove("session"); job.remove("errorCode")
+    if (!DriveBackupQueue.completeUpload(applicationContext, config, job) {
+      DriveBackupNotifications.uploaded(applicationContext, config.destination, job.getString("id"))
+    }) throw DriveBackupStopped()
   }
 }

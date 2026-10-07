@@ -205,6 +205,86 @@ object DriveBackupQueueHostTest {
       namesJournal.writeText(badNames.toString()); reset()
       verify(DriveBackupQueue.status(namesContext)["errorCode"] == "LOCAL_QUEUE_UNAVAILABLE")
     }
+
+    val completionContext = Context(Files.createTempDirectory(root.toPath(), "completion-journal-").toFile())
+    reset()
+    DriveBackupQueue.select(completionContext, "synthetic@example.invalid", "account", "folder", "Synthetic")
+    DriveBackupQueue.setEnabled(completionContext, true)
+    var completionConfig = DriveBackupQueue.config(completionContext)
+    DriveBackupQueue.enqueue(completionContext, "20-deadbeef", 100)
+    val pendingCompletion = DriveBackupQueue.next(completionContext, completionConfig)!!
+    pendingCompletion.put("remoteId", "remote_20").put("md5", "0123456789abcdef0123456789abcdef")
+    verify(DriveBackupQueue.update(completionContext, completionConfig, pendingCompletion))
+    val completionJournal = File(completionContext.noBackupFilesDir, "drive-backup-v1.json")
+    var notices = 0
+    fun completed(job: JSONObject) = JSONObject(job.toString()).put("state", "uploaded")
+      .put("offset", job.getLong("size")).put("uploadedAt", 123L)
+    fun notifyAfterCommit() {
+      val durable = JSONObject(completionJournal.readText()).getJSONArray("jobs").getJSONObject(0)
+      verify(durable.getString("state") == "uploaded" && durable.getLong("offset") == 100L)
+      verify(DriveBackupQueue.status(completionContext)["uploadedCount"] == 1)
+      notices++
+    }
+    reject { DriveBackupQueue.completeUpload(completionContext, completionConfig, pendingCompletion, ::notifyAfterCommit) }
+    verify(notices == 0 && DriveBackupQueue.status(completionContext)["uploadedCount"] == 0)
+    for (invalid in listOf(completed(pendingCompletion).put("offset", 99),
+      completed(pendingCompletion).put("remoteId", "another_remote"),
+      completed(pendingCompletion).put("md5", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+      completed(pendingCompletion).put("size", 101).put("offset", 101))) {
+      reject { DriveBackupQueue.completeUpload(completionContext, completionConfig, invalid, ::notifyAfterCommit) }
+      verify(notices == 0 && DriveBackupQueue.status(completionContext)["uploadedCount"] == 0)
+    }
+    val successCompletion = completed(pendingCompletion)
+    android.util.AtomicFile.failNextFinish = true
+    reject { DriveBackupQueue.completeUpload(completionContext, completionConfig, successCompletion, ::notifyAfterCommit) }
+    verify(notices == 0 && DriveBackupQueue.status(completionContext)["uploadedCount"] == 0)
+    android.util.AtomicFile.silentlySkipNextCommit = true
+    reject { DriveBackupQueue.completeUpload(completionContext, completionConfig, successCompletion, ::notifyAfterCommit) }
+    verify(notices == 0 && DriveBackupQueue.status(completionContext)["uploadedCount"] == 0)
+    verify(DriveBackupQueue.completeUpload(completionContext, completionConfig, successCompletion, ::notifyAfterCommit))
+    verify(notices == 1 && DriveBackupQueue.next(completionContext, completionConfig) == null)
+    verify(DriveBackupQueue.completeUpload(completionContext, completionConfig, successCompletion, ::notifyAfterCommit))
+    verify(notices == 1)
+    reset() // Completed receipts are the durable one-time notice claim, including older app receipts.
+    verify(DriveBackupQueue.completeUpload(completionContext, completionConfig, successCompletion, ::notifyAfterCommit))
+    verify(notices == 1 && DriveBackupQueue.status(completionContext)["uploadedCount"] == 1)
+    DriveBackupQueue.enqueue(completionContext, "21-deadbeef", 100)
+    val nextCompletion = DriveBackupQueue.next(completionContext, completionConfig)!!
+    nextCompletion.put("remoteId", "remote_21").put("md5", "0123456789abcdef0123456789abcdef")
+    verify(DriveBackupQueue.update(completionContext, completionConfig, nextCompletion))
+    DriveBackupQueue.setEnabled(completionContext, false)
+    verify(!DriveBackupQueue.completeUpload(completionContext, completionConfig, completed(nextCompletion)) { notices++ })
+    verify(notices == 1 && DriveBackupQueue.status(completionContext)["uploadedCount"] == 1)
+    DriveBackupQueue.setEnabled(completionContext, true)
+    completionConfig = DriveBackupQueue.config(completionContext)
+    val disabledNoticeCompletion = completed(DriveBackupQueue.next(completionContext, completionConfig)!!)
+    verify(DriveBackupQueue.completeUpload(completionContext, completionConfig, disabledNoticeCompletion) {
+      // Android permission/channel failure must not turn a verified backup into a failed upload.
+      throw SecurityException("Synthetic notifications disabled")
+    })
+    verify(DriveBackupQueue.status(completionContext)["uploadedCount"] == 2)
+    reset()
+    verify(DriveBackupQueue.next(completionContext, completionConfig) == null)
+    verify(DriveBackupQueue.completeUpload(completionContext, completionConfig, disabledNoticeCompletion) { notices++ })
+    verify(notices == 1)
+    DriveBackupQueue.enqueue(completionContext, "22-deadbeef", 100)
+    val syncCompletion = DriveBackupQueue.next(completionContext, completionConfig)!!
+    syncCompletion.put("remoteId", "remote_22").put("md5", "0123456789abcdef0123456789abcdef")
+    verify(DriveBackupQueue.update(completionContext, completionConfig, syncCompletion))
+    android.system.Os.failNextSync = true
+    reject { DriveBackupQueue.completeUpload(completionContext, completionConfig, completed(syncCompletion)) { notices++ } }
+    verify(notices == 1)
+    reset() // A commit interrupted before the notice must not replay its historical receipt after restart.
+    verify(DriveBackupQueue.status(completionContext)["uploadedCount"] == 3)
+    verify(DriveBackupQueue.completeUpload(completionContext, completionConfig, completed(syncCompletion)) { notices++ })
+    verify(notices == 1)
+    DriveBackupQueue.enqueue(completionContext, "23-deadbeef", 100)
+    val legacyCompletion = DriveBackupQueue.next(completionContext, completionConfig)!!
+    legacyCompletion.put("remoteId", "remote_23").put("md5", "0123456789abcdef0123456789abcdef")
+    verify(DriveBackupQueue.update(completionContext, completionConfig, completed(legacyCompletion)))
+    reset() // Receipts from app versions before completion notifications are never announced retroactively.
+    verify(DriveBackupQueue.completeUpload(completionContext, completionConfig, completed(legacyCompletion)) { notices++ })
+    verify(notices == 1 && DriveBackupQueue.next(completionContext, completionConfig) == null)
     println("Drive backup queue: $checks checks passed (host Context/AtomicFile shims; no Android lifecycle claim).")
   }
 }

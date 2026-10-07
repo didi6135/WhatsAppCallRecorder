@@ -216,6 +216,33 @@ object DriveBackupQueue {
     }
     return false
   }
+  /**
+   * Called only after the worker verifies the remote receipt and unchanged local bytes.
+   * The durable uploaded state is also the one-time notice claim: never replay old receipts.
+   * Keep the short notification callback inside the destination gate, after the fsynced commit.
+   * A disabled notification or a crash after this commit must not retry/resend a successful upload.
+   */
+  @Synchronized fun completeUpload(context: Context, expected: Config, job: JSONObject, onCommitted: () -> Unit): Boolean {
+    if (!current(context, expected)) return false
+    require(job.optString("destination") == expected.destination && job.optString("state") == "uploaded")
+    require(job.optLong("size") > 44 && job.optLong("offset") == job.optLong("size") && job.optLong("uploadedAt") > 0)
+    require(DriveBackupPolicy.validDriveId(job.optString("remoteId")) && DriveBackupPolicy.validMd5(job.optString("md5")))
+    require(!job.has("session") && !job.has("errorCode"))
+    val next = copy(context); val jobs = next.getJSONArray("jobs")
+    for (i in 0 until jobs.length()) {
+      val old = jobs.getJSONObject(i)
+      if (old.optString("id") != job.optString("id") || old.optString("destination") != expected.destination) continue
+      require(old.optLong("size") == job.optLong("size") && old.optString("remoteId") == job.optString("remoteId") &&
+        old.optString("md5") == job.optString("md5"))
+      require(old.has("fileName") == job.has("fileName") && old.optString("fileName") == job.optString("fileName"))
+      if (old.optString("state") == "uploaded") return true
+      require(old.optString("state") in setOf("pending", "uploading"))
+      jobs.put(i, JSONObject(job.toString())); validate(next); save(context, next)
+      try { onCommitted() } catch (_: Exception) { /* The committed receipt remains authoritative. */ }
+      return true
+    }
+    return false
+  }
   @Synchronized fun phase(context: Context, expected: Config, phase: String, code: String? = null) {
     if (!current(context, expected)) return
     val next = copy(context).put("phase", phase)
