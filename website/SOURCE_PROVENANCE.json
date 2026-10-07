@@ -1,0 +1,120 @@
+{
+  "scope": "website-only source advance after the frozen Android 1.5.4 release",
+  "approvedSiteSourceCommit": "31a94c5471486a0811869b74dd904b1c67d3d1f5",
+  "baselinePublicCommit": "d1c9118494edef482ffa3d725fde5f6a7ec5e0f7",
+  "preservedAndroidRelease": {
+    "tag": "v1.5.4",
+    "publicSourceCommit": "d1c9118494edef482ffa3d725fde5f6a7ec5e0f7",
+    "sourceManifestSha256": "bcaf170304151539fa72d41968488216eb70c24a4632f52510b094cc66cf95ee",
+    "sourceManifestRole": "Frozen application source export for the existing 1.5.4 release; preserved unchanged, not a manifest of the current website-only branch tip."
+  },
+  "distFileCount": 15,
+  "files": [
+    {
+      "path": "website/dist/app.js",
+      "mode": "100644",
+      "gitBlob": "6def0be51b1522c9a2d0f50038b6f805efe53435",
+      "bytes": 39782,
+      "sha256": "dc8eabf70f55818fc9e66ab5f18d5df4a5792f39e1ee0520ac00afd85bdca3fa"
+    },
+    {
+      "path": "website/dist/assets/Assistant-OFL.txt",
+      "mode": "100644",
+      "gitBlob": "b0268874dfa7196e4a4fc4853c1f4ec4cc38c948",
+      "bytes": 4612,
+      "sha256": "628a624ceabe269a93b1f13086ada08064b8caa3fb08d6c21e13f69d0cdbf983"
+    },
+    {
+      "path": "website/dist/assets/Inter-OFL.txt",
+      "mode": "100644",
+      "gitBlob": "9b2ca37b3ffc77391d8b2ebef4a974ef32bf46ea",
+      "bytes": 4380,
+      "sha256": "262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a"
+    },
+    {
+      "path": "website/dist/assets/assistant-hebrew-variable.woff2",
+      "mode": "100644",
+      "gitBlob": "fba064501f35597b0ffc556f4286eab88549c3e8",
+      "bytes": 7312,
+      "sha256": "f9805e7a16e108bcf6701e6a623fcf560bff3f28522fa94d310e833b3bd60400"
+    },
+    {
+      "path": "website/dist/assets/fonts-notice.txt",
+      "mode": "100644",
+      "gitBlob": "b7bff36ebc1b5d682e1450957a3d3845e217ef09",
+      "bytes": 1055,
+      "sha256": "6b6a7717e8e95cff6b50e02069e1e6a52e1bf5bc7a41e0ecf404d236954548ef"
+    },
+    {
+      "path": "website/dist/assets/inter-latin-variable.woff2",
+      "mode": "100644",
+      "gitBlob": "d15208de03cd1ad7c5199f0a0ce915fe841e4722",
+      "bytes": 48256,
+      "sha256": "3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62"
+    },
+    {
+      "path": "website/dist/assets/mark.svg",
+      "mode": "100644",
+      "gitBlob": "23e5b1bfae23a94d94521f9efde47433faed3e41",
+      "bytes": 511,
+      "sha256": "3c010862368db40a34bc784eece084a098604f0d53ce6fc4f9cfc53bcd364cf8"
+    },
+    {
+      "path": "website/dist/codaki.css",
+      "mode": "100644",
+      "gitBlob": "db5c3ddeb22e2c74b66cf34536769727d49a4dcb",
+      "bytes": 19716,
+      "sha256": "97cca44b523b3e462e36b897a726d67930599de41e7302c0153565c86b524e8c"
+    },
+    {
+      "path": "website/dist/index.html",
+      "mode": "100644",
+      "gitBlob": "20e9612b07c49226c14ea66d4c436d82e8d5edac",
+      "bytes": 27437,
+      "sha256": "c7e22d3aac39d52b4a0227592a1d148e61a7e062f649699e08946a15a5dd1f21"
+    },
+    {
+      "path": "website/dist/policy.css",
+      "mode": "100644",
+      "gitBlob": "5aa36f781b966041aa0d3b336b41147b7b8a0607",
+      "bytes": 4489,
+      "sha256": "91946cb927a933ef6084045e8cd0fda7544160ed760e8ecfc7fdcd3e8b283bf6"
+    },
+    {
+      "path": "website/dist/policy.js",
+      "mode": "100644",
+      "gitBlob": "7c49105c9c49c70e9bc07c0475a1b3318a1a5aa5",
+      "bytes": 24309,
+      "sha256": "467835712b412f06648800208d66581a8a9c12d375153151b9ff5b460f233a30"
+    },
+    {
+      "path": "website/dist/privacy.html",
+      "mode": "100644",
+      "gitBlob": "aef2256fc15fa10158ee4b2cd883405ad110b475",
+      "bytes": 11295,
+      "sha256": "e28a0e8b32c3d368018e0511f6dda3faf07151a1f7d50b9af8c51f46fc8e92e6"
+    },
+    {
+      "path": "website/dist/release-metadata.json",
+      "mode": "100644",
+      "gitBlob": "5be421a7b3ef7448f26d9cfafb7f22d2db17e00d",
+      "bytes": 1032,
+      "sha256": "298d7477739d7a571205fb7d8de76724112e3f99042ba116e579f46f8ca33da2"
+    },
+    {
+      "path": "website/dist/styles.css",
+      "mode": "100644",
+      "gitBlob": "2e1fe8d681c5fa2d5b3f17a72bdca3c3ded2feba",
+      "bytes": 34195,
+      "sha256": "566608d19e1049c693b68a0c1b5589c9a7df6ce1a61cf5e2a13c9bdf48c9f9ee"
+    },
+    {
+      "path": "website/dist/terms.html",
+      "mode": "100644",
+      "gitBlob": "5bb65f31621ab79ea82d57e46f0e66518f6dfb2f",
+      "bytes": 8167,
+      "sha256": "86bd096f507bebbed101441e0e344ec84b1f5483dfdd27948d49fdbece6519f0"
+    }
+  ],
+  "browserCheckerSha256": "ddde2d6383bcc5de609ce707a845fd4dbe4ede4d3d7a235638c91a920c8eaed0"
+}

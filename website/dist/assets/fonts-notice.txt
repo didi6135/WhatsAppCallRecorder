@@ -1,0 +1,23 @@
+Website font notices
+
+Inter Variable is copyright 2016 The Inter Project Authors and licensed under
+the SIL Open Font License 1.1. The full license is in Inter-OFL.txt.
+
+Assistant Variable is copyright 2020 The Assistant Project Authors and
+copyright 2010 The Source Sans Pro Authors, with Reserved Font Name 'Source'.
+It is licensed under the SIL Open Font License 1.1. The full license is in
+Assistant-OFL.txt.
+
+The unchanged font binaries match the public assets used by codaki.io:
+https://codaki.io/assets/inter-latin-wght-normal-Dx4kXJAl.woff2
+https://codaki.io/assets/assistant-hebrew-wght-normal-xjFeJKcj.woff2
+
+License sources:
+https://github.com/rsms/inter/blob/master/LICENSE.txt
+https://github.com/google/fonts/blob/main/ofl/assistant/OFL.txt
+
+Fonts are served from this website. No third-party font service is requested.
+
+Unmodified font SHA-256 values:
+inter-latin-variable.woff2 3100e775e8616cd2611beecfa23a4263d7037586789b43f035236a2e6fbd4c62
+assistant-hebrew-variable.woff2 f9805e7a16e108bcf6701e6a623fcf560bff3f28522fa94d310e833b3bd60400
