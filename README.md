@@ -14,6 +14,12 @@ Read [privacy and data handling](docs/privacy.md) for permissions, local storage
 
 ## Compatibility and verification
 
+See the [measured Android 13–16 matrix](docs/android-device-compatibility.md) and
+[reproducible probes](tools/android-device-matrix/README.md). Synthetic framework
+capture passed on Android14/15/16 emulators; stock OEM WhatsApp calls are a
+separate pending test. Main contains an unreleased setup-diagnostics fix; the
+frozen1.5.4 APK does not include that correction.
+
 - Installation: Android 7/API 24 or newer, ARM64. Installation does not imply two-sided call recording support.
 - Call-recording helper: Android 14/15 experimental candidates; Android 16 behavior has been exercised on a Samsung S26 Ultra. Other phones, OEM policies, headphones/Bluetooth and call cases require device tests.
 - Android 13 and older: ordinary microphone recording is separate; the current two-sided call helper rejects these versions.

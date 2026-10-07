@@ -1,0 +1,236 @@
+{
+  "schema": 1,
+  "date": "2026-10-07",
+  "releaseTested": {
+    "version": "1.5.4",
+    "bytes": 32885737,
+    "sha256": "c5db0060af960dad1b55a2e068e2e943de76833d9bc75a089c4a70ac82571fac",
+    "packagedAbis": [
+      "arm64-v8a"
+    ],
+    "minimumInstallSdk": 24
+  },
+  "scope": "Framework capture integration only; no new real WhatsApp/OEM audio or automatic-call acceptance.",
+  "emulators": [
+    {
+      "android": 13,
+      "sdk": 33,
+      "environment": "emulator",
+      "buildType": "userdebug",
+      "fingerprint": "Android/sdk_phone64_x86_64/emulator64_x86_64:13/TE1A.220922.034/10940250:userdebug/test-keys",
+      "abis": [
+        "x86_64"
+      ],
+      "uid": 2000,
+      "shellGrants": {
+        "RECORD_AUDIO": true,
+        "MODIFY_AUDIO_ROUTING": true,
+        "CAPTURE_VOICE_COMMUNICATION_OUTPUT": false
+      },
+      "captureStatus": "intentional_unsupported_sdk",
+      "output": null,
+      "microphone": null,
+      "cleanupCallsWithoutErrors": true,
+      "errors": [],
+      "probeJarSha256": "d4004f2a6b1e13ed9d1fb3395b79db57e0e8d5fce4b2daae6449ebff83b97045",
+      "rawReceiptSha256": "c7c77ec9e4a55c151a2e726684c37a72319bd0cdfc647d74f67244c4a8a4332e",
+      "apkInstallPassed": false,
+      "appLaunchPassed": false,
+      "realWhatsAppTested": false,
+      "automaticCallDetectionTested": false,
+      "wirelessPairingTested": false,
+      "physicalOemTested": false,
+      "apkInstallFailure": "NO_MATCHING_ABIS",
+      "appLaunchFailure": "not run after ABI installation rejection"
+    },
+    {
+      "android": 14,
+      "sdk": 34,
+      "environment": "emulator",
+      "buildType": "userdebug",
+      "fingerprint": "Android/sdk_phone64_x86_64/emu64x:14/UE1A.230829.036.A1/11228894:userdebug/test-keys",
+      "abis": [
+        "x86_64"
+      ],
+      "uid": 2000,
+      "shellGrants": {
+        "RECORD_AUDIO": true,
+        "MODIFY_AUDIO_ROUTING": true,
+        "CAPTURE_VOICE_COMMUNICATION_OUTPUT": true
+      },
+      "captureStatus": "synthetic_capture_passed",
+      "output": {
+        "initialized": true,
+        "recording": true,
+        "readFrames": 32256,
+        "nonzeroSamples": 27776,
+        "peak": 6000,
+        "lastRead": 0
+      },
+      "microphone": {
+        "initialized": true,
+        "recording": true,
+        "readFrames": 32048,
+        "lastRead": 132,
+        "hostInputRequiredDisabled": true
+      },
+      "cleanupCallsWithoutErrors": true,
+      "errors": [],
+      "probeJarSha256": "17b9f6336efa506c33b8c6d4627eff40250a5c109344ea0440396edf3cbc936f",
+      "rawReceiptSha256": "687f8d21306830dcd43df23d90f452d8c26ec904af42bebe1d990514bb1399de",
+      "apkInstallPassed": false,
+      "appLaunchPassed": false,
+      "realWhatsAppTested": false,
+      "automaticCallDetectionTested": false,
+      "wirelessPairingTested": false,
+      "physicalOemTested": false,
+      "apkInstallFailure": "NO_MATCHING_ABIS",
+      "appLaunchFailure": "not run after ABI installation rejection"
+    },
+    {
+      "android": 15,
+      "sdk": 35,
+      "environment": "emulator",
+      "buildType": "userdebug",
+      "fingerprint": "Android/sdk_phone64_x86_64/emu64x:15/AE3A.240806.019/12368160:userdebug/test-keys",
+      "abis": [
+        "x86_64"
+      ],
+      "uid": 2000,
+      "shellGrants": {
+        "RECORD_AUDIO": true,
+        "MODIFY_AUDIO_ROUTING": true,
+        "CAPTURE_VOICE_COMMUNICATION_OUTPUT": true
+      },
+      "captureStatus": "synthetic_capture_passed",
+      "output": {
+        "initialized": true,
+        "recording": true,
+        "readFrames": 32256,
+        "nonzeroSamples": 28272,
+        "peak": 6000,
+        "lastRead": 0,
+        "synthetic750HzEnergyFraction": 0.9047619006822782
+      },
+      "microphone": {
+        "initialized": true,
+        "recording": true,
+        "readFrames": 31769,
+        "lastRead": 128,
+        "hostInputRequiredDisabled": true
+      },
+      "cleanupCallsWithoutErrors": true,
+      "errors": [],
+      "probeJarSha256": "d4004f2a6b1e13ed9d1fb3395b79db57e0e8d5fce4b2daae6449ebff83b97045",
+      "rawReceiptSha256": "3a5c774d70db15364169c76fabd1a5e3398e5cd60cb206dbf55592cc364a0b30",
+      "apkInstallPassed": false,
+      "appLaunchPassed": false,
+      "realWhatsAppTested": false,
+      "automaticCallDetectionTested": false,
+      "wirelessPairingTested": false,
+      "physicalOemTested": false,
+      "apkInstallFailure": "NO_MATCHING_ABIS",
+      "appLaunchFailure": "not run after ABI installation rejection"
+    },
+    {
+      "android": 16,
+      "sdk": 36,
+      "environment": "emulator",
+      "buildType": "userdebug",
+      "fingerprint": "google/sdk_gphone64_x86_64/emu64xa:16/BE2A.250530.026.F3/13894323:userdebug/dev-keys",
+      "abis": [
+        "x86_64",
+        "arm64-v8a"
+      ],
+      "uid": 2000,
+      "shellGrants": {
+        "RECORD_AUDIO": true,
+        "MODIFY_AUDIO_ROUTING": true,
+        "CAPTURE_VOICE_COMMUNICATION_OUTPUT": true
+      },
+      "captureStatus": "synthetic_capture_passed",
+      "output": {
+        "initialized": true,
+        "recording": true,
+        "readFrames": 34816,
+        "nonzeroSamples": 22320,
+        "peak": 6000,
+        "lastRead": 512,
+        "synthetic750HzEnergyFraction": 0.661764702898403
+      },
+      "microphone": {
+        "initialized": true,
+        "recording": true,
+        "readFrames": 29637,
+        "lastRead": 0,
+        "hostInputRequiredDisabled": true
+      },
+      "cleanupCallsWithoutErrors": true,
+      "errors": [],
+      "probeJarSha256": "d4004f2a6b1e13ed9d1fb3395b79db57e0e8d5fce4b2daae6449ebff83b97045",
+      "rawReceiptSha256": "5fe58cbd0afec4022678ea71a55903ae2931afd6bc773d2217acadbdb12e38a7",
+      "apkInstallPassed": true,
+      "appLaunchPassed": false,
+      "realWhatsAppTested": false,
+      "automaticCallDetectionTested": false,
+      "wirelessPairingTested": false,
+      "physicalOemTested": false,
+      "apkInstallFailure": null,
+      "appLaunchFailure": "ARM64-only APK; x86_64 DirectApkSoSource cannot load libreactnative.so"
+    }
+  ],
+  "physicalMetadataOnly": {
+    "model": "SM-S928B",
+    "manufacturer": "samsung",
+    "android": 16,
+    "sdk": 36,
+    "buildType": "user",
+    "abis": [
+      "arm64-v8a"
+    ],
+    "status": "metadata_only_passed",
+    "shellGrants": {
+      "RECORD_AUDIO": true,
+      "MODIFY_AUDIO_ROUTING": true,
+      "CAPTURE_VOICE_COMMUNICATION_OUTPUT": true
+    },
+    "audioTested": false,
+    "realWhatsAppTested": false,
+    "appInstalled": false,
+    "settingsChanged": false
+  },
+  "sourceDiagnosticsFix": {
+    "commit": "6b9ec1f",
+    "includedInTestedReleaseApk": false,
+    "localizedChecks": 34,
+    "pairedResources": 468,
+    "typeScriptPassed": true,
+    "nativeIntegration": {
+      "suites": 19,
+      "tests": 161,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "nativeCompilePassed": true,
+      "configuration": "Debug",
+      "releaseApkBuilt": false
+    }
+  },
+  "hostRegressions": {
+    "captureCompatibility": 71,
+    "captureApi": 17,
+    "shellContext": 4,
+    "audioOwner": 38,
+    "telecomAttribution": 143,
+    "attributionMonitor": 13,
+    "aospSourceRenderedReplay": 30,
+    "aospReplayIsSynthetic": true
+  },
+  "pendingPhysicalFamilies": [
+    "Google Pixel / stock Android",
+    "second Samsung model / One UI",
+    "Xiaomi / Redmi / POCO / HyperOS",
+    "OnePlus / OPPO / OxygenOS / ColorOS",
+    "Motorola / near-stock Android"
+  ]
+}
