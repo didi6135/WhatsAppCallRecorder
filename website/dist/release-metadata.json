@@ -1,1 +1,15 @@
-{"status":"pending"}
+{
+  "status": "ready",
+  "version": "1.5.0",
+  "url": "https://github.com/didi6135/WhatsAppCallRecorder/releases/download/v1.5.0/wa-reco-1.5.0.apk",
+  "sizeBytes": 32848577,
+  "sha256": "434c50467d6c5e94d7c5e00866e8960f96fc37d219db9a47f9bdcc498b9f0c7a",
+  "filename": "wa-reco-1.5.0.apk",
+  "companion": {
+    "url": "https://github.com/didi6135/WhatsAppCallRecorder/releases/download/v1.5.0/wa-reco-1.5.0-source-and-notices.zip",
+    "filename": "wa-reco-1.5.0-source-and-notices.zip",
+    "sizeBytes": 23068732,
+    "sha256": "ff1c7e4ca7256bae6317381fcca4e09a6bc9f0bc0cd1749a1545b19c40335c93"
+  },
+  "sourceUrl": "https://github.com/didi6135/WhatsAppCallRecorder/tree/501f63609e94753d1dfa3b1c39610d4c131b60d5"
+}
