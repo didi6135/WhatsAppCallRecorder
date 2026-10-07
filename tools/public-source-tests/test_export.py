@@ -17,6 +17,8 @@ class PublicSourceChecks(unittest.TestCase):
                  'android/app/build/generated/file.java', 'src/session.wav',
                  '../escape', '/absolute', 'src/../../escape', 'other/new.txt',
                  'android/vendor/.git/config', 'src/__pycache__/secret.pyc',
+                 'tools/android-device-matrix/artifacts/result.json',
+                 'tools/android-device-matrix/local.properties',
                  'src\\unexpected.txt']
         for name in names:
             with self.subTest(name=name):
@@ -26,7 +28,10 @@ class PublicSourceChecks(unittest.TestCase):
         for name in ['README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md',
                      'LICENSES/LGPL-3.0-only.txt', 'android/vendor/libadb/LICENSES/Apache-2.0',
                      'android/app/build.gradle', 'src/screens/SettingsScreen.tsx',
-                     'docs/signing.properties.example', 'android/app/debug.keystore']:
+                     'docs/signing.properties.example', 'android/app/debug.keystore',
+                     'tools/android-device-matrix/run-probe.py',
+                     'tools/android-device-matrix/README.md',
+                     'tools/android-device-matrix/src/com/codaki/usbaudio/RuntimeAudioProbe.java']:
             with self.subTest(name=name):
                 self.assertTrue(module.included(name))
 

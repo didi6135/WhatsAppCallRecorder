@@ -18,6 +18,7 @@ PREFIXES = (
     'tools/usb-audio-helper/', 'tools/drive-backup-tests/', 'tools/ui-preview/',
     'tools/public-source-tests/',
     'tools/release-compliance/',
+    'tools/android-device-matrix/',
     'tools/telegram-backup-tests/',
     'tools/telegram-backup-tests/', 'website/',
 )
