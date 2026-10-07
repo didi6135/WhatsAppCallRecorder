@@ -144,7 +144,18 @@ const getModule = (): CallRecorderModule => {
 
 // Lifecycle, WAV finalization, and metadata belong to the Android service.
 // JavaScript only asks for actions and reads the authoritative native state.
+const activationErrorKeys: Record<string, TranslationKey> = {
+  ACTIVATION_DISCOVERY_FAILED: 'activationDiscoveryFailed',
+  ACTIVATION_ADB_CONNECTION_FAILED: 'activationAdbConnectionFailed',
+  ACTIVATION_BOOTSTRAP_FAILED: 'activationBootstrapFailed',
+  ACTIVATION_AUTHENTICATION_FAILED: 'activationAuthenticationFailed',
+  ACTIVATION_HANDOFF_FAILED: 'activationHandoffFailed',
+  ACTIVATION_DETACH_FAILED: 'activationDetachFailed',
+  ACTIVATION_LIVENESS_FAILED: 'activationLivenessFailed',
+  ACTIVATION_READINESS_OWNER_FAILED: 'activationReadinessOwnerFailed',
+};
 const errorKeys: Record<string, TranslationKey> = {
+  ...activationErrorKeys,
   RECORDING_BUSY: 'callNameRecordingBusy', SETTINGS_SAVE_FAILED: 'callNameSaveFailed',
   FOREGROUND_REQUIRED: 'copy196', NOTIFICATION_SETUP_FAILED: 'copy337',
   SYSTEM_CONNECTION_FAILED: 'copy206', SETUP_FAILED: 'copy337', LOAD_FAILED: 'copy285',
@@ -159,12 +170,26 @@ const errorKeys: Record<string, TranslationKey> = {
 };
 export const recorderErrorMessage = (code: unknown, message?: unknown): string =>
   typeof code === 'string' && Object.prototype.hasOwnProperty.call(errorKeys, code) ? t(errorKeys[code]) : localizedError(message);
+const activationDetailCode = (failure: unknown): string | null => {
+  if (!failure || typeof failure !== 'object' || !('code' in failure) ||
+    typeof failure.code !== 'string' || !['ACTIVATION_FAILED', 'READINESS_OWNER_FAILED'].includes(failure.code) ||
+    !Object.prototype.hasOwnProperty.call(failure, 'userInfo') || !('userInfo' in failure)) return null;
+  const details = failure.userInfo;
+  if (!details || typeof details !== 'object' || Array.isArray(details) ||
+    !Object.prototype.hasOwnProperty.call(details, 'errorCode') || !('errorCode' in details)) return null;
+  const code = details.errorCode;
+  if (typeof code !== 'string' || !Object.prototype.hasOwnProperty.call(activationErrorKeys, code)) return null;
+  const readiness = code === 'ACTIVATION_READINESS_OWNER_FAILED';
+  return readiness === (failure.code === 'READINESS_OWNER_FAILED') ? code : null;
+};
 async function call<T>(action: (module: CallRecorderModule) => Promise<T>): Promise<T> {
   try { return await action(getModule()); }
   catch (failure) {
     const code = failure && typeof failure === 'object' && 'code' in failure ? failure.code : null;
-    const error = new Error(recorderErrorMessage(code, failure));
-    throw Object.assign(error, { code: typeof code === 'string' && Object.prototype.hasOwnProperty.call(errorKeys, code) ? code : 'RECORDER_ACTION_FAILED' });
+    const detailCode = activationDetailCode(failure);
+    const error = new Error(recorderErrorMessage(detailCode ?? code, failure));
+    throw Object.assign(error, { code: typeof code === 'string' && Object.prototype.hasOwnProperty.call(errorKeys, code) ? code : 'RECORDER_ACTION_FAILED',
+      ...(detailCode ? { errorCode: detailCode } : {}) });
   }
 }
 const localizeStatus = <T extends { error: string | null; errorCode?: string | null }>(status: T): T =>

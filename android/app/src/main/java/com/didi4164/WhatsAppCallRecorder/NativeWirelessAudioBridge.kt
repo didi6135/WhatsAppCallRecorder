@@ -44,12 +44,20 @@ object NativeWirelessAudioBridge {
   private val stateLock = Any()
   private val connecting = AtomicBoolean(false)
   @Volatile private var appContext: Context? = null
-  @Volatile private var error: String? = null
+  @Volatile private var errorState: Pair<String, String?>? = null
   @Volatile private var activePairing: WirelessManager? = null
   @Volatile private var helperManager: WirelessManager? = null
   @Volatile private var helperStream: AdbStream? = null
   private var pairingGeneration = 0L
   private enum class ActivationStage { DISCOVERY, ADB_CONNECTION, BOOTSTRAP, AUTHENTICATION, HANDOFF, DETACH, LIVENESS }
+
+  private fun setError(message: String?, code: String? = null) {
+    // One immutable snapshot prevents a status poll from mixing an old code with a new message.
+    errorState = message?.let { Pair(it, code) }
+  }
+  private fun failureDetails(failure: WirelessActivationFailure?): WritableMap? = failure?.let {
+    Arguments.createMap().apply { putString("errorCode", it.errorCode) }
+  }
 
   fun initialize(context: Context) {
     synchronized(stateLock) {
@@ -59,7 +67,7 @@ object NativeWirelessAudioBridge {
     // Prepare the private identity while the user reads the setup instructions.
     if (ShellAudioCompatibility.isCandidateSdk(Build.VERSION.SDK_INT)) io.execute {
       try { WirelessManager(context.applicationContext) }
-      catch (_: Exception) { error = AppText.choose("לא ניתן להכין את הזהות המקומית. נסה להפעיל את האפליקציה מחדש.", "The local identity could not be prepared. Restart the app and try again.") }
+      catch (_: Exception) { setError(AppText.choose("לא ניתן להכין את הזהות המקומית. נסה להפעיל את האפליקציה מחדש.", "The local identity could not be prepared. Restart the app and try again.")) }
     }
   }
 
@@ -73,7 +81,9 @@ object NativeWirelessAudioBridge {
     // only after ADB closure, a fresh heartbeat and foreground-owner startup.
     putBoolean("helperConnected", UsbAudioBridge.isConnected() && !connecting.get())
     putBoolean("connecting", connecting.get())
-    putString("error", error)
+    val failure = errorState
+    putString("error", failure?.first)
+    putString("errorCode", failure?.second)
   }
 
   fun pair(context: Context, pairPort: Int, code: String, promise: Promise) {
@@ -97,7 +107,7 @@ object NativeWirelessAudioBridge {
       main.post { callback(Result.failure(IllegalStateException(AppText.choose("פעולת חיבור כבר מתבצעת. המתן לסיומה.", "A connection is already in progress. Wait for it to finish.")))) }
       return
     }
-    val generation = synchronized(stateLock) { error = null; ++pairingGeneration }
+    val generation = synchronized(stateLock) { setError(null); ++pairingGeneration }
     io.execute {
       var local: WirelessManager? = null
       val outcome = runCatching {
@@ -118,7 +128,7 @@ object NativeWirelessAudioBridge {
             if (saved) Result.success(Unit) else Result.failure(IllegalStateException(AppText.choose("ההתאמה הצליחה אך לא נשמרה. נסה שוב.", "Pairing succeeded but could not be saved. Try again.")))
           }
         }
-        error = completed.exceptionOrNull()?.message
+        setError(completed.exceptionOrNull()?.message)
         connecting.set(false)
         callback(completed)
       }
@@ -126,7 +136,7 @@ object NativeWirelessAudioBridge {
   }
 
   fun cancelPairing() {
-    synchronized(stateLock) { pairingGeneration++; error = AppText.choose("ההתאמה בוטלה.", "Pairing was canceled.") }
+    synchronized(stateLock) { pairingGeneration++; setError(AppText.choose("ההתאמה בוטלה.", "Pairing was canceled.")) }
     activePairing?.cancelPairing()
   }
 
@@ -148,12 +158,12 @@ object NativeWirelessAudioBridge {
       promise.reject("ACTIVATION_SETUP_REQUIRED", AppText.choose("להפעלת רכיב ההקלטה מחדש יש להתחבר ל־Wi-Fi ולהפעיל ניפוי באגים אלחוטי.", "To reactivate the recording component, connect to Wi-Fi and enable Wireless debugging.")); return
     }
     if (!connecting.compareAndSet(false, true)) { promise.reject("ACTIVATION_BUSY", AppText.choose("פעולת חיבור כבר מתבצעת.", "A connection is already in progress.")); return }
+    setError(null)
     if (alreadyConnected) {
       main.post { finishWithReadinessOwner(context, promise) }
       return
     }
     val secret = key.copyOf()
-    error = null
     io.execute {
       var local: WirelessManager? = null
       var stream: AdbStream? = null
@@ -226,19 +236,12 @@ object NativeWirelessAudioBridge {
         if (failure is AdbPairingRequiredException || failure is AdbAuthenticationFailedException) {
           context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("paired", false).apply()
         }
-        val message = when (stage) {
-          ActivationStage.DISCOVERY -> AppText.choose("לא נמצא חיבור פעיל. ודא שניפוי באגים אלחוטי מופעל; אפשר להזין את מספר היציאה ידנית.", "No active connection was found. Enable Wireless debugging; you can enter the port manually.")
-          ActivationStage.ADB_CONNECTION -> AppText.choose("לא ניתן להתחבר למערכת. ודא שניפוי באגים אלחוטי מופעל וההתאמה הושלמה.", "The system connection failed. Check Wireless debugging and complete pairing.")
-          ActivationStage.BOOTSTRAP -> AppText.choose("רכיב ההקלטה לא התחיל. נסה להפעיל שוב את חיבור המערכת.", "The recording component did not start. Try activating the system connection again.")
-          ActivationStage.AUTHENTICATION -> if (ShellAudioCompatibility.isExperimentalSdk(Build.VERSION.SDK_INT))
-            AppText.choose("רכיב ההקלטה לא אישר התאמה למכשיר. התמיכה בגרסת Android הזו ניסיונית; ייתכן שהמערכת חסמה הרשאה או יכולת נדרשת. אפשר להמשיך בהקלטה ידנית מהמיקרופון.", "The recording component did not confirm device compatibility. This Android version is experimental; a required permission or capability may be blocked. Microphone recording remains available.")
-            else AppText.choose("רכיב ההקלטה לא השלים את ההפעלה. נסה שוב.", "The recording component did not finish activating. Try again.")
-          ActivationStage.HANDOFF, ActivationStage.DETACH -> AppText.choose("לא ניתן להשלים את הפעלת רכיב ההקלטה. נסה שוב.", "The recording component could not finish activating. Try again.")
-          ActivationStage.LIVENESS -> AppText.choose("רכיב ההקלטה לא נשאר פעיל לאחר ההפעלה. נסה שוב.", "The recording component did not stay active after activation. Try again.")
-        }
+        val diagnostic = WirelessActivationFailure.forStage(stage.name)
+        val message = diagnostic?.let { AppText.choose(it.hebrewMessage, it.englishMessage) }
+          ?: AppText.choose("רכיב ההקלטה לא התחבר. התחבר ל-Wi-Fi וחזור לאשף ההגדרה כדי להפעיל אותו.", "The recording component did not connect. Connect to Wi-Fi and return to guided setup to activate it.")
         Log.e("WirelessRecorder", "DETACHED_ACTIVATION_FAILED stage=$stage", failure)
-        error = message
-        main.post { connecting.set(false); promise.reject("ACTIVATION_FAILED", message, failure) }
+        setError(message, diagnostic?.errorCode)
+        main.post { connecting.set(false); promise.reject("ACTIVATION_FAILED", message, failure, failureDetails(diagnostic)) }
       } finally { Arrays.fill(secret, 0.toByte()) }
     }
   }
@@ -250,7 +253,7 @@ object NativeWirelessAudioBridge {
       RecorderReadinessService.start(context).whenComplete { _, failure ->
         main.post {
           if (failure == null && UsbAudioBridge.isConnected()) {
-            error = null; connecting.set(false); promise.resolve(null)
+            setError(null); connecting.set(false); promise.resolve(null)
           } else failReadinessOwner(promise, failure ?: IllegalStateException(AppText.choose("חיבור ההקלטה נסגר.", "The recording connection closed.")))
         }
       }
@@ -260,9 +263,11 @@ object NativeWirelessAudioBridge {
   private fun failReadinessOwner(promise: Promise, failure: Throwable) {
     io.execute {
       UsbAudioBridge.disconnectCurrent()
-      val message = AppText.choose("לא ניתן להשאיר את רכיב ההקלטה פעיל. חזור למסך האפליקציה ונסה שוב.", "The recording component could not stay active. Return to the app and try again.")
-      error = message
-      main.post { connecting.set(false); promise.reject("READINESS_OWNER_FAILED", message, failure) }
+      val diagnostic = WirelessActivationFailure.forStage("READINESS_OWNER")
+      val message = diagnostic?.let { AppText.choose(it.hebrewMessage, it.englishMessage) }
+        ?: AppText.choose("לא ניתן להשאיר את רכיב ההקלטה פעיל. חזור למסך האפליקציה ונסה שוב.", "The recording component could not stay active. Return to the app and try again.")
+      setError(message, diagnostic?.errorCode)
+      main.post { connecting.set(false); promise.reject("READINESS_OWNER_FAILED", message, failure, failureDetails(diagnostic)) }
     }
   }
 

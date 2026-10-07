@@ -174,6 +174,67 @@ async function main() {
   await checkAsync('nested pairing status retains pairing facts with localized errors', async () => {
     core.activateLanguage('en'); const status = await recorder.NativeRecorder.getSystemAccessStatus(); assert.equal(status.helperConnected, true); assert.equal(status.pairingSetup.active, true); assert.equal(status.pairingSetup.error, core.t('pairingBusy'));
   });
+  const activationFailures = [
+    ['DISCOVERY', 'חיבור ההפעלה לא נמצא. ודאו שניפוי באגים אלחוטי פעיל. אפשר להזין ידנית את יציאת החיבור שמוצגת בהגדרות.', 'The activation connection was not found. Enable Wireless debugging. You can enter the connection port shown in Android Settings manually.'],
+    ['ADB_CONNECTION', 'לא ניתן להתחבר להפעלה. ודאו שניפוי באגים אלחוטי פעיל ושהצימוד הושלם; אם האישור הוסר, בצעו צימוד מחדש.', 'The activation connection failed. Check Wireless debugging and pairing. Pair again if authorization was removed.'],
+    ['BOOTSTRAP', 'רכיב ההקלטה לא התחיל. חזרו למסך האפליקציה ונסו להפעיל אותו שוב. אם זה חוזר, אפשר להשתמש בהקלטת מיקרופון.', 'The recording component did not start. Return to the app and activate it again. If this persists, microphone recording is available.'],
+    ['AUTHENTICATION', 'רכיב ההקלטה לא אישר שהוא מוכן בטלפון הזה. נסו הפעלה מחדש מתוך האפליקציה. אם זה חוזר, אפשר להשתמש בהקלטת מיקרופון.', 'The recording component did not confirm readiness on this phone. Activate it again from the app. If this persists, microphone recording is available.'],
+    ['HANDOFF', 'העברת השליטה לרכיב ההקלטה לא הושלמה. חזרו לאפליקציה ונסו להפעיל שוב.', 'Ownership transfer to the recording component did not finish. Return to the app and activate it again.'],
+    ['DETACH', 'סגירת חיבור ההפעלה לא הושלמה. חזרו לאפליקציה ונסו להפעיל שוב.', 'Closing the activation connection did not finish. Return to the app and activate it again.'],
+    ['LIVENESS', 'רכיב ההקלטה נעצר אחרי ההפעלה. הפעילו אותו שוב כשהאפליקציה פתוחה. אם זה חוזר, בדקו מגבלות סוללה ורקע של המכשיר.', "The recording component stopped after activation. Activate it again while the app is open. If this persists, check this phone's battery and background restrictions."],
+    ['READINESS_OWNER', 'לא ניתן להשאיר את רכיב ההקלטה פעיל ברקע. חזרו לאפליקציה, ודאו שההתראות מותרות ונסו שוב.', 'The recording component could not stay active in the background. Return to the app, check notification access and try again.'],
+  ];
+  await checkAsync('activation stages preserve legacy rejection families with safe actionable detail', async () => {
+    for (const language of ['he', 'en']) {
+      core.activateLanguage(language);
+      for (const [stage, hebrew, english] of activationFailures) {
+        const errorCode = `ACTIVATION_${stage}_FAILED`;
+        const family = stage === 'READINESS_OWNER' ? 'READINESS_OWNER_FAILED' : 'ACTIVATION_FAILED';
+        nativeModules.CallRecorder.connectSystemRecorder = async () => { throw { code: family, userInfo: { errorCode }, message: 'private token port and provider text' }; };
+        await assert.rejects(recorder.NativeRecorder.connectSystemRecorder(), error =>
+          error.code === family && error.errorCode === errorCode && error.message === (language === 'he' ? hebrew : english));
+      }
+    }
+  });
+  await checkAsync('unknown or misplaced activation details cannot expose native text or change legacy behavior', async () => {
+    core.activateLanguage('en');
+    for (const userInfo of [null, [], 'ACTIVATION_DISCOVERY_FAILED', {}, { errorCode: 'toString' }, { errorCode: '__proto__' }, { errorCode: 'raw private token' }, { errorCode: 3 }, Object.create({ errorCode: 'ACTIVATION_DISCOVERY_FAILED' })]) {
+      nativeModules.CallRecorder.connectSystemRecorder = async () => { throw { code: 'ACTIVATION_FAILED', userInfo, message: 'private token' }; };
+      await assert.rejects(recorder.NativeRecorder.connectSystemRecorder(), error => error.code === 'ACTIVATION_FAILED' && !error.errorCode && error.message === core.t('copy206'));
+    }
+    nativeModules.CallRecorder.connectSystemRecorder = async () => { throw { code: 'PAIRING_FAILED', userInfo: { errorCode: 'ACTIVATION_DISCOVERY_FAILED' }, message: 'private token' }; };
+    await assert.rejects(recorder.NativeRecorder.connectSystemRecorder(), error => error.code === 'PAIRING_FAILED' && !error.errorCode && error.message === core.t('copy148'));
+    for (const [code, detail] of [['ACTIVATION_FAILED', 'ACTIVATION_READINESS_OWNER_FAILED'], ['READINESS_OWNER_FAILED', 'ACTIVATION_DISCOVERY_FAILED']]) {
+      nativeModules.CallRecorder.connectSystemRecorder = async () => { throw { code, userInfo: { errorCode: detail }, message: 'private token' }; };
+      await assert.rejects(recorder.NativeRecorder.connectSystemRecorder(), error => error.code === code && !error.errorCode && error.message === core.t('copy206'));
+    }
+  });
+  await checkAsync('activation status retains facts and distinct safe stage copy across languages', async () => {
+    for (const language of ['he', 'en']) {
+      core.activateLanguage(language);
+      for (const [stage, hebrew, english] of activationFailures) {
+        const errorCode = `ACTIVATION_${stage}_FAILED`;
+        nativeModules.CallRecorder.getSystemAccessStatus = async () => ({ available: true, helperConnected: false, paired: true, connecting: false, wirelessDebuggingEnabled: true, error: 'private native text', errorCode });
+        const status = await recorder.NativeRecorder.getSystemAccessStatus();
+        assert.equal(status.error, language === 'he' ? hebrew : english); assert.equal(status.errorCode, errorCode);
+        assert.equal(status.available, true); assert.equal(status.helperConnected, false); assert.equal(status.paired, true); assert.equal(status.connecting, false); assert.equal(status.wirelessDebuggingEnabled, true);
+      }
+    }
+  });
+  check('focused setup preserves every approved stage message instead of generic Wi-Fi advice', () => {
+    for (const language of ['he', 'en']) {
+      core.activateLanguage(language);
+      for (const [stage, hebrew, english] of activationFailures) {
+        const message = language === 'he' ? hebrew : english;
+        const access = { available: true, helperConnected: false, developerOptionsEnabled: true, wirelessDebuggingEnabled: true, paired: true, error: message, errorCode: `ACTIVATION_${stage}_FAILED` };
+        const rendered = ui.render('SetupScreen', { ...recordingState, systemAccessStatus: access }, { ...setupState, readiness: { ...setupState.readiness, helper: false, allReady: false }, systemAccessStatus: access });
+        assert.ok(rendered.includes(message), stage); assert.equal(rendered.includes(core.t('copy148')), false, stage);
+      }
+      const access = { available: true, helperConnected: false, developerOptionsEnabled: true, wirelessDebuggingEnabled: true, paired: true, error: 'private token port and native text' };
+      const rendered = ui.render('SetupScreen', { ...recordingState, systemAccessStatus: access }, { ...setupState, readiness: { ...setupState.readiness, helper: false, allReady: false }, systemAccessStatus: access });
+      assert.ok(rendered.includes(core.t('copy009'))); assert.equal(rendered.includes('private token'), false);
+    }
+  });
   process.stdout.write(`Localization checks: ${passed} passed (${Object.keys(catalog.he).length} paired resources)\n`);
 }
 main().catch(error => { process.stderr.write(`${error.stack}\n`); process.exitCode = 1; });

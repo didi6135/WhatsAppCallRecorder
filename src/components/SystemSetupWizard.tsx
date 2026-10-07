@@ -1,4 +1,4 @@
-import { localizedError, localizeText, t, useLocalizedStyles } from '../i18n';
+import { localizedError, t, useLocalizedStyles } from '../i18n';
 import React, { useState } from 'react';
 import { Alert, Linking, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useRecording } from '../context/RecordingContext';
@@ -151,7 +151,7 @@ export default function SystemSetupWizard({ compact = false, focused = false, on
         <TextInput style={styles.input} value={pairingCode} onChangeText={value => setPairingCode(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={6} editable={!disabled} secureTextEntry placeholder={t('copy144')} placeholderTextColor={colors.muted} accessibilityLabel={t('copy145')} />
         <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void pairManually(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy146')}</Text></TouchableOpacity>
       </View>}
-      {errorText && <Text style={styles.error} accessibilityLiveRegion="polite">{localError && localizeText(localError).startsWith(t('copy147')) ? localizeText(localError) : t('copy148')}</Text>}
+      {errorText && <Text style={styles.error} accessibilityLiveRegion="polite">{localizedError(errorText)}</Text>}
     </View>;
   }
 
