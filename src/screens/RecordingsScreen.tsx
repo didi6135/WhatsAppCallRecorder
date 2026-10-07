@@ -49,7 +49,7 @@ export default function RecordingsScreen() {
 
   const confirmDelete = (item: Recording) => {
     if (isRecording || isBusy) return;
-    Alert.alert(t('copy286'), t('copy287', { p0: displayRecordingTitle(item.title) }), [
+    Alert.alert(t('copy286'), t('copy287', { p0: displayRecordingTitle(item.title, item.callDisplayName) }), [
       { text: t('copy012'), style: 'cancel' },
       { text: t('copy288'), style: 'destructive', onPress: () => {
         void deleteRecording(item.id).catch(failure => Alert.alert(t('copy289'), messageOf(failure)));
@@ -67,17 +67,17 @@ export default function RecordingsScreen() {
     const warning = qualityWarning(item);
     return (
       <View style={styles.item}>
-        <TouchableOpacity style={styles.info} onPress={() => navigation.navigate('Playback', { recordingId: item.id })} accessibilityRole="button" accessibilityLabel={t('copy290', { p0: displayRecordingTitle(item.title) })}>
-          <Text style={styles.title}>{displayRecordingTitle(item.title)}</Text>
+        <TouchableOpacity style={styles.info} onPress={() => navigation.navigate('Playback', { recordingId: item.id })} accessibilityRole="button" accessibilityLabel={t('copy290', { p0: displayRecordingTitle(item.title, item.callDisplayName) })}>
+          <Text style={styles.title}>{displayRecordingTitle(item.title, item.callDisplayName)}</Text>
           <Text style={styles.date}>{formatDate(item.date)}</Text>
           <Text style={styles.details}>{item.durationMs !== undefined ? formatDuration(item.durationMs) : item.duration} · {item.source === 'legacy' ? t('copy291') : item.captureSource === 'usb' ? t('copy246') : t('copy245')}</Text>
           {warning && <Text style={styles.warning}>{warning}</Text>}
         </TouchableOpacity>
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.action} onPress={() => navigation.navigate('Playback', { recordingId: item.id })} accessibilityRole="button" accessibilityLabel={t('copy292', { p0: displayRecordingTitle(item.title) })}><Text style={styles.playText}>{t('copy218')}</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.action} onPress={() => navigation.navigate('Playback', { recordingId: item.id })} accessibilityRole="button" accessibilityLabel={t('copy292', { p0: displayRecordingTitle(item.title, item.callDisplayName) })}><Text style={styles.playText}>{t('copy218')}</Text></TouchableOpacity>
           {item.source === 'native' ? <>
-            <TouchableOpacity style={[styles.action, isBusy && ui.disabled]} onPress={() => { void share(item); }} disabled={isBusy} accessibilityRole="button" accessibilityLabel={t('copy293', { p0: displayRecordingTitle(item.title) })} accessibilityState={{ disabled: isBusy }}><Text style={styles.shareText}>{t('copy294')}</Text></TouchableOpacity>
-            <TouchableOpacity style={[styles.action, (isRecording || isBusy) && ui.disabled]} onPress={() => confirmDelete(item)} disabled={isRecording || isBusy} accessibilityRole="button" accessibilityLabel={t('copy295', { p0: displayRecordingTitle(item.title) })} accessibilityState={{ disabled: isRecording || isBusy }}>
+            <TouchableOpacity style={[styles.action, isBusy && ui.disabled]} onPress={() => { void share(item); }} disabled={isBusy} accessibilityRole="button" accessibilityLabel={t('copy293', { p0: displayRecordingTitle(item.title, item.callDisplayName) })} accessibilityState={{ disabled: isBusy }}><Text style={styles.shareText}>{t('copy294')}</Text></TouchableOpacity>
+            <TouchableOpacity style={[styles.action, (isRecording || isBusy) && ui.disabled]} onPress={() => confirmDelete(item)} disabled={isRecording || isBusy} accessibilityRole="button" accessibilityLabel={t('copy295', { p0: displayRecordingTitle(item.title, item.callDisplayName) })} accessibilityState={{ disabled: isRecording || isBusy }}>
               <Text style={styles.deleteText}>{t('copy288')}</Text>
             </TouchableOpacity>
           </> : <Text style={styles.legacy}>{t('copy296')}</Text>}

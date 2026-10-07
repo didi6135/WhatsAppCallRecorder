@@ -62,6 +62,16 @@ async function main() {
     core.activateLanguage('en'); assert.equal(core.displayRecordingTitle(catalog.he.nativeCallTitle), catalog.en.nativeCallTitle);
     for (const title of ['פגישה עם Dave', 'Settings', 'הגדרות', 'Customer recording']) assert.equal(core.displayRecordingTitle(title), title);
   });
+  check('named recordings translate the title without altering Hebrew or emoji labels', () => {
+    core.activateLanguage('he'); assert.equal(core.displayRecordingTitle('stored title', 'דוד 👨‍💻'), 'שיחה עם דוד 👨‍💻');
+    core.activateLanguage('en'); assert.equal(core.displayRecordingTitle('stored title', 'דוד 👨‍💻'), 'Call with דוד 👨‍💻');
+    assert.equal(core.displayRecordingTitle('stored title', '+972501234567'), 'Call with +972501234567');
+  });
+  check('missing or invalid participant metadata keeps legacy generated titles', () => {
+    core.activateLanguage('en');
+    for (const label of [undefined, null, '', '  ', 'A\u202eB', 'A\nB', 'X'.repeat(81)])
+      assert.equal(core.displayRecordingTitle(catalog.he.nativeCallTitle, label), catalog.en.nativeCallTitle);
+  });
   await checkAsync('first-run device locale is used without writing a choice', async () => {
     const store = memoryStorage(); const calls = []; const controller = makeController(store, 'iw_IL', calls);
     await controller.initialize(); assert.equal(controller.getSnapshot().language, 'he'); assert.equal(controller.getSnapshot().ready, true); assert.deepEqual(store.writes, []); assert.deepEqual(calls, ['he']);
@@ -129,6 +139,31 @@ async function main() {
   vm.runInNewContext(compiled, { exports: recorder, module: { exports: recorder }, Error, require: name => {
     if (name === '../i18n/core') return core; if (name === 'react-native') return { NativeModules: nativeModules, Platform: { OS: 'android' } }; throw Error(name);
   } });
+  await checkAsync('name preference reads are authoritative and strip unrelated bridge fields', async () => {
+    nativeModules.CallRecorder.getCallNameStatus = async () => ({ enabled: false, privateField: 'not returned' });
+    const value = await recorder.NativeRecorder.getCallNameStatus(); assert.equal(value.enabled, false); assert.equal(Object.keys(value).join(','), 'enabled');
+    nativeModules.CallRecorder.getCallNameStatus = async () => ({ enabled: true }); assert.equal((await recorder.NativeRecorder.getCallNameStatus()).enabled, true);
+  });
+  await checkAsync('malformed preference response cannot silently enable name saving', async () => {
+    for (const value of [null, {}, { enabled: 'true' }, { enabled: 1 }]) {
+      nativeModules.CallRecorder.getCallNameStatus = async () => value;
+      await assert.rejects(recorder.NativeRecorder.getCallNameStatus(), error => error.message === core.t('callNameReadFailed'));
+    }
+  });
+  await checkAsync('name preference writes verify the native committed value', async () => {
+    nativeModules.CallRecorder.setCallNameEnabled = async enabled => ({ enabled });
+    assert.equal((await recorder.NativeRecorder.setCallNameEnabled(true)).enabled, true);
+    assert.equal((await recorder.NativeRecorder.setCallNameEnabled(false)).enabled, false);
+    nativeModules.CallRecorder.setCallNameEnabled = async () => ({ enabled: true });
+    await assert.rejects(recorder.NativeRecorder.setCallNameEnabled(false), error => error.message === core.t('callNameSaveFailed'));
+  });
+  await checkAsync('busy setting rejection is localized without exposing native private details', async () => {
+    nativeModules.CallRecorder.setCallNameEnabled = async () => { throw { code: 'RECORDING_BUSY', message: 'private device data' }; };
+    for (const language of ['he', 'en']) {
+      core.activateLanguage(language);
+      await assert.rejects(recorder.NativeRecorder.setCallNameEnabled(true), error => error.code === 'RECORDING_BUSY' && error.message === core.t('callNameRecordingBusy'));
+    }
+  });
   await checkAsync('native status localization preserves all recording facts', async () => {
     for (const language of ['he', 'en']) { core.activateLanguage(language); const status = await recorder.NativeRecorder.getStatus(); assert.equal(status.isRecording, true); assert.equal(status.elapsedMs, 1234); assert.equal(status.source, 'usb'); assert.equal(status.level, 0.5); assert.equal(status.usbConnected, true); assert.equal(status.error, core.t('copy211')); }
   });

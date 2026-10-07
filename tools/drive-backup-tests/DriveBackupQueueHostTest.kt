@@ -164,6 +164,47 @@ object DriveBackupQueueHostTest {
     verify(DriveBackupQueue.status(managedContext)["errorCode"] == "LOCAL_QUEUE_UNAVAILABLE")
     reject { DriveBackupQueue.reserveManaged(managedContext, 1, "account_A", "managed_A", marker) }
     verify(managedJournal.readText() == corrupted)
+    val namesContext = Context(Files.createTempDirectory(root.toPath(), "name-journal-").toFile())
+    reset()
+    DriveBackupQueue.select(namesContext, "synthetic@example.invalid", "account", "folder", "Synthetic")
+    DriveBackupQueue.setEnabled(namesContext, true)
+    val namedId = "10-deadbeef"
+    val frozenName = RecordingNames.exportFileName(namedId, "דוד Smith 👩‍💻")
+    DriveBackupQueue.enqueue(namesContext, namedId, 100, frozenName)
+    DriveBackupQueue.enqueue(namesContext, namedId, 100, RecordingNames.exportFileName(namedId, "Changed"))
+    var namedConfig = DriveBackupQueue.config(namesContext)
+    var namedJob = DriveBackupQueue.next(namesContext, namedConfig)!!
+    verify(namedJob.getString("fileName") == frozenName)
+    namedJob.put("remoteId", "same_remote").put("md5", "0123456789abcdef0123456789abcdef")
+      .put("session", "same_session").put("offset", 50).put("state", "uploading")
+    verify(DriveBackupQueue.update(namesContext, namedConfig, namedJob))
+    reset()
+    namedConfig = DriveBackupQueue.config(namesContext); namedJob = DriveBackupQueue.next(namesContext, namedConfig)!!
+    verify(namedJob.getString("fileName") == frozenName && namedJob.getString("session") == "same_session")
+    val changedJob = JSONObject(namedJob.toString()).put("fileName", RecordingNames.exportFileName(namedId, "Changed"))
+    reject { DriveBackupQueue.update(namesContext, namedConfig, changedJob) }
+    val missingName = JSONObject(namedJob.toString()); missingName.remove("fileName")
+    reject { DriveBackupQueue.update(namesContext, namedConfig, missingName) }
+    namedJob.put("state", "uploaded").put("offset", 100); namedJob.remove("session")
+    verify(DriveBackupQueue.update(namesContext, namedConfig, namedJob))
+    DriveBackupQueue.enqueue(namesContext, namedId, 100, RecordingNames.exportFileName(namedId, "Changed"))
+    verify(DriveBackupQueue.status(namesContext)["uploadedCount"] == 1 && DriveBackupQueue.status(namesContext)["queuedCount"] == 0)
+    DriveBackupQueue.enqueue(namesContext, "11-deadbeef", 100)
+    DriveBackupQueue.enqueue(namesContext, "11-deadbeef", 100, RecordingNames.exportFileName("11-deadbeef", "Alex"))
+    val legacyJob = DriveBackupQueue.next(namesContext, namedConfig)!!
+    verify(!legacyJob.has("fileName"))
+    val migratedLegacy = JSONObject(legacyJob.toString()).put("fileName", RecordingNames.exportFileName("11-deadbeef", "Alex"))
+    reject { DriveBackupQueue.update(namesContext, namedConfig, migratedLegacy) }
+    DriveBackupQueue.enqueue(namesContext, "12-deadbeef", 100, "../../unsafe.wav")
+    val namesJournal = File(namesContext.noBackupFilesDir, "drive-backup-v1.json")
+    val namesBytes = namesJournal.readText()
+    verify(!JSONObject(namesBytes).getJSONArray("jobs").getJSONObject(2).has("fileName"))
+    for (unsafe in listOf("../../unsafe.wav", RecordingNames.exportFileName("13-deadbeef", "Wrong recording"), 42)) {
+      val badNames = JSONObject(namesBytes)
+      badNames.getJSONArray("jobs").getJSONObject(0).put("fileName", unsafe)
+      namesJournal.writeText(badNames.toString()); reset()
+      verify(DriveBackupQueue.status(namesContext)["errorCode"] == "LOCAL_QUEUE_UNAVAILABLE")
+    }
     println("Drive backup queue: $checks checks passed (host Context/AtomicFile shims; no Android lifecycle claim).")
   }
 }

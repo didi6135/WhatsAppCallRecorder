@@ -83,4 +83,24 @@ public final class TelegramWavParts {
             throw new IllegalArgumentException("part identity");
         return String.format(java.util.Locale.ROOT, "WA-reco-%s-part-%03d-of-%03d.wav", recordingId, index + 1, total);
     }
+    /** A newly frozen named recording uses its export name; legacy jobs keep the original part names. */
+    public static String filename(String recordingId, int index, int total, String exportFileName) {
+        if (exportFileName == null) return filename(recordingId, index, total);
+        if (index < 0 || index >= total || total < 1 || total > 100
+                || !RecordingNames.validExportFileName(recordingId, exportFileName)) throw new IllegalArgumentException("part identity");
+        if (total == 1) return exportFileName;
+        return exportFileName.substring(0, exportFileName.length() - 4)
+                + String.format(java.util.Locale.ROOT, "-part-%03d-of-%03d.wav", index + 1, total);
+    }
+    /** Header-safe, bounded canonical name tied to the source's stable recording ID and exact part. */
+    public static boolean validFilename(String recordingId, String value, int index, int total) {
+        if (value == null || value.length() > RecordingNames.MAX_EXPORT_UTF8_BYTES || !RecordingNames.validRecordingId(recordingId)
+                || index < 0 || index >= total || total < 1 || total > 100
+                || value.getBytes(StandardCharsets.UTF_8).length > RecordingNames.MAX_EXPORT_UTF8_BYTES) return false;
+        if (value.equals(filename(recordingId, index, total))) return true;
+        if (total == 1) return RecordingNames.validExportFileName(recordingId, value);
+        String suffix = String.format(java.util.Locale.ROOT, "-part-%03d-of-%03d.wav", index + 1, total);
+        return value.endsWith(suffix) && RecordingNames.validExportFileName(recordingId,
+                value.substring(0, value.length() - suffix.length()) + ".wav");
+    }
 }

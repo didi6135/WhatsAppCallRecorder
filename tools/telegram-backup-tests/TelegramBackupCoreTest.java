@@ -87,6 +87,22 @@ public final class TelegramBackupCoreTest {
         check(TelegramBackupFailure.afterDispatch(new TelegramBackupFailure("RATE_LIMIT", true, false, 60)).retryable);
     }
     private static void wav() throws Exception {
+        String id = "1791280000000-abcdef12", named = RecordingNames.exportFileName(id, "דוד Smith 👩‍💻");
+        check(TelegramWavParts.filename(id, 0, 1).equals("WA-reco-" + id + "-part-001-of-001.wav"));
+        check(TelegramWavParts.filename(id, 0, 1, named).equals(named));
+        check(TelegramWavParts.validFilename(id, named, 0, 1));
+        check(!TelegramWavParts.validFilename(id, "../" + named, 0, 1));
+        check(!TelegramWavParts.validFilename(id, named.replace(id, "1-deadbeef"), 0, 1));
+        check(!TelegramWavParts.validFilename(id, "x".repeat(100000), 0, 1));
+        String multiName = TelegramWavParts.filename(id, 1, 2, named);
+        check(multiName.endsWith("-" + id + "-part-002-of-002.wav") && multiName.contains("דוד Smith 👩‍💻"));
+        check(TelegramWavParts.validFilename(id, multiName, 1, 2));
+        check(!TelegramWavParts.validFilename(id, multiName, 0, 2));
+        check(!TelegramWavParts.validFilename(id, multiName, 1, 3));
+        String longest = RecordingNames.exportFileName("9999999999999999999-abcdef12", "😀".repeat(1000));
+        String largestPartName = TelegramWavParts.filename("9999999999999999999-abcdef12", 99, 100, longest);
+        check(largestPartName.getBytes(java.nio.charset.StandardCharsets.UTF_8).length <= RecordingNames.MAX_EXPORT_UTF8_BYTES);
+        check(TelegramWavParts.validFilename("9999999999999999999-abcdef12", largestPartName, 99, 100));
         byte[] header = TelegramWavParts.header(200, 2, 16000);
         TelegramWavParts.Plan plan = TelegramWavParts.plan(header, 244, 100);
         check(plan.parts == 4); check(plan.channels == 2 && plan.dataBytes == 200);

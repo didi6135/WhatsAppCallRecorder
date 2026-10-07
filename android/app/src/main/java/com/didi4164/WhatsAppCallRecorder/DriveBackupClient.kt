@@ -95,7 +95,9 @@ class DriveBackupClient(private val transport: DriveHttpTransport = DriveHttpTra
   fun initiate(token: String, job: JSONObject, folderId: String): String {
     val id = job.optString("remoteId")
     if (!DriveBackupPolicy.validDriveId(id) || !DriveBackupPolicy.validMd5(job.optString("md5"))) throw DriveBackupFailure("REMOTE_MISMATCH")
-    val metadata = JSONObject().put("id", id).put("name", "recording-${job.getString("id")}.wav")
+    val fileName = try { RecordingNames.driveFileName(job.getString("id"), job.optString("fileName").takeIf { job.has("fileName") }) }
+      catch (_: Exception) { throw DriveBackupFailure("REMOTE_MISMATCH") }
+    val metadata = JSONObject().put("id", id).put("name", fileName)
       .put("mimeType", "audio/wav").put("parents", JSONArray().put(folderId))
       .put("appProperties", JSONObject().put("codakiRecorderId", job.getString("id")).put("codakiSourceMd5", job.getString("md5")))
     val response = request("POST", "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=${enc(fields)}", token,

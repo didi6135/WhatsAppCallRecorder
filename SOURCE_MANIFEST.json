@@ -1,7 +1,7 @@
 {
-  "sourceCommit": "c835e2f87c495d6d3b0ec3367390c82e05fd22a7",
-  "fileCount": 287,
-  "excludedCount": 95,
+  "sourceCommit": "c571f541558db937ba3e0c29ca837b69ad030f68",
+  "fileCount": 294,
+  "excludedCount": 105,
   "files": [
     {
       "path": ".gitignore",
@@ -85,8 +85,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 6532,
-      "sha256": "a3c4692929279832a97876dc975132cf73d039f9ad5a61ab8fd9ac4c26bef9c7"
+      "bytes": 7151,
+      "sha256": "3cce589665a4db9dcf767b1dee224531d04c8a8e85f4143b89f4ee9741620c7a"
     },
     {
       "path": "THIRD_PARTY_NOTICES.md",
@@ -101,7 +101,7 @@
     {
       "path": "android/app/build.gradle",
       "bytes": 11270,
-      "sha256": "570f19f48706355983750429d4699e40067475014115b73180d985b56edad5d5"
+      "sha256": "54fc79e0647aaa9793d01eb4504d4836760e7b0d4f8b1c3b780adb5f154c2cf8"
     },
     {
       "path": "android/app/debug.keystore",
@@ -155,8 +155,8 @@
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/AutoRecordingController.kt",
-      "bytes": 25131,
-      "sha256": "cb620c3636da7274b096ae0a98da9d360df12685077c4cabdc12619e619252a4"
+      "bytes": 25160,
+      "sha256": "61faa025fe1379abdc3946c54263ed3ac9818e7925c086a57b77f0239ccfebe7"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/BootstrapHandoffSignal.java",
@@ -164,9 +164,24 @@
       "sha256": "5d1e8189fb193f27504c528c6ba4f80ab442efab8dfd3a1d1d22c7c62e73fd27"
     },
     {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/CallNameMutationPolicy.kt",
+      "bytes": 425,
+      "sha256": "74cbc46900d4b709a3e0dd32ffb4e1469544c05b87992ba3fa3d8cad9e615472"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/CallNamePreferences.kt",
+      "bytes": 984,
+      "sha256": "81ba6461b7a281c8d62e70e127cdb625903a68ab4fe579e7dc2d4532c20388a6"
+    },
+    {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/CallNotificationIdentity.kt",
+      "bytes": 4217,
+      "sha256": "59dd798e106017ab7baba0a0420f48a3c7569faa15e1ee3edd2282d84d976322"
+    },
+    {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/CallRecorderModule.kt",
-      "bytes": 9431,
-      "sha256": "c1d5d4caaea8feb0367c317b3f000120d5c3b5c5f238815c740315b9f3e32e52"
+      "bytes": 11419,
+      "sha256": "89c71e702bc875f2ad600367fbae66ce48a824ccd5767057786a0a8829d0f7e2"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/CallRecorderPackage.kt",
@@ -190,8 +205,8 @@
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupClient.kt",
-      "bytes": 9054,
-      "sha256": "7465eacb61b0c06c8f5ac4a9cec9f5eac8f8a519cf14d7f701bbcd75ef8f4f5d"
+      "bytes": 9234,
+      "sha256": "f9af684bc5b7f42007177ca413179d15264284316af6c9a6b15c875928cf690a"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupErrors.kt",
@@ -205,8 +220,8 @@
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupManager.kt",
-      "bytes": 9510,
-      "sha256": "d7a90a6062f756afc5002054e907685740c6da693f761e2072bdb1d8e272e57a"
+      "bytes": 9664,
+      "sha256": "a31e02a71965da10b7603adb480d5f9bf80717c4f2cee873eac4a335a84db155"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupModule.kt",
@@ -225,8 +240,8 @@
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupQueue.kt",
-      "bytes": 15236,
-      "sha256": "8170b18beffe341d78806395e6207fc5a5ad782798a1e1f36a5b9c36fd0edce3"
+      "bytes": 15838,
+      "sha256": "71135e7233823fc4f11857eb0073ba9cefe11357bfc39eaaac7c7c74b40ea34f"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/DriveBackupSecrets.kt",
@@ -314,14 +329,19 @@
       "sha256": "37be7fc7a3740f5720778586ac77dba8af5d4fac5510c22bab12eda47af02e76"
     },
     {
+      "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/RecordingNames.java",
+      "bytes": 4161,
+      "sha256": "b35a8332bdf244784ae67b450fda3392c2d10ab7e8e079bfccd3f134acc71b00"
+    },
+    {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/RecordingService.kt",
-      "bytes": 28983,
-      "sha256": "2f7e8678d56a971e194f15410c3f6efb6399b360f1476b04815d4402d236a84f"
+      "bytes": 29527,
+      "sha256": "ad2445f7973a2013f81f0e92be6f9ea15482c569240b140d02412cc346a585f9"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/RecordingStore.kt",
-      "bytes": 6440,
-      "sha256": "3c823dc7b13a024a87a41ac0dccb57471c7e7aff5f5698d24deaf6be7bc9c694"
+      "bytes": 7504,
+      "sha256": "d337bb81e9b3005a74f6fc420e72dec58e77151e057f2727153e6f3745204f57"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/TelegramBackupFailure.java",
@@ -330,13 +350,13 @@
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/TelegramBackupLedger.java",
-      "bytes": 21897,
-      "sha256": "c34c2a2db5bbfe9f70bc193818cd5c90dc9a2aae374d8369e428b0ad2083c833"
+      "bytes": 22744,
+      "sha256": "e19114a0a725f7691d0ec2115d5f9421bf6515c1ec5ee31a163a2f4b76ad5cf2"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/TelegramBackupManager.kt",
-      "bytes": 10969,
-      "sha256": "0bc9aeb97894af444588cc7167132a323ae8f9ef9c10d97a1612a2015fb609b0"
+      "bytes": 11053,
+      "sha256": "06d28920a816f7b328c5a5a8a05b5e4f3486e14f0e707c3dac5aa9774c642680"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/TelegramBackupModule.kt",
@@ -360,8 +380,8 @@
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/TelegramBotHttp.java",
-      "bytes": 11144,
-      "sha256": "9010e4461f1dece709af1915689429332ee9872c1fa3a9a5862780f893f15246"
+      "bytes": 11139,
+      "sha256": "56b8346c6c48ddb94437fdc353a7660ab342bd74b8b090420fa13b4793eace80"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/TelegramBotProtocol.java",
@@ -370,8 +390,8 @@
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/TelegramWavParts.java",
-      "bytes": 5268,
-      "sha256": "5a93f7255cff6ddf03e3b658d2a5c92d171a7d4dff7256ada93c874c2ccf1026"
+      "bytes": 6958,
+      "sha256": "3402b05fcae577db478e9f3358ce90c882d049a8090fccf6d07a24137d808285"
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/TelegramWorkerWakeupPolicy.java",
@@ -390,8 +410,8 @@
     },
     {
       "path": "android/app/src/main/java/com/didi4164/WhatsAppCallRecorder/WhatsAppCallNotificationService.kt",
-      "bytes": 3418,
-      "sha256": "32c16f0cbfab742e018ca312bbada14ab8a0caa22786c55f5e5e773b2ec67870"
+      "bytes": 6765,
+      "sha256": "7b8142178ccace92a397ae2ba3ee56300780111a2b04b652e7c76c5aa9bed88f"
     },
     {
       "path": "android/app/src/main/res/drawable-hdpi/splashscreen_logo.png",
@@ -594,6 +614,11 @@
       "sha256": "10d8cc299a905dc430102f1de09e1aa60627914a55591f9a1778c038186712d2"
     },
     {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/CallNotificationIdentityTest.kt",
+      "bytes": 8818,
+      "sha256": "ec8a59c0501eb34e960134f29bf37f9679d74bf087591a8056711a8c668858e0"
+    },
+    {
       "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/DriveAuthorizationResultGateTest.java",
       "bytes": 4809,
       "sha256": "9c607685a3b318e211be1adb9fd773132b96349b1ab2ddc79b876f88ff9737da"
@@ -605,8 +630,8 @@
     },
     {
       "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/DriveBackupClientTest.kt",
-      "bytes": 7364,
-      "sha256": "6fe7067a1497cf647cee5e69e58fa9b126d33ce25528c2ef3b7102609a0729d0"
+      "bytes": 8375,
+      "sha256": "c81c09a6aa5e8cc338c3434138ebdeb6d526949044bc31f076a441a60d4ccc0d"
     },
     {
       "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/DriveConnectionAttemptTest.java",
@@ -637,6 +662,11 @@
       "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/RecorderFormatTest.kt",
       "bytes": 1655,
       "sha256": "3fabc9dd3f88786aa3ccf0fb0ad6704bbda716f5bbad59161af9f720975aff8c"
+    },
+    {
+      "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/RecordingNamesTest.java",
+      "bytes": 3766,
+      "sha256": "06b2fe0a1488cb5b161a4a591e8682bde3659b116317a2bf6318962d998e5160"
     },
     {
       "path": "android/app/src/test/java/com/didi4164/WhatsAppCallRecorder/ShellAudioCompatibilityNativeTest.kt",
@@ -806,7 +836,7 @@
     {
       "path": "app.json",
       "bytes": 720,
-      "sha256": "088c12b286eb4c4128bcbf445d48b9d8655d2deca9cc7ba20677e694896095b2"
+      "sha256": "c955af9423061e4e2a16bd6bc6252b1c8084f72930f35fa0852309354e19d991"
     },
     {
       "path": "assets/adaptive-icon.png",
@@ -875,8 +905,8 @@
     },
     {
       "path": "docs/privacy.md",
-      "bytes": 4331,
-      "sha256": "62872f2486390e5f9d0ed1b5ee8cf7944605327fd7ca9df0314339e91f49405c"
+      "bytes": 5152,
+      "sha256": "44a6d780ec94e04005384404b25cad491f014b2cefdae7e522542f7578c58bf5"
     },
     {
       "path": "docs/rebuild-spake2.md",
@@ -901,17 +931,22 @@
     {
       "path": "package-lock.json",
       "bytes": 434438,
-      "sha256": "90bc365310865297eaad7bddf5bec3fbf46c5d43cb769a9785333a17780aa8f0"
+      "sha256": "a1d6de72877f7f4c031cc95b3ef9171383876d876d92a0c2b5cee508e0aa665a"
     },
     {
       "path": "package.json",
       "bytes": 1417,
-      "sha256": "c6a6c3fceae0d877bc59397d0ab36d7686859f562a92cd0d7fd4193b936ef3c6"
+      "sha256": "dccbb845638888b3bc5541730321bbb6be71670fd2506ce902314ca305d8412a"
     },
     {
       "path": "src/components/AutoRecordingCard.tsx",
       "bytes": 5552,
       "sha256": "8b7e2432f33b6cf193d6e2930482f9bccf999fe15cc8021b7014d6c4b653a8c1"
+    },
+    {
+      "path": "src/components/CallNameCard.tsx",
+      "bytes": 3910,
+      "sha256": "03b5cdb25c2e720292912116597b7252483bfd209a47461a3fe4b0de397184bb"
     },
     {
       "path": "src/components/DriveBackupCard.tsx",
@@ -940,8 +975,8 @@
     },
     {
       "path": "src/context/RecordingContext.tsx",
-      "bytes": 19651,
-      "sha256": "f63b6da08aec6746a8d8e04db781b01885195bfac3eaedac65f82508b2682b8b"
+      "bytes": 19730,
+      "sha256": "f01c7e3f8f14b2292e54d3ded2101158812f36321c4b0550f442531eae91ec49"
     },
     {
       "path": "src/hooks/useDriveBackup.ts",
@@ -965,8 +1000,8 @@
     },
     {
       "path": "src/i18n/__tests__/localization.test.cjs",
-      "bytes": 15816,
-      "sha256": "143ac8a730534c4d0f40d5c37a5c7fc488a06181b42a2b8fbe035eb4db7067e1"
+      "bytes": 18690,
+      "sha256": "142d9d66b699d6082fdb01494f730b4cb6a921256efd27965b6574e5eb97c5da"
     },
     {
       "path": "src/i18n/__tests__/render-ui.cjs",
@@ -975,13 +1010,13 @@
     },
     {
       "path": "src/i18n/catalog.ts",
-      "bytes": 69246,
-      "sha256": "3004f4b08207d5c3f517d2350ae3352f1261edb504410464e5941d04fea95fae"
+      "bytes": 71004,
+      "sha256": "118203e9622edf48fa9414805d249c5f8692125b631d375d4ed088af8abd93ff"
     },
     {
       "path": "src/i18n/core.ts",
-      "bytes": 5943,
-      "sha256": "6c53d468e01f0bcaaa84a844411c7d058c53374d74b2d1a4414b6000de987c70"
+      "bytes": 6266,
+      "sha256": "b2f648e7b4d7061ef104b65f481d178e074aee8d90a3460c941ff904a8dd1dbc"
     },
     {
       "path": "src/i18n/index.ts",
@@ -1005,18 +1040,18 @@
     },
     {
       "path": "src/screens/PlaybackScreen.tsx",
-      "bytes": 9300,
-      "sha256": "6b4e7bce8fc18724df1a5b3a86ba1a80fde2cb810ba4785578fece710b9eda2a"
+      "bytes": 9327,
+      "sha256": "7d04bafc06e7428ec00d5fb0f514e686df37af8082a3cf7a59a4c6136d7e3381"
     },
     {
       "path": "src/screens/RecordingsScreen.tsx",
-      "bytes": 7934,
-      "sha256": "a8dc338497442a63e61626a6b90492734dd26c71599f29c7c225a2c10e148275"
+      "bytes": 8066,
+      "sha256": "d18c92dd072216a2050eb1a8cf8933df47f51d3431ec8f18f046be7ceb9e6caa"
     },
     {
       "path": "src/screens/SettingsScreen.tsx",
-      "bytes": 8783,
-      "sha256": "eaa315380e2aee281ecdceea4913ba6473182a1de778ef6a1ec30ae44ed9c835"
+      "bytes": 8909,
+      "sha256": "2282a6245e40600039fb2adfa98499958247ab8ae5d473dae374508dae1d8714"
     },
     {
       "path": "src/screens/SetupScreen.tsx",
@@ -1030,8 +1065,8 @@
     },
     {
       "path": "src/services/NativeRecorder.ts",
-      "bytes": 8189,
-      "sha256": "d030b77299ffb17e927ab6a4a364889aac2da0efb588eb57e0268d8596a0f18f"
+      "bytes": 9111,
+      "sha256": "64b59907a2522a33375345c1972bb22c1af7cd56e1f74b6a4a2f6c30e748e1a5"
     },
     {
       "path": "src/services/NativeTelegramBackup.ts",
@@ -1070,8 +1105,8 @@
     },
     {
       "path": "tools/drive-backup-tests/DriveBackupQueueHostTest.kt",
-      "bytes": 12189,
-      "sha256": "c32adfde96ff92572542580258d99e5f7cb805a8fb84dc3423829a615686b1b2"
+      "bytes": 15387,
+      "sha256": "a6fa9ec7fde3ad9054219e08eee74b005b4aa47549ea67d87e5f9923bb2a9109"
     },
     {
       "path": "tools/drive-backup-tests/DriveHttpTransportTest.java",
@@ -1080,8 +1115,8 @@
     },
     {
       "path": "tools/drive-backup-tests/run-host-tests.ps1",
-      "bytes": 5189,
-      "sha256": "e7f229fb58a69b29299cc3a6b20dbd413b2c600a1a214974eec21c2ef87e0bf7"
+      "bytes": 5237,
+      "sha256": "a5ae9ab4432ec3b3d2e316cd6515357c776e3c383c50bc0cc28980c3ac582164"
     },
     {
       "path": "tools/drive-backup-tests/stubs/AppText.java",
@@ -1140,18 +1175,18 @@
     },
     {
       "path": "tools/telegram-backup-tests/TelegramBackupCoreTest.java",
-      "bytes": 12780,
-      "sha256": "bcbdab88a8c4aafa1a3eb1bf342ae240015dd3c215372076f45485cb28baa55a"
+      "bytes": 14227,
+      "sha256": "90aacfb7b5c90541920a602a307d9347b15e3b2eb1e98c5ee2a2a4f6aadb7d89"
     },
     {
       "path": "tools/telegram-backup-tests/TelegramBackupLedgerTest.java",
-      "bytes": 9119,
-      "sha256": "acc9a633732a8d5165cb617559b25860bf2e668f959e5feda0705d4c4fedc210"
+      "bytes": 12688,
+      "sha256": "bea9da3c9602f4d9d437448c136cfb5ba03d7a611d2bfe88f1d61d5b854e475a"
     },
     {
       "path": "tools/telegram-backup-tests/TelegramBotHttpTest.java",
-      "bytes": 9111,
-      "sha256": "6010f1e48a6abe3f2a81ff23843a559f9b188d9eea5d75b75110509940a4bd27"
+      "bytes": 10554,
+      "sha256": "2d95024460d7946b492aa15e091468b5771e0c9f56248fa83567f6a46467d612"
     },
     {
       "path": "tools/telegram-backup-tests/TelegramWorkerWakeupPolicyTest.java",
@@ -1160,13 +1195,13 @@
     },
     {
       "path": "tools/telegram-backup-tests/run-host-tests.ps1",
-      "bytes": 1692,
-      "sha256": "c815304f2c1fea8c3978f57dadb8c940c5b801b5880dff3dcf6225cff6b00516"
+      "bytes": 1715,
+      "sha256": "af5af067aaa90df0663599699e575695143886b57cba95ac720716ad26446b49"
     },
     {
       "path": "tools/telegram-backup-tests/run-http-tests.ps1",
-      "bytes": 1180,
-      "sha256": "7128e318c8bfb84463d98e4061624465dd6956a712942b59347ebe18230deb9d"
+      "bytes": 1203,
+      "sha256": "356a6645a5e62aab7b54d84434bfd67c11f664037cded18795f41e8cb50abaeb"
     },
     {
       "path": "tools/test-drive-ui.cjs",

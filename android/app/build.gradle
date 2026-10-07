@@ -178,8 +178,8 @@ android {
 androidComponents {
     onVariants(selector().withBuildType('release')) { variant ->
         variant.outputs.each { output ->
-            output.versionCode.set(13)
-            output.versionName.set('1.5.2')
+            output.versionCode.set(14)
+            output.versionName.set('1.5.3')
         }
     }
 }

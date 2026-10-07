@@ -19,7 +19,8 @@ object RecordingStore {
     require(validId.matches(id)) { AppText.choose("מזהה הקלטה לא תקין", "The recording ID is invalid") }
     return File(directory(context), "$id$suffix")
   }
-  @Synchronized fun create(context: Context, source: String = "microphone", channels: Int = 1): JSONObject {
+  @Synchronized fun create(context: Context, source: String = "microphone", channels: Int = 1,
+      callDisplayName: String? = null, callPackage: String? = null): JSONObject {
     val now = System.currentTimeMillis()
     val id = "$now-${UUID.randomUUID().toString().take(8)}"
     val date = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
@@ -29,6 +30,12 @@ object RecordingStore {
       .put("title", if (source == "usb") AppText.choose("שיחת WhatsApp • שני ערוצים", "WhatsApp call: two channels") else AppText.choose("הקלטת מיקרופון", "Microphone recording")).put("status", "recovered")
       .put("captureSource", source).put("channels", channels)
       .put("wasSilenced", false).put("durationMs", 0L).put("fileSize", 0L)
+    val name = RecordingNames.sanitizeDisplayName(callDisplayName)
+    if (source == "usb" && name != null && RecordingNames.validCallPackage(callPackage)) {
+      item.put("title", AppText.choose("שיחת WhatsApp · $name", "WhatsApp call · $name"))
+        .put("callDisplayName", name).put("callPackage", callPackage)
+        .put("exportFileName", RecordingNames.exportFileName(id, name))
+    }
     atomicWrite(file(context, id, ".pending.json"), item)
     return item
   }
@@ -74,6 +81,16 @@ object RecordingStore {
       } catch (_: Exception) { null }
     }.sortedByDescending { it.getString("id") }
   }
+  /** Read only finalized additive metadata; no queue lock is held while entering the store. */
+  @Synchronized fun exportFileName(context: Context, id: String): String? = try {
+    val metadata = file(context, id, ".json")
+    if (!metadata.isFile || metadata.length() > 64 * 1024 || !file(context, id, ".wav").isFile) null else {
+      val item = JSONObject(metadata.readText(Charsets.UTF_8))
+      item.optString("exportFileName").takeIf {
+        item.optString("id") == id && item.has("status") && RecordingNames.validExportFileName(id, it)
+      }
+    }
+  } catch (_: Exception) { null }
   private fun recover(context: Context) {
     directory(context).listFiles().orEmpty().filter { it.name.endsWith(".pending.json") }.forEach { metadata ->
       try {

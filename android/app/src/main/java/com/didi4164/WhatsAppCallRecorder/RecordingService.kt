@@ -98,7 +98,8 @@ class RecordingService : Service() {
       }
     }
 
-    fun startAutomaticCapture(context: Context): Boolean {
+    fun startAutomaticCapture(context: Context, acceptedUid: Int,
+      acceptedSignals: Collection<AutoCallPolicy.NotificationSignal>): Boolean {
       check(Looper.myLooper() == Looper.getMainLooper())
       val service = activeService ?: return false
       if (!service.automaticArmed || service.workerRunning || RecorderReadinessService.isStopping() || !UsbAudioBridge.isConnected()) return false
@@ -106,7 +107,8 @@ class RecordingService : Service() {
         if (busy) return false
         busy = true; recording = false; error = null; source = "usb"; startPromise = null
       }
-      service.beginWorker("usb", true)
+      val identity = WhatsAppCallNotificationService.nameForAcceptedStart(context, acceptedUid, acceptedSignals)
+      service.beginWorker("usb", true, identity)
       return true
     }
 
@@ -202,7 +204,10 @@ class RecordingService : Service() {
       android.util.Log.i("RecordingService", "STOP intent received USB=${usbConnection != null}")
       requestCaptureStop()
     } else if (intent?.action == ACTION_START && !workerRunning) {
-      beginWorker(intent.getStringExtra("source") ?: "microphone", false)
+      val nextSource = intent.getStringExtra("source") ?: "microphone"
+      val identity = if (nextSource == "usb")
+        WhatsAppCallNotificationService.nameForAcceptedStart(applicationContext) else null
+      beginWorker(nextSource, false, identity)
     }
     return START_NOT_STICKY
   }
@@ -213,9 +218,9 @@ class RecordingService : Service() {
     try { audioRecord?.stop() } catch (_: Exception) { }
   }
 
-  private fun beginWorker(nextSource: String, automatic: Boolean) {
+  private fun beginWorker(nextSource: String, automatic: Boolean, identity: CallNameIdentity? = null) {
     stopRequested = false; workerRunning = true; captureSource = nextSource; automaticCapture = automatic
-    try { showNotification(); Thread({ capture() }, "MicrophoneRecorder").start() }
+    try { showNotification(); Thread({ capture(identity) }, "MicrophoneRecorder").start() }
     catch (failure: Exception) { complete(failure, false) }
   }
 
@@ -266,8 +271,8 @@ class RecordingService : Service() {
     publishForegroundNotification(notification)
   }
 
-  private fun capture() {
-    if (captureSource == "usb") { captureUsb(); return }
+  private fun capture(identity: CallNameIdentity?) {
+    if (captureSource == "usb") { captureUsb(identity); return }
     var failure: Exception? = null
     var wasSilenced = false
     var soundMs = 0L
@@ -346,7 +351,7 @@ class RecordingService : Service() {
     }
   }
 
-  private fun captureUsb() {
+  private fun captureUsb(identity: CallNameIdentity?) {
     var failure: Exception? = null
     val startupCancelled = java.util.concurrent.atomic.AtomicBoolean(false)
     val startAnnounced = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -361,7 +366,7 @@ class RecordingService : Service() {
     var output: RandomAccessFile? = null
     var connection: UsbAudioBridge.Connection? = null
     try {
-      metadata = RecordingStore.create(this, "usb", 2)
+      metadata = RecordingStore.create(this, "usb", 2, identity?.displayName, identity?.packageName)
       metadata.put("startedAutomatically", automaticCapture)
       output = RandomAccessFile(RecordingStore.file(this, metadata.getString("id"), ".pending.wav"), "rw")
       output.write(WavFile.header(0L, 2))

@@ -71,10 +71,11 @@ object TelegramBackupManager {
     // No provider requests, hashing or file I/O while the queue lock is held.
     val file = RecordingStore.file(context, id, ".wav")
     val inspection = inspect(file) { TelegramBackupStore.current(context, cfg) }
+    val exportFileName = RecordingStore.exportFileName(context, id)
     TelegramBackupStore.change(context) { state ->
       val current = TelegramBackupLedger.config(state)
       if (current.generation == cfg.generation && current.destination == cfg.destination)
-        TelegramBackupLedger.enqueue(state, id, inspection.size, inspection.modifiedAt, inspection.sha256, inspection.plan)
+        TelegramBackupLedger.enqueue(state, id, inspection.size, inspection.modifiedAt, inspection.sha256, inspection.plan, exportFileName)
     }
   }
   internal fun inspect(file: File, current: () -> Boolean): Inspection {

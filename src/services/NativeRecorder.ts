@@ -4,6 +4,7 @@ import { NativeModules, Platform } from 'react-native';
 
 export type NativeRecordingStatus = 'captured' | 'silent' | 'interrupted' | 'recovered';
 export type CaptureSource = 'microphone' | 'usb';
+export interface CallNameStatus { enabled: boolean }
 export interface AutoRecordingStatus {
   enabled: boolean;
   armed: boolean;
@@ -52,6 +53,9 @@ export interface NativeRecording {
   outputSoundMs?: number;
   microphoneSoundMs?: number;
   startedAutomatically?: boolean;
+  callDisplayName?: string;
+  callPackage?: string;
+  exportFileName?: string;
 }
 
 export interface RecorderDeviceInfo {
@@ -91,6 +95,8 @@ export const EMPTY_SYSTEM_ACCESS_STATUS: SystemAccessStatus = {
 };
 
 interface CallRecorderModule {
+  getCallNameStatus(): Promise<CallNameStatus>;
+  setCallNameEnabled(enabled: boolean): Promise<CallNameStatus>;
   getAutoRecordingStatus(): Promise<AutoRecordingStatus>;
   setAutoRecordingEnabled(enabled: boolean): Promise<void>;
   openNotificationAccessSetup(): Promise<void>;
@@ -139,6 +145,7 @@ const getModule = (): CallRecorderModule => {
 // Lifecycle, WAV finalization, and metadata belong to the Android service.
 // JavaScript only asks for actions and reads the authoritative native state.
 const errorKeys: Record<string, TranslationKey> = {
+  RECORDING_BUSY: 'callNameRecordingBusy', SETTINGS_SAVE_FAILED: 'callNameSaveFailed',
   FOREGROUND_REQUIRED: 'copy196', NOTIFICATION_SETUP_FAILED: 'copy337',
   SYSTEM_CONNECTION_FAILED: 'copy206', SETUP_FAILED: 'copy337', LOAD_FAILED: 'copy285',
   DELETE_FAILED: 'copy289', SHARE_FAILED: 'copy260', WHATSAPP_UNAVAILABLE: 'whatsappUnavailable',
@@ -163,6 +170,16 @@ async function call<T>(action: (module: CallRecorderModule) => Promise<T>): Prom
 const localizeStatus = <T extends { error: string | null; errorCode?: string | null }>(status: T): T =>
   ({ ...status, error: status.error ? recorderErrorMessage(status.errorCode, status.error) : null });
 export const NativeRecorder = {
+  getCallNameStatus: async (): Promise<CallNameStatus> => {
+    const value = await call(module => module.getCallNameStatus());
+    if (!value || typeof value.enabled !== 'boolean') throw new Error(t('callNameReadFailed'));
+    return { enabled: value.enabled };
+  },
+  setCallNameEnabled: async (enabled: boolean): Promise<CallNameStatus> => {
+    const value = await call(module => module.setCallNameEnabled(enabled));
+    if (!value || typeof value.enabled !== 'boolean' || value.enabled !== enabled) throw new Error(t('callNameSaveFailed'));
+    return { enabled: value.enabled };
+  },
   getAutoRecordingStatus: async (): Promise<AutoRecordingStatus> => localizeStatus(await call(module => module.getAutoRecordingStatus())),
   setAutoRecordingEnabled: async (enabled: boolean): Promise<void> => call(module => module.setAutoRecordingEnabled(enabled)),
   openNotificationAccessSetup: async (): Promise<void> => call(module => module.openNotificationAccessSetup()),

@@ -64,6 +64,7 @@ object DriveBackupQueue {
       val size = job.getLong("size")
       require(size > 44 && job.optLong("offset") in 0..size && job.optInt("attempts") >= 0)
       require(job.getString("state") in setOf("pending", "uploading", "uploaded", "failed"))
+      if (job.has("fileName")) require(job.get("fileName") is String && RecordingNames.validExportFileName(id, job.getString("fileName")))
       if (job.has("remoteId")) require(DriveBackupPolicy.validDriveId(job.getString("remoteId")))
       if (job.has("md5")) require(DriveBackupPolicy.validMd5(job.getString("md5")))
       if (job.has("session")) require(job.getString("session").length in 1..8192 && job.has("remoteId") && job.has("md5"))
@@ -176,7 +177,7 @@ object DriveBackupQueue {
     // Keep upload receipts/remote IDs for a later reconnection to the same destination.
     save(context, next)
   }
-  @Synchronized fun enqueue(context: Context, id: String, size: Long) {
+  @Synchronized fun enqueue(context: Context, id: String, size: Long, fileName: String? = null) {
     val cfg = config(context)
     if (!cfg.enabled || !cfg.connected || !DriveBackupPolicy.validRecordingId(id) || size <= 44) return
     val next = copy(context); val jobs = next.getJSONArray("jobs")
@@ -184,8 +185,11 @@ object DriveBackupQueue {
       val job = jobs.getJSONObject(i)
       if (job.optString("id") == id && job.optString("destination") == cfg.destination) return
     }
-    jobs.put(JSONObject().put("id", id).put("destination", cfg.destination).put("size", size)
-      .put("state", "pending").put("attempts", 0))
+    val job = JSONObject().put("id", id).put("destination", cfg.destination).put("size", size)
+      .put("state", "pending").put("attempts", 0)
+    // Freeze the intended remote name before generating an ID or starting a resumable session.
+    if (fileName != null && RecordingNames.validExportFileName(id, fileName)) job.put("fileName", fileName)
+    jobs.put(job)
     save(context, next)
   }
   @Synchronized fun next(context: Context, expected: Config): JSONObject? {
@@ -205,6 +209,8 @@ object DriveBackupQueue {
     for (i in 0 until jobs.length()) {
       val old = jobs.getJSONObject(i)
       if (old.optString("id") == job.optString("id") && old.optString("destination") == expected.destination) {
+        // A resumed legacy session retains its old name, and new jobs retain their frozen name.
+        require(old.has("fileName") == job.has("fileName") && old.optString("fileName") == job.optString("fileName"))
         jobs.put(i, JSONObject(job.toString())); save(context, next); return true
       }
     }

@@ -9,7 +9,7 @@ if (!$JsonJar -or !(Test-Path -LiteralPath $JsonJar)) { throw 'Pass the resolved
 $output = Join-Path $repoRoot 'artifacts/telegram-http-host-classes'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $native = Join-Path $repoRoot 'android/app/src/main/java/com/didi4164/WhatsAppCallRecorder'
-$sources = @('TelegramBackupFailure.java', 'TelegramBotProtocol.java', 'TelegramWavParts.java', 'TelegramBotHttp.java') |
+$sources = @('RecordingNames.java', 'TelegramBackupFailure.java', 'TelegramBotProtocol.java', 'TelegramWavParts.java', 'TelegramBotHttp.java') |
   ForEach-Object { Join-Path $native $_ }
 & javac -encoding UTF-8 -cp $JsonJar -d $output @sources (Join-Path $PSScriptRoot 'TelegramBotHttpTest.java')
 if ($LASTEXITCODE -ne 0) { throw 'Telegram HTTP host compile failed.' }

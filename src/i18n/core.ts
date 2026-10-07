@@ -19,7 +19,10 @@ export function t(key: TranslationKey, values: Record<string, string | number> =
 const exactKeys = new Map<string, TranslationKey>();
 for (const key of Object.keys(he) as TranslationKey[]) { exactKeys.set(he[key], key); exactKeys.set(en[key], key); }
 export function localizeText(text: string): string { const key = exactKeys.get(text); return key ? t(key) : text; }
-export function displayRecordingTitle(title: string): string {
+export function displayRecordingTitle(title: string, callDisplayName?: string | null): string {
+  if (typeof callDisplayName === 'string' && callDisplayName.trim() && Array.from(callDisplayName).length <= 80 &&
+      !/[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/.test(callDisplayName))
+    return t('callRecordingNamed', { name: callDisplayName.trim() });
   for (const key of ['nativeCallTitle', 'nativeMicrophoneTitle', 'copy198'] as const)
     if (title === he[key] || title === en[key]) return t(key);
   return title;

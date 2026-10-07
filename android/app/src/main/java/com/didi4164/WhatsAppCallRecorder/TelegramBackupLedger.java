@@ -33,7 +33,7 @@ public final class TelegramBackupLedger {
             this.config = config; this.id = job.getString("id"); this.sha256 = job.getString("sha256");
             this.size = job.getLong("size"); this.modifiedAt = job.getLong("modifiedAt"); this.index = index;
             this.count = job.getJSONArray("parts").length();
-            this.filename = TelegramWavParts.filename(id, index, count);
+            this.filename = TelegramWavParts.filename(id, index, count, job.has("fileName") ? job.getString("fileName") : null);
             this.partBytes = job.getJSONArray("parts").getJSONObject(index).getLong("bytes");
         }
     }
@@ -80,6 +80,8 @@ public final class TelegramBackupLedger {
                 if (!id.matches("[0-9]{1,19}-[a-f0-9]{8}") || !target.matches("[1-9][0-9]{0,15}\\.[1-9][0-9]{0,15}")
                         || !identities.add(target + "/" + id) || !job.getString("sha256").matches("[a-f0-9]{64}")
                         || !integral(job, "modifiedAt", 0, Long.MAX_VALUE) || !integral(job, "size", 45, 0xffffffffL + 8)) throw new IllegalArgumentException();
+                if (job.has("fileName") && (!(job.get("fileName") instanceof String)
+                        || !RecordingNames.validExportFileName(id, job.getString("fileName")))) throw new IllegalArgumentException();
                 int channels = job.getInt("channels"); long size = job.getLong("size");
                 TelegramWavParts.Plan plan = TelegramWavParts.plan(TelegramWavParts.header(size - 44, channels, 16000), size, TelegramWavParts.MAX_PART_BYTES);
                 JSONArray parts = job.getJSONArray("parts"); total += parts.length();
@@ -193,6 +195,10 @@ public final class TelegramBackupLedger {
         }
     }
     public static void enqueue(JSONObject value, String id, long size, long modifiedAt, String sha256, TelegramWavParts.Plan plan) throws Exception {
+        enqueue(value, id, size, modifiedAt, sha256, plan, null);
+    }
+    public static void enqueue(JSONObject value, String id, long size, long modifiedAt, String sha256, TelegramWavParts.Plan plan,
+            String exportFileName) throws Exception {
         Config cfg = config(value); if (!cfg.enabled || !cfg.connected) return;
         if (!id.matches("[0-9]{1,19}-[a-f0-9]{8}") || !sha256.matches("[a-f0-9]{64}") || size != plan.dataBytes + 44)
             throw new TelegramBackupFailure("LOCAL_FILE_CHANGED");
@@ -205,8 +211,11 @@ public final class TelegramBackupLedger {
         if (jobs.length() >= MAX_JOBS || total > MAX_PARTS) throw new TelegramBackupFailure("LOCAL_QUEUE_FULL");
         JSONArray parts = new JSONArray();
         for (int i = 0; i < plan.parts; i++) parts.put(new JSONObject().put("state", "PENDING").put("attempts", 0).put("bytes", plan.part(i).bytes));
-        jobs.put(new JSONObject().put("id", id).put("destination", cfg.destination).put("size", size).put("modifiedAt", modifiedAt)
-            .put("sha256", sha256).put("channels", plan.channels).put("parts", parts));
+        JSONObject job = new JSONObject().put("id", id).put("destination", cfg.destination).put("size", size).put("modifiedAt", modifiedAt)
+            .put("sha256", sha256).put("channels", plan.channels).put("parts", parts);
+        // Freeze names before durable dispatch, without changing target/recording identity or old receipts.
+        if (exportFileName != null && RecordingNames.validExportFileName(id, exportFileName)) job.put("fileName", exportFileName);
+        jobs.put(job);
     }
     public static boolean blocked(JSONObject value) {
         String code = value.optString("lastErrorCode");
@@ -239,7 +248,7 @@ public final class TelegramBackupLedger {
         Config cfg = config(value);
         if (!cfg.enabled || !cfg.connected || cfg.generation != selection.config.generation || !cfg.destination.equals(selection.config.destination)) return null;
         Selection next = next(value, now);
-        if (next == null || !next.id.equals(selection.id) || next.index != selection.index) return null;
+        if (next == null || !next.id.equals(selection.id) || next.index != selection.index || !next.filename.equals(selection.filename)) return null;
         if (!attempt.matches("[a-f0-9]{32}")) throw new TelegramBackupFailure("LOCAL_QUEUE_UNAVAILABLE");
         JSONObject part = find(value, cfg.destination, selection.id, selection.index);
         part.put("state", "IN_FLIGHT").put("attempt", attempt).put("attempts", part.getInt("attempts") + 1);

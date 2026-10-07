@@ -31,7 +31,7 @@ object DriveBackupManager {
     io.execute {
       try {
         val file = RecordingStore.file(app, id, ".wav")
-        if (file.isFile) DriveBackupQueue.enqueue(app, id, file.length())
+        if (file.isFile) DriveBackupQueue.enqueue(app, id, file.length(), RecordingStore.exportFileName(app, id))
         schedule(app)
       } catch (_: Exception) { /* Never turn a committed local recording into a failed save. */ }
     }
@@ -46,7 +46,8 @@ object DriveBackupManager {
   private fun scan(context: Context) {
     // No queue lock is held across the store lock. Only finalized .wav/.json entries are returned.
     RecordingStore.list(context).forEach { item ->
-      DriveBackupQueue.enqueue(context, item.getString("id"), item.optLong("fileSize"))
+      DriveBackupQueue.enqueue(context, item.getString("id"), item.optLong("fileSize"),
+        item.optString("exportFileName").takeIf { RecordingNames.validExportFileName(item.getString("id"), it) })
     }
   }
   fun setEnabled(context: Context, enabled: Boolean, expectedGeneration: Long? = null, beforeCommit: () -> Unit = {}) {

@@ -125,14 +125,14 @@ public final class TelegramBotHttp implements AutoCloseable {
         HttpsURLConnection connection = null;
         try {
             if (chatId < 1 || chatId > TelegramBotProtocol.MAX_ID || botId < 1 || botId > TelegramBotProtocol.MAX_ID
-                    || !filename.equals(TelegramWavParts.filename(source.getName().replaceFirst("\\.wav$", ""), partIndex, plan.parts)))
+                    || !TelegramWavParts.validFilename(source.getName().replaceFirst("\\.wav$", ""), filename, partIndex, plan.parts))
                 throw new TelegramBackupFailure("UNKNOWN_OUTCOME", false, true, 0);
             TelegramWavParts.Part part = plan.part(partIndex);
             String boundary = "waReco" + UUID.randomUUID().toString().replace("-", "");
             byte[] prefix = ("--" + boundary + "\r\nContent-Disposition: form-data; name=\"chat_id\"\r\n\r\n" + chatId
                     + "\r\n--" + boundary + "\r\nContent-Disposition: form-data; name=\"disable_content_type_detection\"\r\n\r\ntrue"
                     + "\r\n--" + boundary + "\r\nContent-Disposition: form-data; name=\"document\"; filename=\"" + filename
-                    + "\"\r\nContent-Type: audio/wav\r\n\r\n").getBytes(StandardCharsets.US_ASCII);
+                    + "\"\r\nContent-Type: audio/wav\r\n\r\n").getBytes(StandardCharsets.UTF_8);
             byte[] suffix = ("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.US_ASCII);
             BooleanSupplier valid = () -> current() && generationCurrent.getAsBoolean();
             if (!valid.getAsBoolean()) throw new TelegramBackupFailure("CANCELED");

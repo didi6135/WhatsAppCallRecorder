@@ -37,6 +37,9 @@ export interface Recording {
   outputSoundMs?: number;
   microphoneSoundMs?: number;
   startedAutomatically?: boolean;
+  callDisplayName?: string;
+  callPackage?: string;
+  exportFileName?: string;
 }
 
 export interface RecordingContextType {

@@ -115,4 +115,18 @@ class DriveBackupClientTest {
     assertEquals(remote, metadata.getString("id"))
     assertEquals(folder, metadata.getJSONArray("parents").getString(0))
   }
+  @Test fun createUsesFrozenUnicodeNameAndLegacyJobKeepsItsOriginalName() {
+    val name = RecordingNames.exportFileName(recording, "דוד Smith 👩‍💻")
+    val server = Server(Reply(200, location = session), Reply(200, location = session))
+    server.client.initiate("synthetic-token", job().put("fileName", name), folder)
+    server.client.initiate("synthetic-token", job(), folder)
+    assertEquals(name, JSONObject(server.calls[0].written.toString("UTF-8")).getString("name"))
+    assertEquals("recording-$recording.wav", JSONObject(server.calls[1].written.toString("UTF-8")).getString("name"))
+    assertEquals(recording, JSONObject(server.calls[0].written.toString("UTF-8")).getJSONObject("appProperties").getString("codakiRecorderId"))
+  }
+  @Test fun invalidFrozenNameFailsBeforeDispatchingARequest() {
+    val server = Server()
+    failure("REMOTE_MISMATCH") { server.client.initiate("synthetic-token", job().put("fileName", "../wrong.wav"), folder) }
+    assertTrue(server.calls.isEmpty())
+  }
 }

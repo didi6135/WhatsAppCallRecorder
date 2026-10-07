@@ -94,6 +94,21 @@ public final class TelegramBotHttpTest {
                 int data=all.indexOf("Content-Type: audio/wav\r\n\r\n")+"Content-Type: audio/wav\r\n\r\n".length();
                 byte[] expected=java.nio.file.Files.readAllBytes(wave.toPath());
                 check(data>=0); check(Arrays.equals(expected,Arrays.copyOfRange(sent,data,data+expected.length)));
+                String namedFilename = RecordingNames.exportFileName("1-abcdabcd", "דוד Smith 👩‍💻");
+                Fake unicode = enqueue(200, receipt(namedFilename, 52).toString());
+                check(http.sendDocument(token,123456,99,namedFilename,wave,plan,0,()->true).bytes==52);
+                String unicodeRequest = new String(unicode.uploaded.toByteArray(), StandardCharsets.UTF_8);
+                check(unicodeRequest.contains("filename=\"" + namedFilename + "\"\r\n"));
+                check(unicode.expectedBytes == unicode.uploaded.size());
+                check(unicode.released);
+                enqueue(200,receipt(filename,52).toString());
+                fails("UNKNOWN_OUTCOME",true,()->http.sendDocument(token,123456,99,namedFilename,wave,plan,0,()->true));
+                // A forged path/header/ID is rejected before a connection consumes a fixture reply.
+                int repliesBeforeInvalid = replies.size();
+                fails("UNKNOWN_OUTCOME",true,()->http.sendDocument(token,123456,99,"../"+namedFilename,wave,plan,0,()->true));
+                fails("UNKNOWN_OUTCOME",true,()->http.sendDocument(token,123456,99,namedFilename+"\r\nX: injected",wave,plan,0,()->true));
+                fails("UNKNOWN_OUTCOME",true,()->http.sendDocument(token,123456,99,RecordingNames.exportFileName("2-abcdabcd","Other"),wave,plan,0,()->true));
+                check(repliesBeforeInvalid == replies.size());
                 enqueue(200,receipt(filename,51).toString()); fails("UNKNOWN_OUTCOME",true,()->http.sendDocument(token,123456,99,filename,wave,plan,0,()->true));
                 enqueue(500,"{\"ok\":false,\"error_code\":500}"); fails("UNKNOWN_OUTCOME",true,()->http.sendDocument(token,123456,99,filename,wave,plan,0,()->true));
                 enqueue(429,"{\"ok\":false,\"error_code\":429,\"parameters\":{\"retry_after\":2}}");

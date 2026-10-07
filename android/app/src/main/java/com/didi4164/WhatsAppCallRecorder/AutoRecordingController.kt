@@ -343,7 +343,7 @@ object AutoRecordingController {
       ))
     when (decision) {
       is AutoCallPolicy.Decision.Start -> {
-        if (RecordingService.startAutomaticCapture(owner)) {
+        if (RecordingService.startAutomaticCapture(owner, decision.uid, notifications)) {
           policy.onStartAccepted(decision.uid)
           lastTransitionReason = "capture_started"
           lastError = null

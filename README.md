@@ -51,4 +51,8 @@ For a public source snapshot, run `python tools/export-public-source.py --output
 
 The sanitized public source is at [GitHub](https://github.com/didi6135/WhatsAppCallRecorder). The bilingual presentation/download website source is in [website](website/README.md). APK download links are enabled only with verified release metadata and accompanying source/notices.
 
-Local compile/unit checks are separate from real phone recording, Google OAuth and cloud upload acceptance. After publisher setup, the tested phone's hosted connection displays the selected account/folder with backup off. A real successful upload, default-folder creation/reuse and Telegram pairing/upload remain unverified. This source package does not establish Google branding/domain verification or compatibility with every device.
+Local compile/unit checks are separate from real phone recording, Google OAuth and cloud upload acceptance. Existing-folder Drive uploads were verified on the owner's S26 in1.5.2. Default-folder creation/reuse, personal-bot Telegram pairing/upload and actual call-label availability remain separate device/provider checks. This source package does not establish Google branding/domain verification or compatibility with every device.
+
+## Optional call names
+
+Enable **Save call names** in Settings to include a display label supplied by a live WhatsApp/Business call notification in future recording titles and shared/cloud filenames. This setting starts off on new and updated installations. No new contacts permission is requested. Labels are not verified identities; missing or ambiguous names keep a generic title, and a group call may not expose all participants. Internal local recording IDs and paths, old recordings and existing provider receipts remain unchanged. Disabling affects future recordings and does not remove already shared filenames.

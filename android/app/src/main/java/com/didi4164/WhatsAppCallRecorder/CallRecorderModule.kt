@@ -9,6 +9,7 @@ import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
+import com.facebook.react.common.LifecycleState
 import java.util.concurrent.Executors
 
 class CallRecorderModule(private val context: ReactApplicationContext) : ReactContextBaseJavaModule(context) {
@@ -16,6 +17,29 @@ class CallRecorderModule(private val context: ReactApplicationContext) : ReactCo
   override fun getName(): String = "CallRecorder"
   @ReactMethod fun getStatus(promise: Promise) { promise.resolve(RecordingService.status(context)) }
   @ReactMethod fun getAutoRecordingStatus(promise: Promise) { promise.resolve(AutoRecordingController.statusMap(context)) }
+  @ReactMethod fun getCallNameStatus(promise: Promise) {
+    promise.resolve(Arguments.createMap().apply { putBoolean("enabled", CallNamePreferences.isEnabled(context)) })
+  }
+  @ReactMethod fun setCallNameEnabled(enabled: Boolean, promise: Promise) {
+    val activity = currentActivity
+    if (activity == null) {
+      promise.reject("FOREGROUND_REQUIRED", AppText.choose("פתח את האפליקציה כדי לשנות שמות הקלטות.", "Open the app to change recording names.")); return
+    }
+    activity.runOnUiThread {
+      val code = CallNameMutationPolicy.rejection(currentActivity === activity && !activity.isFinishing && !activity.isDestroyed,
+        context.lifecycleState == LifecycleState.RESUMED, activity.hasWindowFocus(), RecordingService.isBusy())
+      if (code != null) {
+        promise.reject(code, if (code == "RECORDING_BUSY")
+          AppText.choose("סיים את ההקלטה לפני שינוי שמות הקלטות.", "Finish the recording before changing recording names.") else
+          AppText.choose("שנה שמות הקלטות כשהאפליקציה פתוחה על המסך.", "Change recording names while the app is on screen."))
+        return@runOnUiThread
+      }
+      if (!CallNamePreferences.setEnabled(context, enabled)) {
+        promise.reject("SETTINGS_SAVE_FAILED", AppText.choose("לא ניתן לשמור את הגדרת שמות ההקלטות.", "The recording name setting could not be saved.")); return@runOnUiThread
+      }
+      getCallNameStatus(promise)
+    }
+  }
   @ReactMethod fun setAutoRecordingEnabled(enabled: Boolean, promise: Promise) {
     if (!enabled) {
       android.os.Handler(android.os.Looper.getMainLooper()).post { AutoRecordingController.setEnabled(context, false, promise) }
@@ -103,6 +127,9 @@ class CallRecorderModule(private val context: ReactApplicationContext) : ReactCo
           putString("captureSource", item.optString("captureSource", "microphone"))
           putInt("channels", item.optInt("channels", 1))
           putBoolean("startedAutomatically", item.optBoolean("startedAutomatically", false))
+          if (item.has("callDisplayName")) putString("callDisplayName", item.optString("callDisplayName"))
+          if (item.has("callPackage")) putString("callPackage", item.optString("callPackage"))
+          if (item.has("exportFileName")) putString("exportFileName", item.optString("exportFileName"))
           putDouble("outputSoundMs", item.optLong("outputSoundMs", 0L).toDouble())
           putDouble("microphoneSoundMs", item.optLong("microphoneSoundMs", 0L).toDouble())
         })
@@ -121,7 +148,8 @@ class CallRecorderModule(private val context: ReactApplicationContext) : ReactCo
       try {
         val file = RecordingStore.file(context, id, ".wav")
         check(file.exists()) { AppText.choose("קובץ ההקלטה לא נמצא", "The recording file was not found") }
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.recordings", file)
+        val displayName = RecordingStore.exportFileName(context, id) ?: file.name
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.recordings", file, displayName)
         val send = Intent(Intent.ACTION_SEND).setType("audio/wav")
           .putExtra(Intent.EXTRA_STREAM, uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
           .apply { clipData = ClipData.newRawUri(AppText.choose("הקלטת מיקרופון", "Microphone recording"), uri) }

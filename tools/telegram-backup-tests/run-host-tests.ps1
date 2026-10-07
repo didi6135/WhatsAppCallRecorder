@@ -9,7 +9,7 @@ if (!$JsonJar -or !(Test-Path -LiteralPath $JsonJar)) { throw 'Pass -JsonJar to 
 $output = Join-Path $repoRoot 'artifacts/telegram-host-classes'
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $native = Join-Path $repoRoot 'android/app/src/main/java/com/didi4164/WhatsAppCallRecorder'
-$sources = @('TelegramBackupFailure.java', 'TelegramBotProtocol.java', 'TelegramWavParts.java', 'TelegramBackupLedger.java', 'TelegramWorkerWakeupPolicy.java') |
+$sources = @('RecordingNames.java', 'TelegramBackupFailure.java', 'TelegramBotProtocol.java', 'TelegramWavParts.java', 'TelegramBackupLedger.java', 'TelegramWorkerWakeupPolicy.java') |
   ForEach-Object { Join-Path $native $_ }
 $tests = @('TelegramBackupCoreTest.java', 'TelegramBackupLedgerTest.java', 'TelegramWorkerWakeupPolicyTest.java') | ForEach-Object { Join-Path $PSScriptRoot $_ }
 & javac -encoding UTF-8 -cp $JsonJar -d $output @sources @tests

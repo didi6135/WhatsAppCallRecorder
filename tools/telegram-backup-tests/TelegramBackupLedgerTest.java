@@ -121,6 +121,43 @@ public final class TelegramBackupLedgerTest {
             TelegramBackupFailure.afterDispatch(new TelegramBackupFailure("LOCAL_QUEUE_UNAVAILABLE")), 100);
         check(selected(persistFailure) == null);
         fails("UNKNOWN_OUTCOME_REQUIRES_CONFIRMATION", () -> TelegramBackupLedger.retry(persistFailure, false));
+        JSONObject named = connected(99); TelegramBackupLedger.setEnabled(named, true);
+        String namedId = "6-abcdef12", namedName = RecordingNames.exportFileName(namedId, "דוד Smith 👩‍💻");
+        TelegramWavParts.Plan smallPlan = TelegramWavParts.plan(TelegramWavParts.header(56, 2, 16000), 100, 48_000_000);
+        TelegramBackupLedger.enqueue(named, namedId, 100, 100, "b".repeat(64), smallPlan, namedName);
+        TelegramBackupLedger.enqueue(named, namedId, 100, 100, "b".repeat(64), smallPlan, RecordingNames.exportFileName(namedId, "Changed"));
+        check(selected(named).filename.equals(namedName));
+        JSONObject namedRestart = new JSONObject(named.toString()); TelegramBackupLedger.validate(namedRestart);
+        check(selected(namedRestart).filename.equals(namedName));
+        TelegramBackupLedger.Lease namedLease = claim(namedRestart, "5".repeat(32));
+        check(TelegramBackupLedger.delivered(namedRestart, namedLease, receipt(namedLease, 24)));
+        TelegramBackupLedger.enqueue(namedRestart, namedId, 100, 100, "b".repeat(64), smallPlan, RecordingNames.exportFileName(namedId, "Changed"));
+        check(selected(namedRestart) == null && namedRestart.getJSONArray("jobs").length() == 1);
+        // A legacy queued/delivered job is never renamed or re-sent when new metadata becomes available.
+        JSONObject legacy = connected(99); TelegramBackupLedger.setEnabled(legacy, true); enqueue(legacy, "7-abcdef12", 100);
+        String legacyName = selected(legacy).filename;
+        TelegramBackupLedger.enqueue(legacy, "7-abcdef12", 100, 100, "b".repeat(64), smallPlan, RecordingNames.exportFileName("7-abcdef12", "New name"));
+        check(selected(legacy).filename.equals(legacyName) && !legacy.getJSONArray("jobs").getJSONObject(0).has("fileName"));
+        JSONObject multipart = connected(99); TelegramBackupLedger.setEnabled(multipart, true);
+        long largeSize = 48_000_048;
+        TelegramWavParts.Plan multiPlan = TelegramWavParts.plan(TelegramWavParts.header(largeSize - 44, 2, 16000), largeSize, 48_000_000);
+        TelegramBackupLedger.enqueue(multipart, namedId, largeSize, 100, "b".repeat(64), multiPlan, namedName);
+        String firstName = selected(multipart).filename;
+        check(firstName.equals(TelegramWavParts.filename(namedId, 0, 2, namedName)) && firstName.contains("דוד Smith 👩‍💻"));
+        TelegramBackupLedger.Lease deliveredPart = claim(multipart, "6".repeat(32));
+        check(TelegramBackupLedger.delivered(multipart, deliveredPart, receipt(deliveredPart, 25)));
+        TelegramBackupLedger.Selection secondName = selected(multipart);
+        check(secondName.index == 1 && secondName.filename.equals(TelegramWavParts.filename(namedId, 1, 2, namedName)));
+        TelegramBackupLedger.Lease unknownPart = claim(multipart, "7".repeat(32));
+        TelegramBackupLedger.failed(multipart, unknownPart, new TelegramBackupFailure("UNKNOWN_OUTCOME", false, true, 0), 101);
+        TelegramBackupLedger.retry(multipart, true);
+        check(selected(multipart).index == 1 && selected(multipart).filename.equals(secondName.filename));
+        TelegramBackupLedger.validate(multipart);
+        for (Object badName : new Object[]{"../bad.wav", RecordingNames.exportFileName("8-abcdef12", "Wrong recording"), 42}) {
+            JSONObject badNamed = new JSONObject(named.toString());
+            badNamed.getJSONArray("jobs").getJSONObject(0).put("fileName", badName);
+            fails("LOCAL_QUEUE_UNAVAILABLE", () -> TelegramBackupLedger.validate(badNamed));
+        }
         System.out.println("Telegram durable-ledger checks passed: " + checks);
     }
 }

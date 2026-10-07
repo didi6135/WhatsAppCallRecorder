@@ -11,6 +11,7 @@ import { BottomNav } from '../components/Visuals';
 import { colors, ui } from '../theme';
 import DriveBackupCard from '../components/DriveBackupCard';
 import TelegramBackupCard from '../components/TelegramBackupCard';
+import CallNameCard from '../components/CallNameCard';
 
 function ReadinessRow({ title, ready, checking, yes, no }: {
   title: string; ready: boolean; checking: boolean; yes: string; no: string;
@@ -92,6 +93,7 @@ export default function SettingsScreen() {
         {savingLanguage && <Text style={styles.note}>{t('languageSaving')}</Text>}
         {languageError && <Text style={styles.error} accessibilityLiveRegion="polite">{t(languageError)}</Text>}
       </View>
+      <CallNameCard isRecording={isRecording} recorderBusy={isBusy} />
       <DriveBackupCard isRecording={isRecording} recorderBusy={isBusy} />
       <TelegramBackupCard isRecording={isRecording} recorderBusy={isBusy} />
     </ScrollView>

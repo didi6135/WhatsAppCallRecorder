@@ -8,6 +8,7 @@ $driveMain = Join-Path $driveRepo 'android\app\src\main\java\com\didi4164\WhatsA
 $driveBuild = Join-Path $driveRepo 'artifacts\drive-host-tests'
 New-Item -ItemType Directory -Force -Path $driveBuild | Out-Null
 $driveSources = @(
+  (Join-Path $driveMain 'RecordingNames.java'),
   (Join-Path $driveMain 'DriveBackupPolicy.java'),
   (Join-Path $driveMain 'DriveHttpTransport.java'),
   (Join-Path $driveMain 'DriveConnectionAttempt.java'),

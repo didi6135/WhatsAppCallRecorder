@@ -129,7 +129,7 @@ export default function PlaybackScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: Math.max(32, insets.bottom + 20) }]}>
-      <Text style={styles.title}>{displayRecordingTitle(recording.title)}</Text>
+      <Text style={styles.title}>{displayRecordingTitle(recording.title, recording.callDisplayName)}</Text>
       <Text style={styles.date}>{formatDate(recording.date)}</Text>
       <View style={styles.card}>
         <Text style={styles.source}>{recording.source === 'legacy' ? t('copy267') : recording.captureSource === 'usb' ? t('copy246') : t('copy245')}</Text>
