@@ -118,10 +118,7 @@ object DriveBackupManager {
   internal fun authorizationFailure(error: Throwable): DriveBackupFailure {
     var cause = error
     while (cause.cause != null && cause !is ApiException) cause = cause.cause!!
-    return when ((cause as? ApiException)?.statusCode) {
-      10 -> DriveBackupFailure("CONFIGURATION_REQUIRED")
-      7 -> DriveBackupFailure("NETWORK", retryable = true)
-      else -> DriveBackupFailure("AUTH_REQUIRED", auth = true)
-    }
+    val status = (cause as? ApiException)?.statusCode
+    return DriveBackupFailure(DriveGoogleStatus.code(status), retryable = DriveGoogleStatus.retryable(status), auth = DriveGoogleStatus.needsConsent(status))
   }
 }

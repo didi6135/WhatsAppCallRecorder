@@ -1,12 +1,16 @@
-# WhatsAppCallRecorder
+# wa-reco
 
-Hebrew-first Android recorder with three main screens: record, recordings and settings. The app includes guided setup, optional automatic WhatsApp/WhatsApp Business call detection and optional backup to each user's own Google Drive folder. It has no recording upload server.
+Hebrew/English Android recorder with three main screens: record, recordings and settings. The app includes guided setup, optional automatic WhatsApp/WhatsApp Business call detection and optional backup to each user's own Google Drive folder or private Telegram bot. It has no recording upload server. Change language in Settings; recordings and capture state remain in place.
 
 ## Use the app
 
 Follow the setup walkthrough on the phone. Microphone permission, notification access and user-approved wireless debugging activation have distinct purposes. Developer options and wireless pairing require the phone owner's actions; ordinary microphone permission does not grant call-audio access. Initial activation needs Wi-Fi; an already activated helper can continue without Wi-Fi, subject to the phone's process lifecycle. Reboot or process termination may require activation again.
 
 Google Drive backup is optional. In Settings, connect **your own Google account**, choose a writable folder and explicitly enable backup of existing and future completed recordings. Uploads go directly from your phone to the selected Drive destination. Disconnecting preserves local recordings and uploaded files. The app publisher's OAuth registration identifies the app; it is not the destination account. See [Drive setup](docs/google-drive-setup.md).
+
+Telegram backup is a separate opt-in. Create a dedicated private bot through BotFather, enter its token in the app, open the connection link and confirm the private chat. Enable backup only after that connection is confirmed. Long recordings are sent as playable lossless WAV parts; the original remains on your phone. A missing receipt is shown as an unknown outcome and requires your confirmation before a potentially duplicate retry. See [Telegram setup](docs/telegram-backup.md). The maintainer's delivery bot is never built into the application.
+
+Read [privacy and data handling](docs/privacy.md) for permissions, local storage, cloud recipients and deletion controls.
 
 ## Compatibility and verification
 
@@ -45,4 +49,6 @@ Original project code uses [0BSD](LICENSE). Dependencies retain their own licens
 
 For a public source snapshot, run `python tools/export-public-source.py --output artifacts/whatsapp-recorder-source.zip` after committing the intended changes. The exporter uses committed files, excludes private planning/Git history, recordings, environment/signing files and local artifacts, and rejects obvious credential material. Inspect its manifest before creating a new public repository. The development checkout's private Git history is not the public source snapshot.
 
-Local compile/unit checks are separate from real phone recording, Google OAuth and cloud upload acceptance. No public repository URL or Google production registration is established by this source package.
+The sanitized public source is at [GitHub](https://github.com/didi6135/WhatsAppCallRecorder). The bilingual presentation/download website source is in [website](website/README.md). APK download links are enabled only with verified release metadata and accompanying source/notices.
+
+Local compile/unit checks are separate from real phone recording, Google OAuth and cloud upload acceptance. The current phone Drive attempt returned Google's internal error8 before folder selection; its underlying cause and a real successful upload are unresolved. This source package does not establish Google production registration or successful Telegram pairing/upload on a user's device.

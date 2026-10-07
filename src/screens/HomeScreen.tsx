@@ -1,3 +1,4 @@
+import { localizedError, t, useLocalizedStyles } from '../i18n';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -9,10 +10,11 @@ import { BottomNav, WaveMark } from '../components/Visuals';
 import { colors, ui } from '../theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const messageOf = (error: unknown) => error instanceof Error ? error.message : 'הפעולה לא הושלמה. נסו שוב.';
+const messageOf = (error: unknown) => localizedError(error);
 const normalized = (value: number) => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 
 function LevelMeter({ label, level, active }: { label: string; level: number; active: boolean }) {
+  const styles = useLocalizedStyles(baseStyles);
   const percent = active ? Math.round(normalized(level) * 100) : 0;
   return (
     <View style={styles.meter}>
@@ -25,6 +27,7 @@ function LevelMeter({ label, level, active }: { label: string; level: number; ac
 }
 
 export default function HomeScreen() {
+  const styles = useLocalizedStyles(baseStyles);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<StackNavigationProp<RootStackParamList, 'Home'>>();
   const { isRecording, recordingTime, startRecording, stopRecording, requestPermissions, status, isBusy, error,
@@ -43,12 +46,12 @@ export default function HomeScreen() {
   const begin = async () => {
     try {
       if (!(await requestPermissions())) {
-        Alert.alert('נדרשת הרשאת מיקרופון', 'אפשר לאפשר גישה למיקרופון דרך ההגדרות.');
+        Alert.alert(t('copy220'), t('copy221'));
         return;
       }
       await startRecording(captureSource);
     } catch (failure) {
-      Alert.alert('לא ניתן להתחיל להקליט', messageOf(failure));
+      Alert.alert(t('copy222'), messageOf(failure));
     }
   };
 
@@ -58,68 +61,68 @@ export default function HomeScreen() {
       try {
         const saved = await stopRecording();
         if (!saved) {
-          Alert.alert('לא נשמר קובץ חדש', 'בדקו את ההקלטות ואת הודעת השגיאה לפני ניסיון נוסף.');
+          Alert.alert(t('copy223'), t('copy224'));
         } else if (saved.status === 'interrupted' || saved.status === 'recovered') {
-          Alert.alert('הקובץ נשמר עם אזהרה', 'ההקלטה הופרעה או שוחזרה. ייתכן שחסר קול; האזינו לקובץ.');
+          Alert.alert(t('copy225'), t('copy226'));
         } else if (saved.captureSource === 'usb') {
           const outputMissing = (saved.outputSoundMs ?? 0) < 200;
           const micMissing = (saved.microphoneSoundMs ?? 0) < 200;
-          Alert.alert(outputMissing || micMissing ? 'הקובץ נשמר עם אזהרה' : 'הקובץ נשמר', outputMissing || micMissing
-            ? `${outputMissing ? 'לא זוהה קול מספיק בערוץ שמע השיחה. ' : ''}${micMissing ? 'לא זוהה קול מספיק בערוץ המיקרופון. ' : ''}האזינו כדי לבדוק אם שני הקולות נשמעים.`
-            : 'זוהה אות בשני הערוצים. האזינו כדי לוודא ששני קולות השיחה אכן נשמעים.');
+          Alert.alert(outputMissing || micMissing ? t('copy225') : t('copy227'), outputMissing || micMissing
+            ? t('copy230', { p0: outputMissing ? t('copy228') : '', p1: micMissing ? t('copy229') : '' })
+            : t('copy231'));
         } else if (saved.status === 'captured') {
-          Alert.alert('הקובץ נשמר', 'זוהה קול מהמיקרופון. האזינו כדי לבדוק אילו משתתפים נשמעים.');
+          Alert.alert(t('copy227'), t('copy232'));
         } else {
-          Alert.alert('הקובץ נשמר עם אזהרה', 'לא זוהה קול מספק או שהמיקרופון הושתק. האזינו לקובץ לבדיקה.');
+          Alert.alert(t('copy225'), t('copy233'));
         }
       } catch (failure) {
-        Alert.alert('השמירה לא הושלמה', messageOf(failure));
+        Alert.alert(t('copy234'), messageOf(failure));
       }
       return;
     }
     if (startUnavailable) return;
-    Alert.alert(source === 'usb' ? 'הקלטת שיחת WhatsApp' : 'הקלטת מיקרופון', 'יש ליידע את משתתפי השיחה לפני ההקלטה.', [
-      { text: 'ביטול', style: 'cancel' },
-      { text: 'להקליט בידיעת המשתתפים', onPress: () => { void begin(); } },
+    Alert.alert(source === 'usb' ? t('copy235') : t('copy236'), t('copy237'), [
+      { text: t('copy012'), style: 'cancel' },
+      { text: t('copy238'), onPress: () => { void begin(); } },
     ]);
   };
 
   const warning = status.isSilenced
-    ? 'המיקרופון הושתק. ייתכן שערוץ המיקרופון שקט.'
+    ? t('copy239')
     : status.silentForMs >= 5000
-      ? 'לא זוהה קול בחמש השניות האחרונות. בדקו את מדי הקול והאזינו לקובץ בסיום.'
+      ? t('copy240')
       : null;
-  const accessLabel = helperReady ? 'רכיב הקלטת השיחות מחובר'
-    : systemAccessStatus.connecting ? 'מחבר את רכיב ההקלטה…'
-      : systemReady ? 'רכיב השיחות יופעל בתחילת ההקלטה'
-        : 'כדי להקליט שיחה, השלימו את ההגדרה';
+  const accessLabel = helperReady ? t('copy241')
+    : systemAccessStatus.connecting ? t('copy097')
+      : systemReady ? t('copy242')
+        : t('copy243');
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: Math.max(18, insets.top + 10) }]}>
         <View style={styles.header}>
           <WaveMark size={38} />
-          <Text style={styles.title}>הקלטה</Text>
+          <Text style={styles.title}>{t('copy217')}</Text>
         </View>
-        <Text style={styles.sourceLabel}>מה להקליט?</Text>
+        <Text style={styles.sourceLabel}>{t('copy244')}</Text>
         <View style={styles.modeRow}>
-          <TouchableOpacity style={[styles.mode, source === 'microphone' && styles.modeSelected]} onPress={() => chooseSource('microphone')} disabled={isRecording || isBusy} accessibilityRole="radio" accessibilityState={{ selected: source === 'microphone', disabled: isRecording || isBusy }}><Text style={[styles.modeText, source === 'microphone' && styles.modeTextSelected]}>מיקרופון</Text></TouchableOpacity>
-          <TouchableOpacity style={[styles.mode, source === 'usb' && styles.modeSelected]} onPress={() => chooseSource('usb')} disabled={isRecording || isBusy} accessibilityRole="radio" accessibilityState={{ selected: source === 'usb', disabled: isRecording || isBusy }}><Text style={[styles.modeText, source === 'usb' && styles.modeTextSelected]}>שיחת WhatsApp</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.mode, source === 'microphone' && styles.modeSelected]} onPress={() => chooseSource('microphone')} disabled={isRecording || isBusy} accessibilityRole="radio" accessibilityState={{ selected: source === 'microphone', disabled: isRecording || isBusy }}><Text style={[styles.modeText, source === 'microphone' && styles.modeTextSelected]}>{t('copy245')}</Text></TouchableOpacity>
+          <TouchableOpacity style={[styles.mode, source === 'usb' && styles.modeSelected]} onPress={() => chooseSource('usb')} disabled={isRecording || isBusy} accessibilityRole="radio" accessibilityState={{ selected: source === 'usb', disabled: isRecording || isBusy }}><Text style={[styles.modeText, source === 'usb' && styles.modeTextSelected]}>{t('copy246')}</Text></TouchableOpacity>
         </View>
-        {source === 'usb' && !isRecording && <TouchableOpacity style={styles.accessLink} onPress={() => navigation.navigate('Settings')} accessibilityRole="button" accessibilityLabel={`${accessLabel}. פתיחת הגדרות`}>
+        {source === 'usb' && !isRecording && <TouchableOpacity style={styles.accessLink} onPress={() => navigation.navigate('Settings')} accessibilityRole="button" accessibilityLabel={t('copy247', { p0: accessLabel })}>
           <Text style={[styles.accessText, helperReady && styles.accessConnected]}>{accessLabel}</Text>
-          <Text style={styles.linkText}>הגדרות</Text>
+          <Text style={styles.linkText}>{t('copy195')}</Text>
         </TouchableOpacity>}
         <View style={[styles.card, isRecording && styles.cardActive]}>
-          <Text style={[styles.state, isRecording && styles.recording]}>{isRecording ? 'מקליט עכשיו' : 'לחצו כדי להתחיל'}</Text>
-          {isRecording ? <Text style={styles.timer} accessibilityLabel={`משך ההקלטה ${recordingTime}`} accessibilityLiveRegion="none">{recordingTime}</Text> : <Text style={styles.caption}>{source === 'usb' ? 'התחילו כאן את ההקלטה, ואז עברו לשיחה.' : 'הקול מהמיקרופון יישמר במכשיר.'}</Text>}
-          {isRecording && <View style={styles.meters}>{source === 'usb' && <LevelMeter label="שמע השיחה" level={status.outputLevel} active />}<LevelMeter label="מיקרופון" level={source === 'usb' ? status.microphoneLevel : status.level} active /></View>}
+          <Text style={[styles.state, isRecording && styles.recording]}>{isRecording ? t('copy248') : t('copy249')}</Text>
+          {isRecording ? <Text style={styles.timer} accessibilityLabel={t('copy250', { p0: recordingTime })} accessibilityLiveRegion="none">{recordingTime}</Text> : <Text style={styles.caption}>{source === 'usb' ? t('copy251') : t('copy252')}</Text>}
+          {isRecording && <View style={styles.meters}>{source === 'usb' && <LevelMeter label={t('copy253')} level={status.outputLevel} active />}<LevelMeter label={t('copy245')} level={source === 'usb' ? status.microphoneLevel : status.level} active /></View>}
           <View style={styles.recordButton}><RecordButton isRecording={isRecording} onPress={() => { void handleRecordPress(); }} disabled={isBusy || startUnavailable || (!isRecording && source === 'usb' && systemAccessStatus.connecting)} /></View>
-          <Text style={styles.small}>{isBusy ? 'מבצע פעולה…' : startUnavailable ? 'נדרשת הגדרה לפני הקלטת שיחה' : isRecording ? 'בעצירה הקובץ יישמר בהקלטות שלי' : 'יש ליידע את המשתתפים לפני ההקלטה'}</Text>
+          <Text style={styles.small}>{isBusy ? t('copy254') : startUnavailable ? t('copy255') : isRecording ? t('copy256') : t('copy257')}</Text>
           {isRecording && warning && <Text style={styles.warning}>{warning}</Text>}
-          {isRecording && source === 'microphone' && status.audioMode !== 0 && <Text style={styles.warning}>המכשיר במצב תקשורת. Android עשוי לחסום הקלטה מהמיקרופון באותו מכשיר.</Text>}
-          {error && <Text style={styles.warning} accessibilityLiveRegion="polite">{error}</Text>}
-          {systemAccessStatus.error && systemAccessStatus.error !== error && source === 'usb' && <Text style={styles.warning}>{systemAccessStatus.error}</Text>}
+          {isRecording && source === 'microphone' && status.audioMode !== 0 && <Text style={styles.warning}>{t('copy258')}</Text>}
+          {error && <Text style={styles.warning} accessibilityLiveRegion="polite">{localizedError(error)}</Text>}
+          {systemAccessStatus.error && systemAccessStatus.error !== error && source === 'usb' && <Text style={styles.warning}>{localizedError(systemAccessStatus.error)}</Text>}
         </View>
       </ScrollView>
       <BottomNav current="Home" />
@@ -127,7 +130,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: ui.screen,
   content: { ...ui.content, flexGrow: 1 },
   header: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12, marginBottom: 28 },

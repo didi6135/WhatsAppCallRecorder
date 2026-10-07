@@ -22,15 +22,15 @@ class CallRecorderModule(private val context: ReactApplicationContext) : ReactCo
       return
     }
     val activity = currentActivity
-    if (activity == null || activity.isFinishing) { promise.reject("FOREGROUND_REQUIRED", "פתחו את האפליקציה כדי להפעיל הקלטה אוטומטית."); return }
+    if (activity == null || activity.isFinishing) { promise.reject("FOREGROUND_REQUIRED", AppText.choose("פתחו את האפליקציה כדי להפעיל הקלטה אוטומטית.", "Open the app to enable automatic recording.")); return }
     activity.runOnUiThread {
-      if (!activity.hasWindowFocus()) { promise.reject("FOREGROUND_REQUIRED", "יש להפעיל הקלטה אוטומטית כשהאפליקציה פתוחה על המסך."); return@runOnUiThread }
+      if (!activity.hasWindowFocus()) { promise.reject("FOREGROUND_REQUIRED", AppText.choose("יש להפעיל הקלטה אוטומטית כשהאפליקציה פתוחה על המסך.", "Enable automatic recording while the app is on screen.")); return@runOnUiThread }
       AutoRecordingController.setEnabled(context, true, promise)
     }
   }
   @ReactMethod fun openNotificationAccessSetup(promise: Promise) {
     val activity = currentActivity
-    if (activity == null || activity.isFinishing) { promise.reject("FOREGROUND_REQUIRED", "פתחו את האפליקציה כדי לאפשר זיהוי שיחות."); return }
+    if (activity == null || activity.isFinishing) { promise.reject("FOREGROUND_REQUIRED", AppText.choose("פתחו את האפליקציה כדי לאפשר זיהוי שיחות.", "Open the app to enable call detection.")); return }
     activity.runOnUiThread {
       try {
         val component = android.content.ComponentName(context, WhatsAppCallNotificationService::class.java)
@@ -41,7 +41,7 @@ class CallRecorderModule(private val context: ReactApplicationContext) : ReactCo
           activity.startActivity(Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
         promise.resolve(null)
-      } catch (failure: Exception) { promise.reject("NOTIFICATION_SETUP_FAILED", "לא ניתן לפתוח את הרשאת זיהוי השיחות.", failure) }
+      } catch (failure: Exception) { promise.reject("NOTIFICATION_SETUP_FAILED", AppText.choose("לא ניתן לפתוח את הרשאת זיהוי השיחות.", "Call detection permission could not be opened."), failure) }
     }
   }
   @ReactMethod fun getSystemAccessStatus(promise: Promise) {
@@ -66,14 +66,14 @@ class CallRecorderModule(private val context: ReactApplicationContext) : ReactCo
   }
   @ReactMethod fun openSystemAccessSetup(destination: String, promise: Promise) {
     val activity = currentActivity
-    if (activity == null) { promise.reject("FOREGROUND_REQUIRED", "פתח את האפליקציה כדי להגדיר גישה"); return }
+    if (activity == null) { promise.reject("FOREGROUND_REQUIRED", AppText.choose("פתח את האפליקציה כדי להגדיר גישה", "Open the app to configure access")); return }
     activity.runOnUiThread {
       try {
         val intent = when (destination) {
           "about" -> Intent(android.provider.Settings.ACTION_DEVICE_INFO_SETTINGS)
           "developer" -> Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
           "wireless" -> Intent("android.settings.WIRELESS_DEBUGGING_SETTINGS")
-          else -> throw IllegalArgumentException("יעד הגדרה לא תקין")
+          else -> throw IllegalArgumentException(AppText.choose("יעד הגדרה לא תקין", "The setup destination is invalid"))
         }
         try { activity.startActivity(intent) }
         catch (unavailable: android.content.ActivityNotFoundException) {
@@ -86,7 +86,7 @@ class CallRecorderModule(private val context: ReactApplicationContext) : ReactCo
   @ReactMethod fun startRecording(source: String, promise: Promise) {
     val activity = currentActivity
     if (activity == null || activity.isFinishing) {
-      promise.reject("FOREGROUND_REQUIRED", "פתח את האפליקציה כדי להתחיל הקלטה"); return
+      promise.reject("FOREGROUND_REQUIRED", AppText.choose("פתח את האפליקציה כדי להתחיל הקלטה", "Open the app to start recording")); return
     }
     activity.runOnUiThread { RecordingService.start(context, source, promise) }
   }
@@ -116,27 +116,27 @@ class CallRecorderModule(private val context: ReactApplicationContext) : ReactCo
   } }
   @ReactMethod fun shareRecording(id: String, promise: Promise) {
     val activity = currentActivity
-    if (activity == null) { promise.reject("FOREGROUND_REQUIRED", "פתח את האפליקציה כדי לשתף"); return }
+    if (activity == null) { promise.reject("FOREGROUND_REQUIRED", AppText.choose("פתח את האפליקציה כדי לשתף", "Open the app to share")); return }
     activity.runOnUiThread {
       try {
         val file = RecordingStore.file(context, id, ".wav")
-        check(file.exists()) { "קובץ ההקלטה לא נמצא" }
+        check(file.exists()) { AppText.choose("קובץ ההקלטה לא נמצא", "The recording file was not found") }
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.recordings", file)
         val send = Intent(Intent.ACTION_SEND).setType("audio/wav")
           .putExtra(Intent.EXTRA_STREAM, uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-          .apply { clipData = ClipData.newRawUri("הקלטת מיקרופון", uri) }
-        activity.startActivity(Intent.createChooser(send, "שיתוף הקלטה")); promise.resolve(null)
+          .apply { clipData = ClipData.newRawUri(AppText.choose("הקלטת מיקרופון", "Microphone recording"), uri) }
+        activity.startActivity(Intent.createChooser(send, AppText.choose("שיתוף הקלטה", "Share recording"))); promise.resolve(null)
       } catch (e: Exception) { promise.reject("SHARE_FAILED", e.message, e) }
     }
   }
   @ReactMethod fun openWhatsApp(promise: Promise) {
     val activity = currentActivity
-    if (activity == null) { promise.reject("FOREGROUND_REQUIRED", "פתח את האפליקציה"); return }
+    if (activity == null) { promise.reject("FOREGROUND_REQUIRED", AppText.choose("פתח את האפליקציה", "Open the app")); return }
     activity.runOnUiThread {
       try {
         val intent = context.packageManager.getLaunchIntentForPackage("com.whatsapp")
           ?: context.packageManager.getLaunchIntentForPackage("com.whatsapp.w4b")
-          ?: throw IllegalStateException("WhatsApp אינו מותקן בפרופיל הזה")
+          ?: throw IllegalStateException(AppText.choose("WhatsApp אינו מותקן בפרופיל הזה", "WhatsApp is not installed in this profile"))
         activity.startActivity(intent); promise.resolve(null)
       } catch (e: Exception) { promise.reject("WHATSAPP_UNAVAILABLE", e.message, e) }
     }

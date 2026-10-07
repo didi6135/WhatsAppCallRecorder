@@ -5,11 +5,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
+const { core: localization } = require('../src/i18n/__tests__/load-core.cjs')();
+localization.activateLanguage('he');
 const source = fs.readFileSync(path.join(__dirname, '../src/services/NativeDriveBackup.ts'), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
 const reactNative = { NativeModules: {}, Platform: { OS: 'android' } };
 const exported = {};
 vm.runInNewContext(js, { exports: exported, module: { exports: exported }, require: name => {
+  if (name === '../i18n/core') return localization;
   assert.equal(name, 'react-native'); return reactNative;
 } }, { filename: 'NativeDriveBackup.js' });
 const { NativeDriveBackup, normalizeDriveBackupStatus, DriveBackupError, driveErrorMessage, driveActionErrorMessage } = exported;
@@ -23,7 +26,7 @@ function check(name, fn) { fn(); passed += 1; }
 async function checkAsync(name, fn) { await fn(); passed += 1; }
 function rejectsStatus(override) { assert.throws(() => normalizeDriveBackupStatus({ ...status, ...override }), error => error instanceof DriveBackupError && error.code === 'DRIVE_STATUS_INVALID'); }
 const diagnostic = { action: 'connect', stage: 'authorize', code: 'CONFIGURATION_REQUIRED', authStatusCode: 10, activityResultCode: 0 };
-const diagnosticCodes = ['CONFIGURATION_REQUIRED', 'AUTH_REQUIRED', 'ACCOUNT_CHANGED', 'FOLDER_UNAVAILABLE', 'NETWORK', 'RATE_LIMIT', 'STORAGE_FULL', 'LOCAL_QUEUE_UNAVAILABLE', 'FOREGROUND_REQUIRED', 'RECORDING_BUSY', 'CONNECTION_BUSY', 'NOT_CONNECTED', 'UPLOAD_FAILED', 'HTTP_ERROR', 'REMOTE_MISMATCH'];
+const diagnosticCodes = ['GOOGLE_INTERNAL_ERROR', 'CONFIGURATION_REQUIRED', 'AUTH_REQUIRED', 'ACCOUNT_CHANGED', 'FOLDER_UNAVAILABLE', 'NETWORK', 'RATE_LIMIT', 'STORAGE_FULL', 'LOCAL_QUEUE_UNAVAILABLE', 'FOREGROUND_REQUIRED', 'RECORDING_BUSY', 'CONNECTION_BUSY', 'NOT_CONNECTED', 'UPLOAD_FAILED', 'HTTP_ERROR', 'REMOTE_MISMATCH'];
 const configuredStatus = { ...status, enabled: true, connected: true, accountEmail: 'preview@example.test', folderId: 'synthetic-folder', folderName: 'תיקיית בדיקה', phase: 'ready', queuedCount: 3, uploadedCount: 2 };
 
 // Render the card as a host tree to check real conditional UI without a device or account.
@@ -36,6 +39,8 @@ vm.runInNewContext(cardJs, { exports: cardExported, module: { exports: cardExpor
   if (name === 'react-native') return { ...Object.fromEntries(['View', 'Text', 'Switch', 'TouchableOpacity', 'ActivityIndicator'].map(name => [name, name])), StyleSheet: { create: value => value }, Alert: { alert: () => {} } };
   if (name === '../hooks/useDriveBackup') return { useDriveBackup: () => cardState };
   if (name === '../services/NativeDriveBackup') return exported;
+  if (name === '../i18n/core') return localization;
+  if (name === '../i18n') return { ...localization, useLocalizedStyles: styles => localization.directionalStyles(styles, localization.getLanguage()) };
   if (name === '../theme') return { colors: {}, ui: {} };
   throw new Error(`Unexpected card dependency ${name}`);
 } }, { filename: 'DriveBackupCard.js' });
@@ -65,6 +70,7 @@ function hookHarness() {
   const hookExported = {};
   vm.runInNewContext(hookJs, { exports: hookExported, module: { exports: hookExported }, setInterval: () => 1, clearInterval: () => {}, require: name => {
     if (name === 'react') return react;
+    if (name === '../i18n/core') return localization;
     if (name === 'react-native') return { AppState: { currentState: 'active', addEventListener: () => ({ remove() {} }) } };
     if (name === '@react-navigation/native') return { useFocusEffect: callback => react.useEffect(callback, [callback]) };
     if (name === '../services/NativeDriveBackup') return exported;
@@ -150,6 +156,18 @@ async function main() {
   check('current queue failure still has separate upload copy', () => {
     const text = renderCard(normalizeDriveBackupStatus({ ...configuredStatus, phase: 'error', errorCode: 'UPLOAD_FAILED', errorMessage: 'synthetic private provider body', lastActionError: diagnostic }));
     assert.match(text, /הגיבוי דורש בדיקה/); assert.match(text, /העלאת אחת ההקלטות לא הושלמה/); assert.match(text, /ניסיון החיבור האחרון לא הושלם/); assert.equal(text.includes('synthetic private'), false);
+  });
+  check('Google code 8 has distinct safe bilingual copy without a forced reauthorization diagnosis', () => {
+    for (const language of ['he', 'en']) {
+      localization.activateLanguage(language);
+      const next = normalizeDriveBackupStatus({ ...configuredStatus, lastActionError: { action: 'connect', stage: 'pickerResult', code: 'GOOGLE_INTERNAL_ERROR', authStatusCode: 8, activityResultCode: 0 } });
+      const text = renderCard(next);
+      assert.equal(next.lastActionError.authStatusCode, 8); assert.equal(next.phase, 'ready');
+      assert.ok(text.includes(driveActionErrorMessage('GOOGLE_INTERNAL_ERROR')));
+      assert.equal(text.includes(driveErrorMessage('AUTH_REQUIRED')), false);
+      if (language === 'en') { assert.match(text, /Recording backup is active/); assert.match(text, /could not complete authorization \(code 8\)/); }
+    }
+    localization.activateLanguage('he');
   });
   await checkAsync('missing module fails truthfully', () => assert.rejects(NativeDriveBackup.getStatus(), error => error.code === 'DRIVE_MODULE_UNAVAILABLE'));
   await checkAsync('nonandroid fails truthfully', async () => { reactNative.Platform.OS = 'ios'; await assert.rejects(NativeDriveBackup.getStatus(), error => error.code === 'DRIVE_ANDROID_ONLY'); reactNative.Platform.OS = 'android'; });

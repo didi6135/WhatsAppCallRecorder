@@ -13,10 +13,10 @@ import java.util.UUID
 object RecordingStore {
   private val validId = Regex("[0-9]+-[a-f0-9]{8}")
   fun directory(context: Context): File = File(context.filesDir, "recordings").apply {
-    check(exists() || mkdirs()) { "לא ניתן ליצור תיקיית הקלטות" }
+    check(exists() || mkdirs()) { AppText.choose("לא ניתן ליצור תיקיית הקלטות", "The recordings folder could not be created") }
   }
   fun file(context: Context, id: String, suffix: String): File {
-    require(validId.matches(id)) { "מזהה הקלטה לא תקין" }
+    require(validId.matches(id)) { AppText.choose("מזהה הקלטה לא תקין", "The recording ID is invalid") }
     return File(directory(context), "$id$suffix")
   }
   @Synchronized fun create(context: Context, source: String = "microphone", channels: Int = 1): JSONObject {
@@ -26,7 +26,7 @@ object RecordingStore {
       timeZone = TimeZone.getTimeZone("UTC")
     }.format(Date(now))
     val item = JSONObject().put("id", id).put("date", date)
-      .put("title", if (source == "usb") "שיחת WhatsApp • שני ערוצים" else "הקלטת מיקרופון").put("status", "recovered")
+      .put("title", if (source == "usb") AppText.choose("שיחת WhatsApp • שני ערוצים", "WhatsApp call: two channels") else AppText.choose("הקלטת מיקרופון", "Microphone recording")).put("status", "recovered")
       .put("captureSource", source).put("channels", channels)
       .put("wasSilenced", false).put("durationMs", 0L).put("fileSize", 0L)
     atomicWrite(file(context, id, ".pending.json"), item)
@@ -37,14 +37,14 @@ object RecordingStore {
     temp.outputStream().use { stream ->
       stream.write(value.toString().toByteArray(Charsets.UTF_8)); stream.fd.sync()
     }
-    check(temp.renameTo(target)) { "לא ניתן לשמור מידע על ההקלטה" }
+    check(temp.renameTo(target)) { AppText.choose("לא ניתן לשמור מידע על ההקלטה", "Recording information could not be saved") }
   }
   @Synchronized fun finish(context: Context, item: JSONObject, status: String, wasSilenced: Boolean) {
     val id = item.getString("id")
     val pending = file(context, id, ".pending.wav")
     val complete = file(context, id, ".wav")
-    if (pending.exists()) check(pending.renameTo(complete)) { "לא ניתן לשמור את קובץ ההקלטה" }
-    check(complete.exists()) { "קובץ ההקלטה חסר" }
+    if (pending.exists()) check(pending.renameTo(complete)) { AppText.choose("לא ניתן לשמור את קובץ ההקלטה", "The recording file could not be saved") }
+    check(complete.exists()) { AppText.choose("קובץ ההקלטה חסר", "The recording file is missing") }
     val size = complete.length()
     item.put("filePath", complete.absolutePath).put("fileSize", size)
       .put("durationMs", (size - WavFile.HEADER_SIZE).coerceAtLeast(0) * 1000 / (WavFile.SAMPLE_RATE * 2 * item.optInt("channels", 1)))
@@ -55,6 +55,8 @@ object RecordingStore {
     // failures must never turn a successful local save into a capture error.
     try { DriveBackupManager.enqueueCompleted(context.applicationContext, id) }
     catch (_: Exception) { /* Startup reconciliation retries committed files. */ }
+    try { TelegramBackupManager.enqueueCompleted(context.applicationContext, id) }
+    catch (_: Exception) { /* Independent queue retries committed local files. */ }
     // Metadata only: useful for release verification without exposing private audio.
     android.util.Log.i("RecorderStore", "SAVED id=$id status=$status channels=${item.optInt("channels", 1)} " +
       "durationMs=${item.optLong("durationMs")} bytes=$size outputSoundMs=${item.optLong("outputSoundMs")} " +
@@ -98,10 +100,10 @@ object RecordingStore {
     }
   }
   @Synchronized fun delete(context: Context, id: String) {
-    check(!RecordingService.isBusy()) { "יש לעצור את ההקלטה לפני מחיקה" }
+    check(!RecordingService.isBusy()) { AppText.choose("יש לעצור את ההקלטה לפני מחיקה", "Stop the recording before deleting it") }
     val audio = file(context, id, ".wav")
     val metadata = file(context, id, ".json")
-    check(!audio.exists() || audio.delete()) { "מחיקת קובץ ההקלטה נכשלה" }
-    check(!metadata.exists() || metadata.delete()) { "מחיקת מידע ההקלטה נכשלה" }
+    check(!audio.exists() || audio.delete()) { AppText.choose("מחיקת קובץ ההקלטה נכשלה", "The recording file could not be deleted") }
+    check(!metadata.exists() || metadata.delete()) { AppText.choose("מחיקת מידע ההקלטה נכשלה", "Recording information could not be deleted") }
   }
 }

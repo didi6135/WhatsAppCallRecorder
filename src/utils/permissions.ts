@@ -1,3 +1,4 @@
+import { t } from '../i18n/core';
 import { PermissionsAndroid, Platform } from 'react-native';
 
 // Files stay in private app storage. Recording never needs a storage permission.
@@ -24,10 +25,10 @@ export const requestPermissions = async (): Promise<boolean> => {
   const microphone = await PermissionsAndroid.request(
     PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
     {
-      title: 'גישה למיקרופון',
-      message: 'ההרשאה מאפשרת להקליט את המיקרופון. היא אינה מעניקה גישה לשמע הפנימי של שיחת WhatsApp.',
-      buttonPositive: 'המשך',
-      buttonNegative: 'ביטול',
+      title: t('copy421'),
+      message: t('copy422'),
+      buttonPositive: t('continueAction'),
+      buttonNegative: t('copy012'),
     },
   );
 

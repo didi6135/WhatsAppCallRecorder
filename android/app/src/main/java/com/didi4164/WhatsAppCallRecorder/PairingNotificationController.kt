@@ -57,19 +57,19 @@ object PairingNotificationController {
     main.post {
       val app = context.applicationContext
       if (!ShellAudioCompatibility.isCandidateSdk(Build.VERSION.SDK_INT)) {
-        promise.reject("UNSUPPORTED_ANDROID", "חיבור השיחות דורש Android 14 ומעלה. ב־Android 14/15 התמיכה ניסיונית")
+        promise.reject("UNSUPPORTED_ANDROID", AppText.choose("חיבור השיחות דורש Android 14 ומעלה. ב־Android 14/15 התמיכה ניסיונית", "Call recording requires Android 14 or later. Support on Android 14/15 is experimental"))
         return@post
       }
       if (current?.pairing == true) {
-        promise.reject("PAIRING_BUSY", "האישור עדיין מתבצע. יש להמתין לסיום")
+        promise.reject("PAIRING_BUSY", AppText.choose("האישור עדיין מתבצע. יש להמתין לסיום", "Authorization is in progress. Wait for it to finish"))
         return@post
       }
       finishCurrent(null, clearError = true)
       val notifications = app.getSystemService(NotificationManager::class.java)
-      notifications.createNotificationChannel(NotificationChannel(CHANNEL, "הגדרת הקלטת שיחות", NotificationManager.IMPORTANCE_DEFAULT))
+      notifications.createNotificationChannel(NotificationChannel(CHANNEL, AppText.choose("הגדרת הקלטת שיחות", "Call recording setup"), NotificationManager.IMPORTANCE_DEFAULT))
       if (app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED ||
           !notifications.areNotificationsEnabled() || notifications.getNotificationChannel(CHANNEL)?.importance == NotificationManager.IMPORTANCE_NONE) {
-        publish(null, "יש לאפשר התראות כדי להזין את קוד האישור מתוך מסך ההגדרות")
+        publish(null, AppText.choose("יש לאפשר התראות כדי להזין את קוד האישור מתוך מסך ההגדרות", "Allow notifications to enter the pairing code from Android Settings"))
         promise.reject("NOTIFICATION_PERMISSION", snapshot["error"] as String)
         return@post
       }
@@ -77,13 +77,13 @@ object PairingNotificationController {
       current = session
       publish(session)
       session.timeout = Runnable {
-        if (current === session) finishCurrent("זמן ההגדרה הסתיים. יש לפתוח שוב את אשף ההגדרה")
+        if (current === session) finishCurrent(AppText.choose("זמן ההגדרה הסתיים. יש לפתוח שוב את אשף ההגדרה", "Setup timed out. Open the setup guide again"))
       }.also { main.postDelayed(it, MAX_SESSION_MS) }
       try {
         app.startForegroundService(Intent(app, PairingNotificationService::class.java)
           .setAction(ACTION_BEGIN).putExtra(EXTRA_SESSION, session.id))
       } catch (_: Exception) {
-        finishCurrent("לא ניתן להתחיל את ההגדרה. יש לחזור לאפליקציה ולנסות שוב")
+        finishCurrent(AppText.choose("לא ניתן להתחיל את ההגדרה. יש לחזור לאפליקציה ולנסות שוב", "Setup could not start. Return to the app and try again"))
       }
     }
   }
@@ -104,13 +104,13 @@ object PairingNotificationController {
     }
     session.service = service
     if (SystemClock.elapsedRealtime() >= session.deadline) {
-      finishCurrent("זמן ההגדרה הסתיים. יש לפתוח שוב את אשף ההגדרה")
+      finishCurrent(AppText.choose("זמן ההגדרה הסתיים. יש לפתוח שוב את אשף ההגדרה", "Setup timed out. Open the setup guide again"))
       return
     }
     when (action) {
       ACTION_BEGIN -> if (!session.armed) arm(session)
       ACTION_CODE -> submit(session, code.orEmpty())
-      else -> finishCurrent("בקשת ההגדרה אינה תקינה")
+      else -> finishCurrent(AppText.choose("בקשת ההגדרה אינה תקינה", "The setup request is invalid"))
     }
   }
 
@@ -118,12 +118,12 @@ object PairingNotificationController {
     val session = current
     // A stopped service from an earlier prepare must never cancel a newer generation.
     if (session != null && session.id == id && session.service === service) {
-      finishCurrent("ההגדרה נעצרה. יש לפתוח שוב את אשף ההגדרה", stopService = false)
+      finishCurrent(AppText.choose("ההגדרה נעצרה. יש לפתוח שוב את אשף ההגדרה", "Setup stopped. Open the setup guide again"), stopService = false)
     }
   }
 
   internal fun serviceTimedOut(service: PairingNotificationService, id: String?) {
-    if (current?.id == id && current?.service === service) finishCurrent("זמן ההגדרה הסתיים. יש לפתוח שוב את אשף ההגדרה")
+    if (current?.id == id && current?.service === service) finishCurrent(AppText.choose("זמן ההגדרה הסתיים. יש לפתוח שוב את אשף ההגדרה", "Setup timed out. Open the setup guide again"))
     else service.finishFor(id)
   }
 
@@ -139,7 +139,7 @@ object PairingNotificationController {
         if (session.pairing) return
         val normalized = PairingNotificationRules.normalizeCode(code)
         if (normalized == null) {
-          session.error = "יש להזין בדיוק את שש הספרות שמופיעות בחלון האישור"
+          session.error = AppText.choose("יש להזין בדיוק את שש הספרות שמופיעות בחלון האישור", "Enter exactly the six digits shown in the pairing window")
           update(session)
           return
         }
@@ -147,7 +147,7 @@ object PairingNotificationController {
           context.startForegroundService(Intent(context, PairingNotificationService::class.java)
             .setAction(ACTION_CODE).putExtra(EXTRA_SESSION, id).putExtra(EXTRA_CODE, normalized))
         } catch (_: Exception) {
-          session.error = "לא ניתן לבצע את האישור. יש לחזור לאפליקציה ולנסות שוב"
+          session.error = AppText.choose("לא ניתן לבצע את האישור. יש לחזור לאפליקציה ולנסות שוב", "Pairing could not start. Return to the app and try again")
           update(session)
         }
       }
@@ -160,7 +160,7 @@ object PairingNotificationController {
       override fun onDiscoveryStopped(type: String) = Unit
       override fun onStopDiscoveryFailed(type: String, errorCode: Int) = Unit
       override fun onStartDiscoveryFailed(type: String, errorCode: Int) {
-        main.post { if (current === session) finishCurrent("לא ניתן לזהות את חלון האישור. יש לנסות שוב") }
+        main.post { if (current === session) finishCurrent(AppText.choose("לא ניתן לזהות את חלון האישור. יש לנסות שוב", "The pairing window could not be found. Try again")) }
       }
       override fun onServiceFound(info: NsdServiceInfo) {
         main.post {
@@ -188,7 +188,7 @@ object PairingNotificationController {
       session.settled = true
       session.promise.resolve(null)
     } catch (_: Exception) {
-      finishCurrent("לא ניתן לזהות את חלון האישור. יש לנסות שוב")
+      finishCurrent(AppText.choose("לא ניתן לזהות את חלון האישור. יש לנסות שוב", "The pairing window could not be found. Try again"))
     }
   }
 
@@ -235,8 +235,8 @@ object PairingNotificationController {
     val ports = session.endpoints.values.toSet()
     val localPort = PairingNotificationRules.singlePort(ports)
     if (PairingNotificationRules.normalizeCode(code) == null || localPort == null) {
-      session.error = if (ports.size > 1) "זוהו כמה חלונות אישור. יש לסגור אותם ולפתוח חלון אישור אחד בטלפון הזה"
-        else "חלון האישור לא זוהה עדיין. יש להשאיר אותו פתוח ולנסות שוב מההתראה"
+      session.error = if (ports.size > 1) AppText.choose("זוהו כמה חלונות אישור. יש לסגור אותם ולפתוח חלון אישור אחד בטלפון הזה", "Several pairing windows were found. Close them and leave one window open on this phone")
+        else AppText.choose("חלון האישור לא זוהה עדיין. יש להשאיר אותו פתוח ולנסות שוב מההתראה", "The pairing window has not been found yet. Leave it open and try again from the notification")
       update(session)
       return
     }
@@ -252,7 +252,7 @@ object PairingNotificationController {
           result.fold(
             onSuccess = { finishCurrent(null, clearError = true) },
             onFailure = {
-              session.error = "האישור לא הצליח. יש להשאיר את חלון האישור פתוח ולבדוק את הקוד, או לפתוח חלון חדש"
+              session.error = AppText.choose("האישור לא הצליח. יש להשאיר את חלון האישור פתוח ולבדוק את הקוד, או לפתוח חלון חדש", "Pairing failed. Leave the pairing window open and check its code, or open a new window")
               update(session)
             }
           )
@@ -260,7 +260,7 @@ object PairingNotificationController {
       }
     } catch (_: Exception) {
       session.pairing = false
-      session.error = "לא ניתן לבצע את האישור. יש לנסות שוב מתוך אשף ההגדרה"
+      session.error = AppText.choose("לא ניתן לבצע את האישור. יש לנסות שוב מתוך אשף ההגדרה", "Pairing could not start. Try again from the setup guide")
       update(session)
     }
   }
@@ -269,7 +269,7 @@ object PairingNotificationController {
     if (current !== session) return
     publish(session)
     try { session.context.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(session.context, session)) }
-    catch (_: Exception) { finishCurrent("התראת ההגדרה אינה זמינה. יש לאפשר התראות ולנסות שוב") }
+    catch (_: Exception) { finishCurrent(AppText.choose("התראת ההגדרה אינה זמינה. יש לאפשר התראות ולנסות שוב", "The setup notification is unavailable. Allow notifications and try again")) }
   }
 
   internal fun foregroundNotification(context: Context): Notification = notification(context, current)
@@ -277,18 +277,18 @@ object PairingNotificationController {
   private fun notification(context: Context, session: Session?): Notification {
     val ports = session?.endpoints?.values?.toSet().orEmpty()
     val text = when {
-      session?.pairing == true -> "מאשרים את החיבור בטלפון. יש להשאיר את חלון האישור פתוח"
+      session?.pairing == true -> AppText.choose("מאשרים את החיבור בטלפון. יש להשאיר את חלון האישור פתוח", "Pairing this phone. Keep the pairing window open")
       session?.error != null -> session.error!!
-      ports.size == 1 -> "בלי לסגור את חלון האישור: הזינו כאן את הקוד בן שש הספרות שמופיע בו"
-      ports.size > 1 -> "יש לסגור חלונות אישור נוספים ולהשאיר חלון אחד פתוח בטלפון הזה"
-      else -> "פתחו בהגדרות: ניפוי באגים אלחוטי ← התאמת מכשיר באמצעות קוד. השאירו את החלון פתוח"
+      ports.size == 1 -> AppText.choose("בלי לסגור את חלון האישור: הזינו כאן את הקוד בן שש הספרות שמופיע בו", "Keep the pairing window open and enter its six-digit code here")
+      ports.size > 1 -> AppText.choose("יש לסגור חלונות אישור נוספים ולהשאיר חלון אחד פתוח בטלפון הזה", "Close additional pairing windows and leave one open on this phone")
+      else -> AppText.choose("פתחו בהגדרות: ניפוי באגים אלחוטי ← התאמת מכשיר באמצעות קוד. השאירו את החלון פתוח", "In Settings, open Wireless debugging > Pair device with pairing code. Leave that window open")
     }
     val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
       ?: Intent(context, MainActivity::class.java)
     val content = PendingIntent.getActivity(context, 4165, launch, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     val builder = Notification.Builder(context, CHANNEL)
       .setSmallIcon(android.R.drawable.ic_menu_manage)
-      .setContentTitle("אישור הקלטת שיחות")
+      .setContentTitle(AppText.choose("אישור הקלטת שיחות", "Authorize call recording"))
       .setContentText(text)
       .setStyle(Notification.BigTextStyle().bigText(text))
       .setContentIntent(content)
@@ -300,11 +300,11 @@ object PairingNotificationController {
     if (session != null) {
       builder.setTimeoutAfter((session.deadline - SystemClock.elapsedRealtime()).coerceAtLeast(1))
       if (!session.pairing && ports.size == 1) {
-        val reply = android.app.RemoteInput.Builder(EXTRA_CODE).setLabel("קוד האישור בן שש ספרות").build()
-        builder.addAction(Notification.Action.Builder(null, "הזנת קוד", actionIntent(context, session, ACTION_CODE, mutable = true))
+        val reply = android.app.RemoteInput.Builder(EXTRA_CODE).setLabel(AppText.choose("קוד האישור בן שש ספרות", "Six-digit pairing code")).build()
+        builder.addAction(Notification.Action.Builder(null, AppText.choose("הזנת קוד", "Enter code"), actionIntent(context, session, ACTION_CODE, mutable = true))
           .addRemoteInput(reply).setAllowGeneratedReplies(false).setAuthenticationRequired(true).build())
       }
-      builder.addAction(Notification.Action.Builder(null, "ביטול", actionIntent(context, session, ACTION_CANCEL, mutable = false)).build())
+      builder.addAction(Notification.Action.Builder(null, AppText.choose("ביטול", "Cancel"), actionIntent(context, session, ACTION_CANCEL, mutable = false)).build())
     }
     return builder.build()
   }
@@ -329,7 +329,7 @@ object PairingNotificationController {
       session.endpoints.clear()
       if (!session.settled) {
         session.settled = true
-        session.promise.reject("PAIRING_SETUP", error ?: "ההגדרה בוטלה")
+        session.promise.reject("PAIRING_SETUP", error ?: AppText.choose("ההגדרה בוטלה", "Setup canceled"))
       }
       if (stopService) session.service?.finishFor(session.id)
       session.context.getSystemService(NotificationManager::class.java).cancel(NOTIFICATION_ID)

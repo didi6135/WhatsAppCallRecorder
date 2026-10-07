@@ -1,3 +1,4 @@
+import { t, useLocalizedStyles } from '../i18n';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +9,7 @@ import { colors } from '../theme';
 
 // Code-native shapes avoid a launcher/font dependency and remain crisp at any size.
 export function WaveMark({ size = 42, dark = false }: { size?: number; dark?: boolean }) {
+  const styles = useLocalizedStyles(baseStyles);
   return <View style={[styles.mark, { width: size, height: size, borderRadius: size * 0.28, backgroundColor: colors.ink }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
     {[0.14, 0.28].map((height, index) => <View key={`left${index}`} style={{ height: size * height, width: size * 0.06, borderRadius: size, backgroundColor: colors.mint }} />)}
     <View style={{ width: size * 0.2, height: size * 0.2, borderRadius: size, backgroundColor: colors.mint, alignItems: 'center', justifyContent: 'center', marginHorizontal: size * 0.025 }}><View style={{ width: size * 0.1, height: size * 0.1, borderRadius: size, backgroundColor: '#F08D70' }} /></View>
@@ -16,6 +18,7 @@ export function WaveMark({ size = 42, dark = false }: { size?: number; dark?: bo
 }
 
 export function Waveform({ active = false, level = 0 }: { active?: boolean; level?: number }) {
+  const styles = useLocalizedStyles(baseStyles);
   const normalized = Math.max(0, Math.min(1, Number.isFinite(level) ? level : 0));
   const heights = [10, 20, 13, 30, 18, 42, 24, 54, 34, 23, 43, 17, 32, 52, 22, 36, 13, 25, 17, 9];
   return <View style={styles.waveform} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -24,10 +27,12 @@ export function Waveform({ active = false, level = 0 }: { active?: boolean; leve
 }
 
 export function SectionHeading({ title, action, onPress }: { title: string; action?: string; onPress?: () => void }) {
+  const styles = useLocalizedStyles(baseStyles);
   return <View style={styles.sectionHeading}><Text style={styles.sectionTitle}>{title}</Text>{action && onPress && <TouchableOpacity onPress={onPress} style={styles.sectionAction} accessibilityRole="button"><Text style={styles.link}>{action}</Text></TouchableOpacity>}</View>;
 }
 
 function NavIcon({ kind, selected }: { kind: 'Home' | 'Recordings' | 'Settings'; selected: boolean }) {
+  const styles = useLocalizedStyles(baseStyles);
   const color = selected ? colors.ink : colors.muted;
   if (kind === 'Home') return <View style={[styles.navHome, { borderColor: color }]}><View style={[styles.navHomeDot, { backgroundColor: color }]} /></View>;
   if (kind === 'Recordings') return <View style={styles.navLibrary}>{[12, 20, 15, 8].map((height, index) => <View key={index} style={{ width: 3, height, borderRadius: 2, backgroundColor: color }} />)}</View>;
@@ -35,15 +40,16 @@ function NavIcon({ kind, selected }: { kind: 'Home' | 'Recordings' | 'Settings';
 }
 
 export function BottomNav({ current }: { current: 'Home' | 'Recordings' | 'Settings' }) {
+  const styles = useLocalizedStyles(baseStyles);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
-  const items = [{ key: 'Home', title: 'הקלטה' }, { key: 'Recordings', title: 'ההקלטות שלי' }, { key: 'Settings', title: 'הגדרות' }] as const;
+  const items = [{ key: 'Home', title: t('copy193') }, { key: 'Recordings', title: t('copy194') }, { key: 'Settings', title: t('copy195') }] as const;
   return <View style={[styles.nav, { paddingBottom: Math.max(10, insets.bottom) }]}>{items.map(item => <TouchableOpacity key={item.key} style={styles.navItem} onPress={() => { if (item.key !== current) navigation.navigate(item.key); }} accessibilityRole="tab" accessibilityState={{ selected: current === item.key }} accessibilityLabel={item.title}>
     <View style={[styles.navIconContainer, current === item.key && styles.navIconSelected]}><NavIcon kind={item.key} selected={current === item.key} /></View><Text style={[styles.navText, current === item.key && styles.navTextSelected]}>{item.title}</Text>
   </TouchableOpacity>)}</View>;
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   mark: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 3 },
   waveform: { height: 60, flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'center' },
   waveBar: { width: 5, borderRadius: 5 },

@@ -1,3 +1,5 @@
+import { localizedError, t } from '../i18n/core';
+import type { TranslationKey } from '../i18n/catalog';
 import { NativeModules, Platform } from 'react-native';
 
 export type NativeRecordingStatus = 'captured' | 'silent' | 'interrupted' | 'recovered';
@@ -11,6 +13,7 @@ export interface AutoRecordingStatus {
   helperConnected: boolean;
   state: 'off' | 'needs_access' | 'needs_activation' | 'ready' | 'recording' | 'paused' | 'error';
   error: string | null;
+  errorCode?: string | null;
 }
 export const EMPTY_AUTO_RECORDING_STATUS: AutoRecordingStatus = {
   enabled: false, armed: false, notificationAccessGranted: false, listenerConnected: false,
@@ -32,6 +35,7 @@ export interface RecorderStatus {
   silentForMs: number;
   audioMode: number;
   error: string | null;
+  errorCode?: string | null;
 }
 
 export interface NativeRecording {
@@ -66,11 +70,13 @@ export interface SystemAccessStatus {
   helperConnected: boolean;
   connecting: boolean;
   error: string | null;
+  errorCode?: string | null;
   pairingSetup?: {
     active: boolean;
     discovering: boolean;
     pairing: boolean;
     error: string | null;
+    errorCode?: string | null;
     localPortAvailable: boolean;
   };
 }
@@ -119,12 +125,12 @@ export const EMPTY_RECORDER_STATUS: RecorderStatus = {
 
 const getModule = (): CallRecorderModule => {
   if (Platform.OS !== 'android') {
-    throw new Error('ההקלטה זמינה בבניית Android בלבד. אין תמיכה בהקלטת שיחות ב-iPhone.');
+    throw new Error(t('copy415'));
   }
 
   const recorder = NativeModules.CallRecorder as CallRecorderModule | undefined;
   if (!recorder) {
-    throw new Error('רכיב ההקלטה חסר בבנייה זו. יש להתקין את אפליקציית Android המלאה; Expo Go אינו תומך ברכיב.');
+    throw new Error(t('copy416'));
   }
 
   return recorder;
@@ -132,21 +138,48 @@ const getModule = (): CallRecorderModule => {
 
 // Lifecycle, WAV finalization, and metadata belong to the Android service.
 // JavaScript only asks for actions and reads the authoritative native state.
+const errorKeys: Record<string, TranslationKey> = {
+  FOREGROUND_REQUIRED: 'copy196', NOTIFICATION_SETUP_FAILED: 'copy337',
+  SYSTEM_CONNECTION_FAILED: 'copy206', SETUP_FAILED: 'copy337', LOAD_FAILED: 'copy285',
+  DELETE_FAILED: 'copy289', SHARE_FAILED: 'copy260', WHATSAPP_UNAVAILABLE: 'whatsappUnavailable',
+  AUTO_SETUP_REQUIRED: 'copy418', AUTO_ACTIVATION_CANCELLED: 'activationCancelled', AUTO_ACTIVATION_FAILED: 'copy206',
+  PAIRING_FAILED: 'copy148', PAIRING_SETUP: 'copy148', PAIRING_BUSY: 'pairingBusy', NOTIFICATION_PERMISSION: 'copy202',
+  UNSUPPORTED_ANDROID: 'copy203', INVALID_ACTIVATION: 'copy337', OWNER_STOPPING: 'recorderShuttingDown',
+  ACTIVATION_SETUP_REQUIRED: 'copy205', ACTIVATION_BUSY: 'copy201', ACTIVATION_FAILED: 'copy206', READINESS_OWNER_FAILED: 'copy206',
+  ALREADY_RECORDING: 'alreadyRecording', INVALID_SOURCE: 'invalidSource', RECORDER_SHUTTING_DOWN: 'recorderShuttingDown',
+  USB_DISCONNECTED: 'copy204', MIC_PERMISSION: 'copy211', START_FAILED: 'copy222', STOP_FAILED: 'stopFailed',
+  START_CANCELLED: 'activationCancelled', RECORDING_FAILED: 'copy226',
+};
+export const recorderErrorMessage = (code: unknown, message?: unknown): string =>
+  typeof code === 'string' && Object.prototype.hasOwnProperty.call(errorKeys, code) ? t(errorKeys[code]) : localizedError(message);
+async function call<T>(action: (module: CallRecorderModule) => Promise<T>): Promise<T> {
+  try { return await action(getModule()); }
+  catch (failure) {
+    const code = failure && typeof failure === 'object' && 'code' in failure ? failure.code : null;
+    const error = new Error(recorderErrorMessage(code, failure));
+    throw Object.assign(error, { code: typeof code === 'string' && Object.prototype.hasOwnProperty.call(errorKeys, code) ? code : 'RECORDER_ACTION_FAILED' });
+  }
+}
+const localizeStatus = <T extends { error: string | null; errorCode?: string | null }>(status: T): T =>
+  ({ ...status, error: status.error ? recorderErrorMessage(status.errorCode, status.error) : null });
 export const NativeRecorder = {
-  getAutoRecordingStatus: async (): Promise<AutoRecordingStatus> => getModule().getAutoRecordingStatus(),
-  setAutoRecordingEnabled: async (enabled: boolean): Promise<void> => getModule().setAutoRecordingEnabled(enabled),
-  openNotificationAccessSetup: async (): Promise<void> => getModule().openNotificationAccessSetup(),
-  getStatus: async (): Promise<RecorderStatus> => getModule().getStatus(),
-  startRecording: async (source: CaptureSource = 'microphone'): Promise<RecorderStatus> => getModule().startRecording(source),
-  stopRecording: async (): Promise<RecorderStatus> => getModule().stopRecording(),
-  listRecordings: async (): Promise<NativeRecording[]> => getModule().listRecordings(),
-  deleteRecording: async (id: string): Promise<void> => getModule().deleteRecording(id),
-  shareRecording: async (id: string): Promise<void> => getModule().shareRecording(id),
-  openWhatsApp: async (): Promise<void> => getModule().openWhatsApp(),
-  getDeviceInfo: async (): Promise<RecorderDeviceInfo> => getModule().getDeviceInfo(),
-  getSystemAccessStatus: async (): Promise<SystemAccessStatus> => getModule().getSystemAccessStatus(),
-  prepareSystemPairing: async (): Promise<void> => getModule().prepareSystemPairing(),
-  pairSystemRecorder: async (pairingPort: number, pairingCode: string): Promise<void> => getModule().pairSystemRecorder(pairingPort, pairingCode),
-  connectSystemRecorder: async (connectionPort = 0): Promise<void> => getModule().connectSystemRecorder(connectionPort),
-  openSystemAccessSetup: async (destination: 'developer' | 'wireless' | 'about' = 'wireless'): Promise<void> => getModule().openSystemAccessSetup(destination),
+  getAutoRecordingStatus: async (): Promise<AutoRecordingStatus> => localizeStatus(await call(module => module.getAutoRecordingStatus())),
+  setAutoRecordingEnabled: async (enabled: boolean): Promise<void> => call(module => module.setAutoRecordingEnabled(enabled)),
+  openNotificationAccessSetup: async (): Promise<void> => call(module => module.openNotificationAccessSetup()),
+  getStatus: async (): Promise<RecorderStatus> => localizeStatus(await call(module => module.getStatus())),
+  startRecording: async (source: CaptureSource = 'microphone'): Promise<RecorderStatus> => localizeStatus(await call(module => module.startRecording(source))),
+  stopRecording: async (): Promise<RecorderStatus> => localizeStatus(await call(module => module.stopRecording())),
+  listRecordings: async (): Promise<NativeRecording[]> => call(module => module.listRecordings()),
+  deleteRecording: async (id: string): Promise<void> => call(module => module.deleteRecording(id)),
+  shareRecording: async (id: string): Promise<void> => call(module => module.shareRecording(id)),
+  openWhatsApp: async (): Promise<void> => call(module => module.openWhatsApp()),
+  getDeviceInfo: async (): Promise<RecorderDeviceInfo> => call(module => module.getDeviceInfo()),
+  getSystemAccessStatus: async (): Promise<SystemAccessStatus> => {
+    const status = localizeStatus(await call(module => module.getSystemAccessStatus()));
+    return { ...status, ...(status.pairingSetup ? { pairingSetup: localizeStatus(status.pairingSetup) } : {}) };
+  },
+  prepareSystemPairing: async (): Promise<void> => call(module => module.prepareSystemPairing()),
+  pairSystemRecorder: async (pairingPort: number, pairingCode: string): Promise<void> => call(module => module.pairSystemRecorder(pairingPort, pairingCode)),
+  connectSystemRecorder: async (connectionPort = 0): Promise<void> => call(module => module.connectSystemRecorder(connectionPort)),
+  openSystemAccessSetup: async (destination: 'developer' | 'wireless' | 'about' = 'wireless'): Promise<void> => call(module => module.openSystemAccessSetup(destination)),
 };

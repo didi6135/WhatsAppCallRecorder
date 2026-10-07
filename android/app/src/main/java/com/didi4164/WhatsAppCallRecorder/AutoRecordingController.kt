@@ -25,7 +25,8 @@ object AutoRecordingController {
   private const val ENABLED = "enabled"
   // RecordingService uses this channel for both its armed and capturing foreground notices.
   private const val RECORDING_NOTIFICATION_CHANNEL = "microphone_recording"
-  private const val NOTIFICATION_VISIBILITY_MESSAGE = "אפשר התראות למקליט השיחות, כולל ערוץ ההקלטה, בהגדרות הטלפון. לאחר מכן הפעל שוב הקלטה אוטומטית."
+  private val NOTIFICATION_VISIBILITY_MESSAGE: String
+    get() = AppText.choose("אפשר התראות למקליט השיחות, כולל ערוץ ההקלטה, בהגדרות הטלפון. לאחר מכן הפעל שוב הקלטה אוטומטית.", "Allow wa-reco notifications, including its recording channel, in Android Settings. Then arm automatic recording again.")
   private val main = Handler(Looper.getMainLooper())
   private val io = Executors.newSingleThreadExecutor { task -> Thread(task, "AutomaticCallMonitorIo") }
   private val policy = AutoCallPolicy()
@@ -142,10 +143,10 @@ object AutoRecordingController {
       val alreadyArmed = enabled && monitoringReady && RecordingService.isAutomaticArmed()
       val prerequisite = when {
         !hasVisibleNotifications(owner, requireRecordingChannel = RecordingService.isAutomaticArmed()) -> NOTIFICATION_VISIBILITY_MESSAGE
-        !hasNotificationAccess(owner) -> "אפשר גישה להתראות עבור מקליט השיחות בהגדרות הטלפון."
-        !listenerConnected -> "הגישה להתראות עדיין לא התחברה. חזור לאפליקציה ונסה שוב."
-        (if (alreadyArmed) !UsbAudioBridge.isTransportOpen() else !UsbAudioBridge.isConnected()) -> "הפעל תחילה את רכיב ההקלטה מתוך האפליקציה."
-        !hasMicrophone(owner) -> "אפשר הרשאת מיקרופון למקליט השיחות."
+        !hasNotificationAccess(owner) -> AppText.choose("אפשר גישה להתראות עבור מקליט השיחות בהגדרות הטלפון.", "Allow notification access for wa-reco in Android Settings.")
+        !listenerConnected -> AppText.choose("הגישה להתראות עדיין לא התחברה. חזור לאפליקציה ונסה שוב.", "Notification access has not connected yet. Return to the app and try again.")
+        (if (alreadyArmed) !UsbAudioBridge.isTransportOpen() else !UsbAudioBridge.isConnected()) -> AppText.choose("הפעל תחילה את רכיב ההקלטה מתוך האפליקציה.", "Activate the recording component from the app first.")
+        !hasMicrophone(owner) -> AppText.choose("אפשר הרשאת מיקרופון למקליט השיחות.", "Allow microphone access for wa-reco.")
         else -> null
       }
       if (prerequisite != null) {
@@ -172,13 +173,13 @@ object AutoRecordingController {
         RecordingService.armAutomatic(owner).whenComplete { _, failure -> onMain {
           if (activation != generation || !desiredMonitoring) {
             if (!desiredMonitoring) RecordingService.disarmAutomatic(owner)
-            promise.reject("AUTO_ACTIVATION_CANCELLED", "הפעלת ההקלטה האוטומטית בוטלה.")
+            promise.reject("AUTO_ACTIVATION_CANCELLED", AppText.choose("הפעלת ההקלטה האוטומטית בוטלה.", "Automatic recording activation was canceled."))
           } else if (failure != null) {
-            activationFailed(owner, activation, promise, "לא ניתן להפעיל הקלטה אוטומטית. פתח את האפליקציה ונסה שוב.")
+            activationFailed(owner, activation, promise, AppText.choose("לא ניתן להפעיל הקלטה אוטומטית. פתח את האפליקציה ונסה שוב.", "Automatic recording could not be armed. Open the app and try again."))
           } else enableMonitoring(owner, activation, promise)
         } }
       } catch (_: Exception) {
-        activationFailed(owner, activation, promise, "לא ניתן להפעיל הקלטה אוטומטית. פתח את האפליקציה ונסה שוב.")
+        activationFailed(owner, activation, promise, AppText.choose("לא ניתן להפעיל הקלטה אוטומטית. פתח את האפליקציה ונסה שוב.", "Automatic recording could not be armed. Open the app and try again."))
       }
     }
   }
@@ -192,13 +193,13 @@ object AutoRecordingController {
       } catch (_: Exception) { failure = true }
       main.post {
         if (activation != generation || !desiredMonitoring) {
-          promise.reject("AUTO_ACTIVATION_CANCELLED", "הפעלת ההקלטה האוטומטית בוטלה.")
+          promise.reject("AUTO_ACTIVATION_CANCELLED", AppText.choose("הפעלת ההקלטה האוטומטית בוטלה.", "Automatic recording activation was canceled."))
         } else if (!hasVisibleNotifications(owner, requireRecordingChannel = true)) {
           activationFailed(owner, activation, promise, NOTIFICATION_VISIBILITY_MESSAGE)
         } else if (failure || !UsbAudioBridge.isConnected() || !RecordingService.isAutomaticArmed() ||
           !hasMicrophone(owner) ||
           !hasNotificationAccess(owner) || !listenerConnected) {
-          activationFailed(owner, activation, promise, "רכיב ההקלטה אינו מוכן לניטור שיחות. הפעל אותו מחדש ונסה שוב.")
+          activationFailed(owner, activation, promise, AppText.choose("רכיב ההקלטה אינו מוכן לניטור שיחות. הפעל אותו מחדש ונסה שוב.", "The recording component is not ready to monitor calls. Reactivate it and try again."))
         } else awaitKnownObservation(owner, activation, promise)
       }
     }
@@ -209,7 +210,7 @@ object AutoRecordingController {
     val check = object : Runnable {
       override fun run() {
         if (activation != generation || !desiredMonitoring) {
-          promise.reject("AUTO_ACTIVATION_CANCELLED", "הפעלת ההקלטה האוטומטית בוטלה.")
+          promise.reject("AUTO_ACTIVATION_CANCELLED", AppText.choose("הפעלת ההקלטה האוטומטית בוטלה.", "Automatic recording activation was canceled."))
           return
         }
         if (!hasVisibleNotifications(owner, requireRecordingChannel = true)) {
@@ -218,7 +219,7 @@ object AutoRecordingController {
         }
         if (!UsbAudioBridge.isConnected() || !RecordingService.isAutomaticArmed() || !hasMicrophone(owner) ||
           !listenerConnected || !hasNotificationAccess(owner)) {
-          activationFailed(owner, activation, promise, "המוכנות להקלטה אוטומטית הופסקה. הפעל אותה שוב מתוך האפליקציה.")
+          activationFailed(owner, activation, promise, AppText.choose("המוכנות להקלטה אוטומטית הופסקה. הפעל אותה שוב מתוך האפליקציה.", "Automatic recording readiness stopped. Arm it again from the app."))
           return
         }
         val now = SystemClock.elapsedRealtime()
@@ -239,7 +240,7 @@ object AutoRecordingController {
         } else if (now >= deadline) {
           modeEvidenceFailed = true
           activationFailed(owner, activation, promise,
-            "לא ניתן לאמת את מצב השיחה במכשיר הזה. ההקלטה האוטומטית לא הופעלה; אפשר להמשיך בהקלטה ידנית.")
+            AppText.choose("לא ניתן לאמת את מצב השיחה במכשיר הזה. ההקלטה האוטומטית לא הופעלה; אפשר להמשיך בהקלטה ידנית.", "Call state cannot be verified on this device. Automatic recording was not armed; manual recording remains available."))
         } else main.postDelayed(this, 100L)
       }
     }
@@ -282,7 +283,7 @@ object AutoRecordingController {
       notifications = if (connected) signals.filter { AutoCallPolicy.allowsPackage(it.packageName) && !it.groupSummary }
         .distinctBy { it.key }.toList() else emptyList()
       if (!connected && (monitoringReady || desiredMonitoring || RecordingService.isAutomaticArmed())) {
-        lastError = "הגישה להתראות נותקה. חזור לאפליקציה והפעל שוב הקלטה אוטומטית."
+        lastError = AppText.choose("הגישה להתראות נותקה. חזור לאפליקציה והפעל שוב הקלטה אוטומטית.", "Notification access disconnected. Return to the app and arm automatic recording again.")
         pauseArming(owner, "listener_disconnected")
       } else if (monitoringReady) evaluate(owner)
     }
@@ -312,7 +313,7 @@ object AutoRecordingController {
       else -> null
     }
     if (prerequisiteFailure != null) {
-      lastError = "המוכנות להקלטה אוטומטית הופסקה. פתח את האפליקציה והפעל אותה מחדש."
+      lastError = AppText.choose("המוכנות להקלטה אוטומטית הופסקה. פתח את האפליקציה והפעל אותה מחדש.", "Automatic recording readiness stopped. Open the app and arm it again.")
       pauseArming(owner, prerequisiteFailure)
       return
     }
@@ -327,7 +328,7 @@ object AutoRecordingController {
     if (recoveringEvidence) lastTransitionReason = "evidence_recovering"
     if (recovery == AutoEvidenceRecoveryWatchdog.State.EXPIRED) {
       modeEvidenceFailed = true
-      lastError = "אימות מצב השיחה הפסיק לפעול. ההקלטה האוטומטית הושהתה; פתח את האפליקציה ונסה להפעיל שוב."
+      lastError = AppText.choose("אימות מצב השיחה הפסיק לפעול. ההקלטה האוטומטית הושהתה; פתח את האפליקציה ונסה להפעיל שוב.", "Call-state verification stopped working. Automatic recording was paused; open the app and try arming it again.")
       pauseArming(owner, "evidence_timeout")
       return
     }
@@ -348,7 +349,7 @@ object AutoRecordingController {
           lastError = null
         } else {
           policy.suppressCurrentCall(decision.uid, delegated = attribution.delegated)
-          lastError = "לא ניתן היה להתחיל את ההקלטה. בדוק שהמקליט פנוי ונסה בשיחה הבאה."
+          lastError = AppText.choose("לא ניתן היה להתחיל את ההקלטה. בדוק שהמקליט פנוי ונסה בשיחה הבאה.", "Recording could not start. Check that the recorder is available and try the next call.")
         }
       }
       AutoCallPolicy.Decision.Stop -> stopOwnedCapture(owner)
@@ -373,7 +374,7 @@ object AutoRecordingController {
     val owner = initialize(context)
     onMain {
       if (policy.acceptedEpisodeUid() != null && failure != null) {
-        lastError = "ההקלטה האוטומטית נעצרה. בדוק את רכיב ההקלטה לפני השיחה הבאה."
+        lastError = AppText.choose("ההקלטה האוטומטית נעצרה. בדוק את רכיב ההקלטה לפני השיחה הבאה.", "Automatic recording stopped. Check the recording component before the next call.")
       }
       policy.onCaptureCompleted(failed = failure != null)
       if (enabled && monitoringReady) evaluate(owner)
@@ -385,7 +386,7 @@ object AutoRecordingController {
     onMain {
       pauseArming(owner, "owner_stopped")
       paused = false
-      if (enabled) lastError = "רכיב ההקלטה כובה. פתח את האפליקציה והפעל שוב הקלטה אוטומטית."
+      if (enabled) lastError = AppText.choose("רכיב ההקלטה כובה. פתח את האפליקציה והפעל שוב הקלטה אוטומטית.", "The recording component was turned off. Open the app and arm automatic recording again.")
     }
   }
 

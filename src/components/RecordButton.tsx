@@ -1,3 +1,4 @@
+import { t, useLocalizedStyles } from '../i18n';
 import React from 'react';
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme';
@@ -10,22 +11,23 @@ interface RecordButtonProps {
 }
 
 export default function RecordButton({ isRecording, onPress, disabled = false }: RecordButtonProps) {
+  const styles = useLocalizedStyles(baseStyles);
   return (
     <TouchableOpacity
       style={[styles.button, isRecording && styles.active, disabled && styles.disabled]}
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
-      accessibilityLabel={isRecording ? 'עצירה ושמירת הקלטה' : 'התחלת הקלטה'}
+      accessibilityLabel={isRecording ? t('copy087') : t('copy088')}
       accessibilityState={{ disabled }}
       activeOpacity={0.75}>
       <View style={isRecording ? styles.stop : styles.record} />
-      <Text style={styles.label}>{isRecording ? 'עצירה ושמירה' : 'התחלת הקלטה'}</Text>
+      <Text style={styles.label}>{isRecording ? t('copy089') : t('copy088')}</Text>
     </TouchableOpacity>
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   button: { minHeight: 60, width: '100%', backgroundColor: colors.ink, borderRadius: 18, alignItems: 'center', justifyContent: 'center', flexDirection: 'row-reverse', gap: 12, paddingHorizontal: 20, paddingVertical: 16 },
   active: { backgroundColor: colors.danger },
   disabled: { opacity: 0.4 },

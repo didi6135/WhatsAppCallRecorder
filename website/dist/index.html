@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F6F8F6">
+  <meta name="description" content="wa-reco — הקלטת שיחות WhatsApp במכשירי Android שנבדקו. קבצים מקומיים, קוד פתוח והפעלה ברורה.">
+  <title>wa-reco — השיחה נשמרת. השליטה אצלך.</title>
+  <link rel="icon" type="image/svg+xml" href="assets/mark.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main" data-i18n="skip">דילוג לתוכן</a>
+  <header class="header wrap">
+    <a class="brand" href="#" aria-label="wa-reco"><img src="assets/mark.svg" alt="" width="38" height="38"><span dir="ltr">wa-reco<span class="brand-dot">.</span></span></a>
+    <nav class="nav" aria-label="ניווט ראשי" data-i18n-aria="navigation">
+      <a href="#setup" data-i18n="navSetup">איך מתחילים</a><a href="#compatibility" data-i18n="navCompatibility">התאמה למכשיר</a><a href="https://github.com/didi6135/WhatsAppCallRecorder" data-i18n="navSource">קוד פתוח ↗</a>
+    </nav>
+    <div class="languages" role="group" aria-label="שפת האתר" data-i18n-aria="language"><button type="button" data-language="he" aria-pressed="true" lang="he">עברית</button><button type="button" data-language="en" aria-pressed="false" lang="en">EN</button></div>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span><span data-i18n="eyebrow">Android · קוד פתוח · קבצים מקומיים</span></p>
+        <h1 id="hero-title"><span data-i18n="heroLine1">השיחה נשמרת.</span><span class="green" data-i18n="heroLine2">השליטה אצלך.</span></h1>
+        <p class="hero-description" data-i18n="heroDescription">מקליטים, שומרים ומאזינים לשיחות WhatsApp — בשלושה מסכים פשוטים. אתם בוחרים מתי להקליט, והקובץ נשאר במכשיר.</p>
+        <div class="hero-actions"><a class="button primary" href="#download"><span data-i18n="heroDownload">הורדה ל־Android</span><span aria-hidden="true">↓</span></a><a class="text-link" href="#setup" data-i18n="heroGuide">מדריך ההפעלה ←</a></div>
+        <p class="hero-note" data-i18n="heroNote">נבדק עם המשתמש על Samsung S26 Ultra / Android 16. בדקו התאמה לפני ההתקנה.</p>
+      </div>
+      <figure class="app-figure">
+        <div class="phone" aria-label="המחשה של האפליקציה" data-i18n-aria="appIllustration">
+          <div class="phone-top" aria-hidden="true"><span>9:41</span><span>◒ ▮▮▮</span></div>
+          <div class="phone-content"><div class="phone-heading"><img src="assets/mark.svg" alt="" width="36" height="36"><div><b dir="ltr">wa-reco</b><span id="screen-subtitle">הקלטה</span></div></div><div id="app-screen" role="tabpanel" aria-labelledby="phone-tab-record"></div></div>
+          <div class="phone-nav" role="tablist" aria-label="מסכי ההמחשה" data-i18n-aria="illustrationTabs"><button id="phone-tab-record" type="button" role="tab" data-screen="record" aria-selected="true" tabindex="0"><span aria-hidden="true">◉</span><span data-i18n="tabRecord">הקלטה</span></button><button id="phone-tab-library" type="button" role="tab" data-screen="library" aria-selected="false" tabindex="-1"><span aria-hidden="true">≋</span><span data-i18n="tabLibrary">ההקלטות שלי</span></button><button id="phone-tab-settings" type="button" role="tab" data-screen="settings" aria-selected="false" tabindex="-1"><span aria-hidden="true">☷</span><span data-i18n="tabSettings">הגדרות</span></button></div>
+        </div>
+        <figcaption><span class="small-dot" aria-hidden="true"></span><span data-i18n="illustrationCaption">המחשה אינטראקטיבית בלבד. אין כאן הקלטה או קובצי שמע.</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="flow wrap" aria-label="מה עושים באפליקציה" data-i18n-aria="flowLabel">
+      <div><span class="number">01</span><h2 data-i18n="flowRecordTitle">מקליטים</h2><p data-i18n="flowRecordBody">בוחרים מיקרופון או שיחת WhatsApp. מתחילים ועוצרים בלחיצה.</p></div>
+      <div><span class="number">02</span><h2 data-i18n="flowLibraryTitle">שומרים ומאזינים</h2><p data-i18n="flowLibraryBody">כל ההקלטות במקום אחד, עם האזנה, שיתוף ומחיקה.</p></div>
+      <div><span class="number">03</span><h2 data-i18n="flowSettingsTitle">בודקים מוכנות</h2><p data-i18n="flowSettingsBody">ההגדרות מציגות מה מוכן ומה צריך אישור או תיקון.</p></div>
+    </section>
+
+    <section id="setup" class="section wrap setup" aria-labelledby="setup-title">
+      <div class="section-intro"><p class="eyebrow" data-i18n="setupEyebrow">כמה דקות, בפעם הראשונה</p><h2 id="setup-title" data-i18n="setupTitle">מההתקנה לשיחה הראשונה.</h2><p data-i18n="setupIntro">הקלטת שיחה דורשת הפעלה מיוחדת ב־Android. האשף באפליקציה מלווה אתכם בכל שלב. לא נדרשים Root, מחשב או אפליקציה נוספת.</p><a class="text-link" href="#compatibility" data-i18n="checkCompatibility">בדיקת התאמה למכשיר ←</a></div>
+      <ol class="steps">
+        <li><span class="step-index" aria-hidden="true">1</span><div><h3 data-i18n="installTitle">מורידים ומתקינים את ה־APK</h3><p data-i18n="installBody">כשההורדה זמינה, פתחו את הקובץ במכשיר Android. אם Android מבקש, אשרו התקנת אפליקציות מהדפדפן או ממנהל הקבצים שבו פתחתם אותו. התקינו ממקור שאתם סומכים עליו.</p></div></li>
+        <li><span class="step-index" aria-hidden="true">2</span><div><h3 data-i18n="permissionsTitle">פותחים ומאשרים את ההרשאות</h3><p data-i18n="permissionsBody">האשף מבקש גישה למיקרופון ולהתראות. הרשאת גישה להתראות נדרשת לזיהוי שיחות במצב האוטומטי, אם תבחרו להפעיל אותו.</p></div></li>
+        <li><span class="step-index" aria-hidden="true">3</span><div><h3 data-i18n="activationTitle">מפעילים את שירות הקלטת השיחות</h3><p data-i18n="activationBody">התחברו ל־Wi-Fi ועקבו אחרי אשף ההפעלה: אפשרויות מפתחים, ניפוי באגים אלחוטי, זיווג והפעלת השירות. ההפעלה נותנת לשירות גישה ששיחת WhatsApp דורשת.</p><details class="activation-details"><summary data-i18n="activationDetails">שלבי ההפעלה, בפשטות</summary><ol><li data-i18n="developerStep">בהגדרות המכשיר: אודות הטלפון ← מידע תוכנה ← לחצו שבע פעמים על מספר גרסת Build. שמות התפריטים עשויים להשתנות.</li><li data-i18n="wifiStep">פתחו אפשרויות מפתחים והפעילו ניפוי באגים אלחוטי כשאתם מחוברים ל־Wi-Fi.</li><li data-i18n="pairStep">בזיווג הראשון, פתחו ״זיווג באמצעות קוד״ ב־Android והזינו באשף האפליקציה את הפרטים שהוא מבקש. הקוד זמני; אל תפרסמו אותו.</li><li data-i18n="helperStep">חזרו לאפליקציה והפעילו את השירות. המשיכו רק כשהאפליקציה מציגה שהוא מחובר ומוכן.</li></ol></details></div></li>
+        <li><span class="step-index" aria-hidden="true">4</span><div><h3 data-i18n="firstCallTitle">בודקים לפני השיחה</h3><p data-i18n="firstCallBody">בדקו מוכנות בהגדרות ויידעו את המשתתפים. במסך ההקלטה בחרו ״שיחת WhatsApp״, התחילו להקליט ועברו לשיחה. עצרו בסיום והאזינו לקובץ כדי לוודא ששני הצדדים נשמעים.</p></div></li>
+      </ol>
+      <aside class="wifi-note"><span aria-hidden="true">↗</span><div><h3 data-i18n="wifiNoteTitle">Wi-Fi להפעלה. לא לכל הקלטה.</h3><p data-i18n="wifiNoteBody">אחרי שהשירות נותק מתהליך ההפעלה ומציג מוכנות, הוא יכול להמשיך להקליט גם בלי Wi-Fi. אחרי אתחול או אובדן השירות, הפעילו אותו מחדש. לשיחת WhatsApp עצמה עדיין נדרש חיבור לאינטרנט.</p></div></aside>
+    </section>
+
+    <section id="compatibility" class="section compatibility" aria-labelledby="compatibility-title"><div class="wrap"><div class="section-heading"><div><p class="eyebrow" data-i18n="compatibilityEyebrow">מכשירים וגרסאות</p><h2 id="compatibility-title" data-i18n="compatibilityTitle">בודקים התאמה, לפני שמתחילים.</h2></div><p data-i18n="compatibilityIntro">מגבלות Android וחומרת המכשיר משפיעות על ההקלטה. בדיקה של מכשיר אחד אינה הבטחה לכל הדגמים.</p></div>
+      <div class="compatibility-list">
+        <div class="compatibility-row"><div><h3 dir="ltr">Samsung S26 Ultra · Android 16</h3><p data-i18n="testedBody">המשתמש דיווח שהקלטת השיחות עובדת במכשיר שנבדק.</p></div><span class="tag tested" data-i18n="testedTag">נבדק עם המשתמש</span></div>
+        <div class="compatibility-row"><div><h3 dir="ltr">Android 14 / 15</h3><p data-i18n="experimentalBody">מסלול ניסיוני. דורש בדיקה במכשיר, הפעלה מיוחדת ואימות הקול בקובץ.</p></div><span class="tag experimental" data-i18n="experimentalTag">ניסיוני</span></div>
+        <div class="compatibility-row"><div><h3 data-i18n="olderTitle">Android 13 ומטה</h3><p data-i18n="olderBody">מיקרופון בלבד. אין במסלול הזה תמיכה בהקלטת שני צדי שיחת WhatsApp באותו מכשיר.</p></div><span class="tag neutral" data-i18n="olderTag">מיקרופון בלבד</span></div>
+        <div class="compatibility-row"><div><h3 dir="ltr">iPhone / iOS</h3><p data-i18n="iphoneBody">אין תמיכה בהקלטת שיחת WhatsApp באותו iPhone.</p></div><span class="tag neutral" data-i18n="iphoneTag">הקלטת שיחה אינה זמינה</span></div>
+      </div><p class="compatibility-footnote" data-i18n="micNote">הקלטת מיקרופון רגילה עשויה להיות מושתקת בזמן שיחה. בצעו בדיקה קצרה והאזינו לקובץ לפני שמסתמכים על ההקלטה.</p>
+    </div></section>
+
+    <section class="section wrap backups" aria-labelledby="backup-title"><div class="section-intro"><p class="eyebrow" data-i18n="backupEyebrow">ההקלטות שלכם</p><h2 id="backup-title" data-i18n="backupTitle">הקובץ נשאר אצלכם.</h2><p data-i18n="backupIntro">שמירה והאזנה מקומית זמינות בלי חשבון ענן. אתם מחליטים אם לשתף קובץ או לחבר שירות גיבוי.</p></div><div class="backup-list"><div><span class="status-dot" aria-hidden="true"></span><div><h3 data-i18n="localTitle">קבצים מקומיים</h3><p data-i18n="localBody">נשמרים באפליקציה. אפשר להאזין, לשתף ולמחוק.</p></div><span class="tag tested" data-i18n="localTag">זמין</span></div><div><span class="pending-dot" aria-hidden="true"></span><div><h3 dir="ltr">Google Drive</h3><p data-i18n="driveBody">החיבור לחשבון ולתיקייה אישיים קיים בקוד. רישום האפליקציה ב־Google ואימות העלאה אמיתית עדיין ממתינים להשלמה.</p></div><span class="tag neutral" data-i18n="pendingTag">ממתין לאימות</span></div><div><span class="pending-dot" aria-hidden="true"></span><div><h3 dir="ltr">Telegram</h3><p data-i18n="telegramBody">גיבוי לבוט Telegram פרטי, ישירות מהמכשיר וללא שרת, הוטמע באפליקציה. יוצרים ומחברים בוט אישי בהגדרות ומפעילים גיבוי רק באישורכם. אימות העלאה אמיתית מהמכשיר ל־Telegram עדיין ממתין.</p></div><span class="tag neutral" data-i18n="pendingTag">ממתין לאימות</span></div></div></section>
+
+    <section id="download" class="section wrap download" aria-labelledby="download-title"><div><p class="eyebrow" data-i18n="downloadEyebrow">wa-reco ל־Android</p><h2 id="download-title" data-i18n="downloadTitle">מתחילים עם המכשיר שלכם.</h2><p data-i18n="downloadIntro">קראו את בדיקת ההתאמה ואת מדריך ההפעלה. יש ליידע את משתתפי השיחה לפני הקלטה.</p><div class="download-actions"><a id="apk-download" class="button primary is-disabled" aria-disabled="true" tabindex="-1" data-i18n="downloadPending">הורדת APK ממתינה לפרסום</a><a class="button secondary" href="https://github.com/didi6135/WhatsAppCallRecorder" data-i18n="sourceButton">לקוד ולמדריכים ב־GitHub ↗</a></div><p id="release-status" class="release-status" aria-live="polite" data-i18n="releasePending">קישור ההורדה יופעל אחרי שהגרסה הציבורית וקובץ ההתקנה יאומתו.</p><dl id="release-details" class="release-details" hidden><div><dt data-i18n="releaseVersion">גרסה</dt><dd id="release-version" dir="ltr"></dd></div><div><dt data-i18n="releaseSize">גודל קובץ</dt><dd id="release-size" dir="ltr"></dd></div><div class="hash-row"><dt dir="ltr">SHA-256</dt><dd><code id="release-hash" dir="ltr"></code><button id="copy-hash" type="button" data-i18n="copyHash">העתקת טביעת קובץ</button></dd></div></dl></div><div class="download-mark" aria-hidden="true"><img src="assets/mark.svg" alt="" width="140" height="140"><span dir="ltr">wa-reco.</span></div></section>
+    <section id="release-sources" class="wrap release-sources" hidden aria-labelledby="sources-title">
+      <h2 id="sources-title" data-i18n="sourcesTitle">המקור והרישיונות של אותה גרסה</h2>
+      <p data-i18n="sourcesBody">חבילת המקור המצורפת כוללת הודעות רישוי והנחיות לבנייה מחדש ולהחלפת רכיבי LGPL בהתאם לרישיונות שלהם. הקישורים וטביעות הקבצים מתייחסים לגרסה המוצגת כאן.</p>
+      <div class="download-actions"><a id="companion-download" class="button secondary" data-i18n="companionDownload">מקור, רישיונות והנחיות בנייה (.zip) ↓</a><a id="release-source" class="text-link" data-i18n="exactSource">המקור המדויק ב־GitHub ↗</a></div>
+      <dl class="release-details"><div><dt data-i18n="releaseSize">גודל קובץ</dt><dd id="companion-size" dir="ltr"></dd></div><div class="hash-row"><dt dir="ltr">Companion ZIP · SHA-256</dt><dd><code id="companion-hash" dir="ltr"></code></dd></div></dl>
+    </section>
+  </main>
+  <footer class="footer wrap"><a class="brand" href="#"><img src="assets/mark.svg" alt="" width="30" height="30"><span dir="ltr">wa-reco.</span></a><p data-i18n="footerNote">פרויקט עצמאי וקוד פתוח. אינו מוצר של WhatsApp או Meta.</p><a href="https://github.com/didi6135/WhatsAppCallRecorder/blob/main/docs/privacy.md" data-i18n="privacy">פרטיות</a><a href="https://github.com/didi6135/WhatsAppCallRecorder/issues" data-i18n="reportIssue">דיווח על בעיה ↗</a></footer>
+  <noscript><p class="wrap" data-i18n="noScript">החלפת שפה והמחשת האפליקציה דורשות JavaScript. מידע ההתקנה וההתאמה מופיע בעמוד; קישור הורדה פעיל טרם אומת.</p></noscript>
+</body>
+</html>

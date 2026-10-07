@@ -1,0 +1,43 @@
+SPAKE2 Android 2.2.1 (LGPL-3.0)
+Java/JNI source: https://github.com/MuntashirAkon/spake2-java/tree/7615ddd680b990e14513ebb66eac4cb0dbf82464
+Native source: https://github.com/MuntashirAkon/spake2-c/tree/0d15933e5ba3e662cb01245a7ac0dc9fca3eac31
+
+This application uses the library. The library and its use are covered by LGPL-3.0.
+Library modification and reverse engineering to debug modifications are permitted.
+Full license texts, corresponding source and application recombination instructions accompany the companion download.
+
+
+spake2/android/src/main/cpp/spake2_jni.cpp
+/*
+ * Copyright (C) 2021 Muntashir Al-Islam
+ *
+ * Licensed according to the LICENSE file in this repository.
+ */
+
+spake2/android/src/main/java/io/github/muntashirakon/crypto/spake2/Spake2Context.java
+/*
+ * Copyright (C) 2021 Muntashir Al-Islam
+ *
+ * Licensed according to the LICENSE file in this repository.
+ */
+
+spake2/android/src/main/java/io/github/muntashirakon/crypto/spake2/Spake2Role.java
+/*
+ * Copyright (C) 2021 Muntashir Al-Islam
+ *
+ * Licensed according to the LICENSE file in this repository.
+ */
+
+spake2/android/src/test/java/io/github/muntashirakon/crypto/spake2/Spake2ContextTest.java
+/*
+ * Copyright (C) 2021 Muntashir Al-Islam
+ *
+ * Licensed according to the LICENSE file in this repository.
+ */
+
+spake2/android/src/test/java/io/github/muntashirakon/crypto/spake2/Utils.java
+/*
+ * Copyright (C) 2021 Muntashir Al-Islam
+ *
+ * Licensed according to the LICENSE file in this repository.
+ */

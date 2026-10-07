@@ -1,0 +1,111 @@
+package com.didi4164.WhatsAppCallRecorder;
+
+import org.json.JSONObject;
+
+public final class TelegramBackupLedgerTest {
+    private static int checks;
+    private static void check(boolean value) { checks++; if (!value) throw new AssertionError("ledger check " + checks); }
+    private interface Action { void run() throws Exception; }
+    private static void fails(String code, Action action) throws Exception {
+        try { action.run(); throw new AssertionError("expected " + code); }
+        catch (TelegramBackupFailure error) { check(code.equals(error.code)); }
+    }
+    private static JSONObject connected(long chat) throws Exception {
+        JSONObject value = TelegramBackupLedger.fresh();
+        TelegramBackupLedger.prepareConnection(value, "123456" + ":" + "x".repeat(35), 123456, "OwnPrivateBot", "wa_" + "a".repeat(32), 10000);
+        TelegramBackupLedger.completeConnection(value, chat, 100);
+        return value;
+    }
+    private static void enqueue(JSONObject value, String id, long bytes) throws Exception {
+        TelegramWavParts.Plan plan = TelegramWavParts.plan(TelegramWavParts.header(bytes - 44, 2, 16000), bytes, 48_000_000);
+        TelegramBackupLedger.enqueue(value, id, bytes, 100, "b".repeat(64), plan);
+    }
+    private static TelegramBackupLedger.Selection selected(JSONObject value) throws Exception { return TelegramBackupLedger.next(value, 100); }
+    private static TelegramBackupLedger.Lease claim(JSONObject value, String attempt) throws Exception {
+        TelegramBackupLedger.Selection selection = selected(value);
+        return TelegramBackupLedger.claim(value, selection, attempt, 100);
+    }
+    private static TelegramBotProtocol.Receipt receipt(TelegramBackupLedger.Lease lease, int message) {
+        return new TelegramBotProtocol.Receipt(message, lease.selection.partBytes, "synthetic_file_" + message, "synthetic_unique_" + message);
+    }
+    public static void main(String[] ignored) throws Exception {
+        JSONObject value = connected(99);
+        check(!TelegramBackupLedger.config(value).enabled);
+        enqueue(value, "1-aaaaaaaa", 100);
+        check(value.getJSONArray("jobs").length() == 0); // Linking alone never grants upload consent.
+        TelegramBackupLedger.setEnabled(value, true);
+        enqueue(value, "1-aaaaaaaa", 100);
+        enqueue(value, "1-aaaaaaaa", 100);
+        check(value.getJSONArray("jobs").length() == 1);
+        TelegramBackupLedger.Lease lease = claim(value, "c".repeat(32));
+        check(lease != null && selected(value) == null); // Dispatch intent prevents another send.
+        JSONObject restarted = new JSONObject(value.toString());
+        check(TelegramBackupLedger.recoverInterrupted(restarted));
+        check(selected(restarted) == null);
+        check(TelegramBackupLedger.status(restarted, 101).get("unknownOutcome").equals(1));
+        fails("UNKNOWN_OUTCOME_REQUIRES_CONFIRMATION", () -> TelegramBackupLedger.retry(restarted, false));
+        TelegramBackupLedger.retry(restarted, true);
+        check(selected(restarted) != null);
+        TelegramBackupLedger.Lease second = claim(restarted, "d".repeat(32));
+        check(!TelegramBackupLedger.delivered(restarted, lease, receipt(lease, 1))); // Old acknowledgment cannot attach to a new attempt.
+        check(TelegramBackupLedger.delivered(restarted, second, receipt(second, 2)));
+        check(TelegramBackupLedger.status(restarted, 102).get("uploaded").equals(1));
+        TelegramBackupLedger.retry(restarted, true);
+        check(selected(restarted) == null); // Known receipt is preserved through explicit retry.
+        TelegramBackupLedger.validate(restarted);
+        // Two parts: only the failed/unknown part retries; successful part never sends again.
+        JSONObject longCall = connected(99); TelegramBackupLedger.setEnabled(longCall, true);
+        enqueue(longCall, "2-bbbbbbbb", 48_000_048);
+        TelegramBackupLedger.Lease firstPart = claim(longCall, "a".repeat(32));
+        check(firstPart.selection.index == 0);
+        check(TelegramBackupLedger.delivered(longCall, firstPart, receipt(firstPart, 10)));
+        TelegramBackupLedger.Lease lastPart = claim(longCall, "b".repeat(32));
+        check(lastPart.selection.index == 1);
+        TelegramBackupLedger.failed(longCall, lastPart, new TelegramBackupFailure("UNKNOWN_OUTCOME", false, true, 0), 101);
+        check(selected(longCall) == null);
+        TelegramBackupLedger.retry(longCall, true);
+        check(selected(longCall).index == 1);
+        // Disable/rebind cancels authority but retains late positively verified receipts on their original binding.
+        JSONObject disabled = connected(99); TelegramBackupLedger.setEnabled(disabled, true); enqueue(disabled, "3-cccccccc", 100);
+        TelegramBackupLedger.Lease inFlight = claim(disabled, "e".repeat(32));
+        TelegramBackupLedger.setEnabled(disabled, false);
+        check(selected(disabled) == null);
+        check(TelegramBackupLedger.delivered(disabled, inFlight, receipt(inFlight, 20)));
+        TelegramBackupLedger.setEnabled(disabled, true);
+        check(selected(disabled) == null);
+        TelegramBackupLedger.disconnect(disabled);
+        check(!disabled.has("token") && !disabled.has("chatId"));
+        check(TelegramBackupLedger.ownedNonces(disabled, 123456).contains("wa_" + "a".repeat(32)));
+        check(disabled.getJSONArray("jobs").length() == 1);
+        TelegramBackupLedger.prepareConnection(disabled, "123456" + ":" + "x".repeat(35), 123456, "OwnPrivateBot", "wa_" + "f".repeat(32), 1000);
+        TelegramBackupLedger.completeConnection(disabled, 100, 100); TelegramBackupLedger.setEnabled(disabled, true);
+        enqueue(disabled, "3-cccccccc", 100);
+        check(disabled.getJSONArray("jobs").length() == 2);
+        check(selected(disabled).config.chatId == 100);
+        // Complete, explicit 429 failures can retry after the delay; no network timeout can do so.
+        JSONObject limited = connected(99); TelegramBackupLedger.setEnabled(limited, true); enqueue(limited, "4-dddddddd", 100);
+        TelegramBackupLedger.Lease rate = claim(limited, "1".repeat(32));
+        TelegramBackupLedger.failed(limited, rate, new TelegramBackupFailure("RATE_LIMIT", true, false, 60), 100);
+        check(TelegramBackupLedger.next(limited, 101) == null);
+        check(TelegramBackupLedger.next(limited, 60100) != null);
+        TelegramBackupLedger.validate(limited);
+        // No stale foreground selection may dispatch after a generation change.
+        TelegramBackupLedger.Selection stale = selected(disabled);
+        TelegramBackupLedger.setEnabled(disabled, false);
+        check(TelegramBackupLedger.claim(disabled, stale, "2".repeat(32), 100) == null);
+        JSONObject bad = new JSONObject(restarted.toString());
+        bad.getJSONArray("jobs").getJSONObject(0).getJSONArray("parts").getJSONObject(0).remove("receipt");
+        fails("LOCAL_QUEUE_UNAVAILABLE", () -> TelegramBackupLedger.validate(bad));
+        JSONObject expired = TelegramBackupLedger.fresh();
+        TelegramBackupLedger.prepareConnection(expired, "123456" + ":" + "x".repeat(35), 123456, "OwnPrivateBot", "wa_" + "3".repeat(32), 99);
+        fails("CONNECTION_EXPIRED", () -> TelegramBackupLedger.completeConnection(expired, 99, 100));
+        check(TelegramBackupLedger.status(expired, 100).get("startLink") == null);
+        JSONObject persistFailure = connected(99); TelegramBackupLedger.setEnabled(persistFailure, true); enqueue(persistFailure, "5-eeeeeeee", 100);
+        TelegramBackupLedger.Lease ackLost = claim(persistFailure, "4".repeat(32));
+        TelegramBackupLedger.failed(persistFailure, ackLost,
+            TelegramBackupFailure.afterDispatch(new TelegramBackupFailure("LOCAL_QUEUE_UNAVAILABLE")), 100);
+        check(selected(persistFailure) == null);
+        fails("UNKNOWN_OUTCOME_REQUIRES_CONFIRMATION", () -> TelegramBackupLedger.retry(persistFailure, false));
+        System.out.println("Telegram durable-ledger checks passed: " + checks);
+    }
+}

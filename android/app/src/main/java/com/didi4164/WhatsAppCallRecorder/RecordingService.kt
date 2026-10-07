@@ -65,11 +65,11 @@ class RecordingService : Service() {
 
     /** One visible user action establishes the microphone FGS before any background call event. */
     fun armAutomatic(context: Context): CompletableFuture<Unit> {
-      check(Looper.myLooper() == Looper.getMainLooper()) { "יש להפעיל מצב אוטומטי מתוך האפליקציה." }
+      check(Looper.myLooper() == Looper.getMainLooper()) { AppText.choose("יש להפעיל מצב אוטומטי מתוך האפליקציה.", "Enable automatic recording from the app.") }
       if (isAutomaticArmed()) return CompletableFuture.completedFuture(Unit)
-      check(!isBusyForOwner() && pendingArm == null) { "סיימו את ההקלטה הפעילה לפני הפעלת מצב אוטומטי." }
-      check(UsbAudioBridge.isConnected() && !RecorderReadinessService.isStopping()) { "יש להפעיל תחילה את רכיב ההקלטה." }
-      check(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) { "נדרשת הרשאת מיקרופון." }
+      check(!isBusyForOwner() && pendingArm == null) { AppText.choose("סיימו את ההקלטה הפעילה לפני הפעלת מצב אוטומטי.", "Finish the current recording before enabling automatic recording.") }
+      check(UsbAudioBridge.isConnected() && !RecorderReadinessService.isStopping()) { AppText.choose("יש להפעיל תחילה את רכיב ההקלטה.", "Activate the recording component first.") }
+      check(context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) { AppText.choose("נדרשת הרשאת מיקרופון.", "Microphone permission is required.") }
       val request = CompletableFuture<Unit>()
       pendingArm = request
       try {
@@ -80,7 +80,7 @@ class RecordingService : Service() {
       mainHandler.postDelayed({
         if (pendingArm === request && !request.isDone) {
           pendingArm = null
-          request.completeExceptionally(IllegalStateException("המצב האוטומטי לא הופעל בזמן. נסו שוב כשהאפליקציה פתוחה."))
+          request.completeExceptionally(IllegalStateException(AppText.choose("המצב האוטומטי לא הופעל בזמן. נסו שוב כשהאפליקציה פתוחה.", "Automatic mode did not start in time. Try again while the app is open.")))
           activeService?.let { if (!it.workerRunning) it.stopSelf() }
         }
       }, 5000L)
@@ -89,7 +89,7 @@ class RecordingService : Service() {
 
     fun disarmAutomatic(context: Context) {
       check(Looper.myLooper() == Looper.getMainLooper())
-      pendingArm?.completeExceptionally(IllegalStateException("המצב האוטומטי כובה.")); pendingArm = null
+      pendingArm?.completeExceptionally(IllegalStateException(AppText.choose("המצב האוטומטי כובה.", "Automatic mode was disabled."))); pendingArm = null
       activeService?.let { service ->
         service.automaticArmed = false
         RecorderReadinessService.refreshAutomaticState()
@@ -134,18 +134,18 @@ class RecordingService : Service() {
     }
     fun start(context: Context, captureSource: String, promise: Promise) {
       synchronized(lock) {
-        if (busy) { promise.reject("ALREADY_RECORDING", "הקלטה כבר פעילה"); return }
+        if (busy) { promise.reject("ALREADY_RECORDING", AppText.choose("הקלטה כבר פעילה", "A recording is already active")); return }
         if (captureSource !in listOf("microphone", "usb")) {
-          promise.reject("INVALID_SOURCE", "מקור הקלטה לא תקין"); return
+          promise.reject("INVALID_SOURCE", AppText.choose("מקור הקלטה לא תקין", "The recording source is invalid")); return
         }
         if (captureSource == "usb" && RecorderReadinessService.isStopping()) {
-          promise.reject("RECORDER_SHUTTING_DOWN", "המקליט נכבה. המתן לסיום והפעל אותו מחדש לפני הקלטה."); return
+          promise.reject("RECORDER_SHUTTING_DOWN", AppText.choose("המקליט נכבה. המתן לסיום והפעל אותו מחדש לפני הקלטה.", "The recorder is shutting down. Wait, then activate it before recording.")); return
         }
         if (captureSource == "usb" && !UsbAudioBridge.isConnected()) {
-          promise.reject("USB_DISCONNECTED", "יש להשלים את הגדרת הקלטת השיחה לפני התחלת ההקלטה"); return
+          promise.reject("USB_DISCONNECTED", AppText.choose("יש להשלים את הגדרת הקלטת השיחה לפני התחלת ההקלטה", "Complete call recording setup before starting a recording")); return
         }
         if (context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-          promise.reject("MIC_PERMISSION", "נדרשת הרשאת מיקרופון"); return
+          promise.reject("MIC_PERMISSION", AppText.choose("נדרשת הרשאת מיקרופון", "Microphone permission is required")); return
         }
         busy = true; recording = false; error = null; source = captureSource; startPromise = promise
       }
@@ -154,7 +154,7 @@ class RecordingService : Service() {
         if (Build.VERSION.SDK_INT >= 26) context.startForegroundService(intent) else context.startService(intent)
       } catch (e: Exception) {
         synchronized(lock) { busy = false; startPromise = null; error = e.message }
-        promise.reject("START_FAILED", "לא ניתן להתחיל הקלטה. חזור למסך האפליקציה ונסה שוב.", e)
+        promise.reject("START_FAILED", AppText.choose("לא ניתן להתחיל הקלטה. חזור למסך האפליקציה ונסה שוב.", "Recording could not start. Return to the app and try again."), e)
       }
     }
     fun stop(context: Context, promise: Promise) {
@@ -167,7 +167,7 @@ class RecordingService : Service() {
         context.startService(Intent(context, RecordingService::class.java).setAction(ACTION_STOP))
       } catch (e: Exception) {
         synchronized(lock) { stopPromises.remove(promise) }
-        promise.reject("STOP_FAILED", "לא ניתן לעצור את ההקלטה", e)
+        promise.reject("STOP_FAILED", AppText.choose("לא ניתן לעצור את ההקלטה", "Recording could not stop"), e)
       }
     }
     fun isBusyForOwner(): Boolean = synchronized(lock) { busy }
@@ -188,7 +188,7 @@ class RecordingService : Service() {
         return START_NOT_STICKY
       }
       try {
-        check(UsbAudioBridge.isConnected() && !RecorderReadinessService.isStopping()) { "רכיב ההקלטה אינו מחובר." }
+        check(UsbAudioBridge.isConnected() && !RecorderReadinessService.isStopping()) { AppText.choose("רכיב ההקלטה אינו מחובר.", "The recording component is disconnected.") }
         showArmedNotification()
         automaticArmed = true
         RecorderReadinessService.refreshAutomaticState()
@@ -221,11 +221,11 @@ class RecordingService : Service() {
 
   private fun showArmedNotification() {
     val notifications = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    notifications.createNotificationChannel(NotificationChannel(CHANNEL, "הקלטת שיחות", NotificationManager.IMPORTANCE_LOW))
+    notifications.createNotificationChannel(NotificationChannel(CHANNEL, AppText.choose("הקלטת שיחות", "Call recording"), NotificationManager.IMPORTANCE_LOW))
     val openIntent = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     val notification = Notification.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.ic_btn_speak_now)
-      .setContentTitle("הקלטה אוטומטית מוכנה")
-      .setContentText("WhatsApp ו־WhatsApp Business • ממתין לשיחה, אינו מקליט כרגע")
+      .setContentTitle(AppText.choose("הקלטה אוטומטית מוכנה", "Automatic recording is ready"))
+      .setContentText(AppText.choose("WhatsApp ו־WhatsApp Business • ממתין לשיחה, אינו מקליט כרגע", "WhatsApp and WhatsApp Business: waiting for a call; no audio is being recorded"))
       .setCategory(Notification.CATEGORY_SERVICE).setOngoing(true).setOnlyAlertOnce(true).setContentIntent(openIntent).build()
     publishForegroundNotification(notification)
   }
@@ -250,7 +250,7 @@ class RecordingService : Service() {
   private fun showNotification() {
     val notifications = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= 26) notifications.createNotificationChannel(
-      NotificationChannel(CHANNEL, "הקלטת מיקרופון", NotificationManager.IMPORTANCE_LOW)
+      NotificationChannel(CHANNEL, AppText.choose("הקלטת מיקרופון", "Microphone recording"), NotificationManager.IMPORTANCE_LOW)
     )
     val stopIntent = PendingIntent.getService(this, 1,
       Intent(this, RecordingService::class.java).setAction(ACTION_STOP),
@@ -259,10 +259,10 @@ class RecordingService : Service() {
       Intent(this, MainActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL) else Notification.Builder(this)
     val notification = builder.setSmallIcon(android.R.drawable.ic_btn_speak_now)
-      .setContentTitle(if (captureSource == "usb") "הקלטת שיחה פעילה" else "הקלטת מיקרופון פעילה")
-      .setContentText("הקלטה מקומית • לחץ לעצירה או חזור לאפליקציה")
+      .setContentTitle(if (captureSource == "usb") AppText.choose("הקלטת שיחה פעילה", "Call recording is active") else AppText.choose("הקלטת מיקרופון פעילה", "Microphone recording is active"))
+      .setContentText(AppText.choose("הקלטה מקומית • לחץ לעצירה או חזור לאפליקציה", "Local recording. Tap to stop or return to the app"))
       .setOngoing(true).setContentIntent(openIntent).setOnlyAlertOnce(true)
-      .addAction(Notification.Action.Builder(null, "עצירה ושמירה", stopIntent).build()).build()
+      .addAction(Notification.Action.Builder(null, AppText.choose("עצירה ושמירה", "Stop and save"), stopIntent).build()).build()
     publishForegroundNotification(notification)
   }
 
@@ -275,18 +275,18 @@ class RecordingService : Service() {
     var output: RandomAccessFile? = null
     try {
       val minimum = AudioRecord.getMinBufferSize(WavFile.SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT)
-      check(minimum > 0) { "המכשיר אינו תומך בהקלטה בתצורה הזאת" }
+      check(minimum > 0) { AppText.choose("המכשיר אינו תומך בהקלטה בתצורה הזאת", "This device does not support the recording configuration") }
       val recorder = AudioRecord.Builder().setAudioSource(MediaRecorder.AudioSource.MIC)
         .setAudioFormat(AudioFormat.Builder().setSampleRate(WavFile.SAMPLE_RATE)
           .setChannelMask(AudioFormat.CHANNEL_IN_MONO).setEncoding(AudioFormat.ENCODING_PCM_16BIT).build())
         .setBufferSizeInBytes(maxOf(minimum * 2, 8192)).build()
       audioRecord = recorder
-      check(recorder.state == AudioRecord.STATE_INITIALIZED) { "המיקרופון אינו זמין" }
+      check(recorder.state == AudioRecord.STATE_INITIALIZED) { AppText.choose("המיקרופון אינו זמין", "The microphone is unavailable") }
       metadata = RecordingStore.create(this)
       output = RandomAccessFile(RecordingStore.file(this, metadata.getString("id"), ".pending.wav"), "rw")
       output.write(WavFile.header(0L))
       recorder.startRecording()
-      check(recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING) { "Android לא אפשר התחלת הקלטה" }
+      check(recorder.recordingState == AudioRecord.RECORDSTATE_RECORDING) { AppText.choose("Android לא אפשר התחלת הקלטה", "Android did not allow recording to start") }
       synchronized(lock) {
         recording = true; startedAt = SystemClock.elapsedRealtime(); lastSoundAt = startedAt
         level = 0.0; outputLevel = 0.0; microphoneLevel = 0.0; silenced = false; elapsed = 0L
@@ -294,7 +294,7 @@ class RecordingService : Service() {
       mainHandler.post {
         synchronized(lock) {
           if (recording) startPromise?.resolve(status(this))
-          else startPromise?.reject("START_FAILED", error ?: "ההקלטה הופסקה לפני שהתחילה")
+          else startPromise?.reject("START_FAILED", error ?: AppText.choose("ההקלטה הופסקה לפני שהתחילה", "Recording stopped before it started"))
           startPromise = null
         }
       }
@@ -304,11 +304,11 @@ class RecordingService : Service() {
         val count = recorder.read(samples, 0, samples.size, AudioRecord.READ_BLOCKING)
         if (count < 0) {
           if (stopRequested) break
-          throw IllegalStateException("קריאת המיקרופון נכשלה: $count")
+          throw IllegalStateException(AppText.choose("קריאת המיקרופון נכשלה: $count", "Microphone read failed: $count"))
         }
         if (count == 0) {
           if (stopRequested) break
-          throw IllegalStateException("לא התקבלו דגימות מהמיקרופון")
+          throw IllegalStateException(AppText.choose("לא התקבלו דגימות מהמיקרופון", "No microphone samples were received"))
         }
         var sum = 0.0
         for (i in 0 until count) {
@@ -319,7 +319,7 @@ class RecordingService : Service() {
           sum += normalized * normalized
         }
         output.write(bytes, 0, count * 2)
-        check(output.length() < 0xffffffe0L) { "ההקלטה הגיעה לגודל הקובץ המרבי" }
+        check(output.length() < 0xffffffe0L) { AppText.choose("ההקלטה הגיעה לגודל הקובץ המרבי", "The recording reached the maximum file size") }
         val rms = sqrt(sum / count).coerceIn(0.0, 1.0)
         val policySilenced = Build.VERSION.SDK_INT >= 29 && (recorder.activeRecordingConfiguration?.isClientSilenced == true)
         wasSilenced = wasSilenced || policySilenced
@@ -383,8 +383,8 @@ class RecordingService : Service() {
           stopDeadline = stopSentAt + 8000L
         }
         val now = SystemClock.elapsedRealtime()
-        check(now < stopDeadline) { "רכיב ההקלטה לא נעצר בזמן" }
-        if (!ready && !stopSent) check(now < startDeadline) { "רכיב ההקלטה לא אישר התחלת הקלטה" }
+        check(now < stopDeadline) { AppText.choose("רכיב ההקלטה לא נעצר בזמן", "The recording component did not stop in time") }
+        if (!ready && !stopSent) check(now < startDeadline) { AppText.choose("רכיב ההקלטה לא אישר התחלת הקלטה", "The recording component did not acknowledge recording start") }
         val remaining = if (stopSent) stopDeadline - now else if (!ready) startDeadline - now else 200L
         when (val frame = connection.next(minOf(200L, remaining).coerceAtLeast(1L))) {
           UsbAudioBridge.Frame.Started -> if (!ready) {
@@ -398,7 +398,7 @@ class RecordingService : Service() {
                 // already drained startup cannot publish success afterwards.
                 if (stopRequested || startupCancelled.get()) {
                   startupCancelled.set(true)
-                  startPromise?.reject("START_CANCELLED", "תחילת ההקלטה בוטלה.")
+                  startPromise?.reject("START_CANCELLED", AppText.choose("תחילת ההקלטה בוטלה.", "Recording start was canceled."))
                 } else {
                   recording = true; startedAt = acknowledgedAt; lastSoundAt = startedAt
                   level = 0.0; outputLevel = 0.0; microphoneLevel = 0.0; silenced = false; elapsed = 0L
@@ -410,10 +410,10 @@ class RecordingService : Service() {
             }
           }
           is UsbAudioBridge.Frame.Pcm -> {
-            check(ready || stopSent) { "רכיב ההקלטה שלח אודיו לפני אישור ההתחלה" }
+            check(ready || stopSent) { AppText.choose("רכיב ההקלטה שלח אודיו לפני אישור ההתחלה", "The recording component sent audio before acknowledging start") }
             lastFrameAt = SystemClock.elapsedRealtime()
             output.write(frame.bytes)
-            check(output.length() < 0xffffffe0L) { "ההקלטה הגיעה לגודל הקובץ המרבי" }
+            check(output.length() < 0xffffffe0L) { AppText.choose("ההקלטה הגיעה לגודל הקובץ המרבי", "The recording reached the maximum file size") }
             val count = frame.bytes.size / 4
             var sumLeft = 0.0
             var sumRight = 0.0
@@ -442,12 +442,12 @@ class RecordingService : Service() {
             }
           }
           UsbAudioBridge.Frame.Stopped -> {
-            check(stopSent) { "רכיב ההקלטה עצר את ההקלטה באופן בלתי צפוי" }
+            check(stopSent) { AppText.choose("רכיב ההקלטה עצר את ההקלטה באופן בלתי צפוי", "The recording component stopped recording unexpectedly") }
             if (!startAnnounced.get()) startupCancelled.set(true)
             done = true
           }
           is UsbAudioBridge.Frame.Failure -> throw IllegalStateException(frame.message)
-          else -> if (ready && !stopSent) check(SystemClock.elapsedRealtime() - lastFrameAt < 5000L) { "לא התקבלו נתוני אודיו מרכיב ההקלטה" }
+          else -> if (ready && !stopSent) check(SystemClock.elapsedRealtime() - lastFrameAt < 5000L) { AppText.choose("לא התקבלו נתוני אודיו מרכיב ההקלטה", "No audio data was received from the recording component") }
         }
       }
     } catch (e: Exception) { failure = e }
@@ -482,7 +482,7 @@ class RecordingService : Service() {
         workerRunning = false
         val finishedAutomatic = automaticCapture
         automaticCapture = false
-        startPromise?.reject("START_FAILED", failure?.message ?: "ההקלטה לא התחילה")
+        startPromise?.reject("START_FAILED", failure?.message ?: AppText.choose("ההקלטה לא התחילה", "Recording did not start"))
         startPromise = null
         val completedStops = stopPromises.toList()
         stopPromises.clear()
@@ -496,7 +496,7 @@ class RecordingService : Service() {
         } else { leaveForeground(); stopSelf() }
         if (finishedAutomatic) AutoRecordingController.onRecorderCompleted(applicationContext, failure)
         completedStops.forEach { promise ->
-          if (failure != null) promise.reject("RECORDING_FAILED", (if (hadFile) "ההקלטה הופסקה; הנתונים נשמרו ככל שניתן. " else "") + failure.message)
+          if (failure != null) promise.reject("RECORDING_FAILED", (if (hadFile) AppText.choose("ההקלטה הופסקה; הנתונים נשמרו ככל שניתן. ", "Recording was interrupted; available data was saved. ") else "") + failure.message)
           else promise.resolve(status(this))
         }
       }
@@ -508,7 +508,7 @@ class RecordingService : Service() {
     foregroundPromoted = false
     RecorderReadinessService.refreshAutomaticState()
     if (activeService === this) activeService = null
-    pendingArm?.completeExceptionally(IllegalStateException("שירות ההקלטה הופסק.")); pendingArm = null
+    pendingArm?.completeExceptionally(IllegalStateException(AppText.choose("שירות ההקלטה הופסק.", "The recording service stopped."))); pendingArm = null
     if (wasArmed) AutoRecordingController.onOwnerStopping(applicationContext)
     stopRequested = true
     // Worker observes this flag and completes the bounded USB shutdown itself.

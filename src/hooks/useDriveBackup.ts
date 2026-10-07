@@ -1,3 +1,4 @@
+import { t } from '../i18n/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -40,7 +41,7 @@ export function useDriveBackup() {
         errorSource.current = 'poll';
         failedAction.current = null;
         setErrorAction(null);
-        setError(failure instanceof DriveBackupError ? failure : new DriveBackupError('DRIVE_ACTION_FAILED', 'לא ניתן לבדוק את הגיבוי כרגע. נסו שוב.'));
+        setError(failure instanceof DriveBackupError ? failure : new DriveBackupError('DRIVE_ACTION_FAILED', t('copy214')));
       }
     } finally {
       polling.current = false;
@@ -76,7 +77,7 @@ export function useDriveBackup() {
       failedAction.current = name;
       if (mounted.current) {
         setErrorAction(name);
-        setError(failure instanceof DriveBackupError ? failure : new DriveBackupError('DRIVE_ACTION_FAILED', 'הפעולה לא הושלמה. נסו שוב.'));
+        setError(failure instanceof DriveBackupError ? failure : new DriveBackupError('DRIVE_ACTION_FAILED', t('copy009')));
       }
     } finally {
       acting.current = false;

@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "notices": [
+    {
+      "file": "LICENSES/third-party/Conscrypt-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/google/conscrypt/fd209de6167201e4f3bca5b99c6db9f08d1843c6/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "file": "LICENSES/third-party/Conscrypt-NOTICE.txt",
+      "url": "https://raw.githubusercontent.com/google/conscrypt/fd209de6167201e4f3bca5b99c6db9f08d1843c6/NOTICE",
+      "sha256": "378a858f72823759ec0cff19b32e70b7d355dbf8f5810df484dc5e3d60ea8dbd"
+    },
+    {
+      "file": "LICENSES/third-party/Conscrypt-Netty-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/google/conscrypt/fd209de6167201e4f3bca5b99c6db9f08d1843c6/licenses/LICENSE.netty.txt",
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+    },
+    {
+      "file": "LICENSES/third-party/Conscrypt-Harmony-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/google/conscrypt/fd209de6167201e4f3bca5b99c6db9f08d1843c6/licenses/LICENSE.harmony.txt",
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+    },
+    {
+      "file": "LICENSES/third-party/BoringSSL-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/google/boringssl/49f0329110a1d93a5febc2bceceedc655d995420/LICENSE",
+      "sha256": "60bd7c54856bf9387221bde5ab55d516d7cea15870d0fed69406bcd1c8ec7c9d"
+    },
+    {
+      "file": "LICENSES/third-party/MaterialIcons-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/google/material-design-icons/68e015dbbb6b730b5fe4934e8507cd5a465c8a3d/LICENSE",
+      "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+    },
+    {
+      "file": "LICENSES/third-party/VectorIcons-LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/oblador/react-native-vector-icons/9152776633a488fec666bfd64205c9930c5425a4/LICENSE",
+      "sha256": "000a66d1bc9e206b5963ba9370cd03350a4b26e205b5880e8e0f882a51951178"
+    },
+    {
+      "file": "LICENSES/third-party/SPAKE2-LGPL-2.1.txt",
+      "url": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
+      "sha256": "20e50fe7aae3e56378ebf0417d9de904f55a0e61e4df315333e632a4d3555d95"
+    },
+    {
+      "file": "LICENSES/third-party/SPAKE2-NATIVE-NOTICES.txt",
+      "url": "https://github.com/MuntashirAkon/spake2-c/tree/0d15933e5ba3e662cb01245a7ac0dc9fca3eac31",
+      "sha256": "6cb9ffae8fc01f79695fc1f6c3deadcdebfccb4d24c6e237ba16aec631467370",
+      "derived": "retained component headers/font metadata plus distribution explanation"
+    },
+    {
+      "file": "LICENSES/third-party/SPAKE2-NOTICE.txt",
+      "url": "https://github.com/MuntashirAkon/spake2-java/tree/7615ddd680b990e14513ebb66eac4cb0dbf82464",
+      "sha256": "e108abc1387726faefb37f0bf95d2e13fe68e7db207e3199948cfc35ca5e33c5",
+      "derived": "retained component headers/font metadata plus distribution explanation"
+    },
+    {
+      "file": "LICENSES/third-party/MaterialIcons-NOTICE.txt",
+      "url": "https://github.com/oblador/react-native-vector-icons/blob/9152776633a488fec666bfd64205c9930c5425a4/Fonts/MaterialIcons.ttf",
+      "sha256": "f166dee2372cf412fc7593cb5defbe873a4c27179f807e95ca12c53bae19f427",
+      "derived": "retained component headers/font metadata plus distribution explanation"
+    }
+  ],
+  "hashNormalization": "UTF-8 bytes with LF line endings (Git source form)"
+}

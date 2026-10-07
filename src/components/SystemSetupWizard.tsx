@@ -1,3 +1,4 @@
+import { localizedError, localizeText, t, useLocalizedStyles } from '../i18n';
 import React, { useState } from 'react';
 import { Alert, Linking, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useRecording } from '../context/RecordingContext';
@@ -6,7 +7,7 @@ import { colors, ui } from '../theme';
 import { SystemAccessStatus } from '../services/NativeRecorder';
 import { phoneSetupStep } from '../setup/readiness';
 
-const messageOf = (failure: unknown) => failure instanceof Error ? failure.message : 'הפעולה לא הושלמה. נסו שוב.';
+const messageOf = (failure: unknown) => localizedError(failure);
 const readPort = (value: string): number | null => {
   if (!/^\d{1,5}$/.test(value.trim())) return null;
   const port = Number(value);
@@ -17,6 +18,7 @@ export default function SystemSetupWizard({ compact = false, focused = false, on
   compact?: boolean; focused?: boolean; onShowDetails?: () => void;
   accessOverride?: SystemAccessStatus | null; onStatusChanged?: () => Promise<void>;
 }) {
+  const styles = useLocalizedStyles(baseStyles);
   const { systemAccessStatus: storedAccess, deviceInfo, isBusy, isRecording, prepareSystemPairing,
     pairSystemRecorder, connectSystemRecorder, openSystemAccessSetup, refreshSystemAccessStatus } = useRecording();
   const access = accessOverride ?? storedAccess;
@@ -32,9 +34,9 @@ export default function SystemSetupWizard({ compact = false, focused = false, on
   const canPair = developerEnabled && access.wirelessDebuggingEnabled;
   const disabled = isBusy || isRecording || access.connecting || pairingSetup?.pairing === true;
   const compatibilityText = deviceInfo && (deviceInfo.sdk === 34 || deviceInfo.sdk === 35)
-    ? 'התמיכה ב־Android 14/15 ניסיונית. הקלטת שני צדדי השיחה וההקלטה האוטומטית עדיין ממתינות לבדיקה במכשיר אמיתי בגרסאות האלה. אם המערכת אינה מאפשרת את החיבור, אפשר להשתמש בהקלטה ידנית מהמיקרופון.'
+    ? t('copy090')
     : deviceInfo && deviceInfo.sdk > 36
-      ? 'גרסת Android הזו עדיין לא נבדקה במכשיר אמיתי. ההתאמה תלויה בהרשאות וביכולות של הטלפון; אפשר להשתמש בהקלטה ידנית מהמיקרופון אם החיבור אינו זמין.'
+      ? t('copy091')
       : null;
 
   const openSetup = async (destination: 'about' | 'developer' | 'wireless') => {
@@ -54,18 +56,18 @@ export default function SystemSetupWizard({ compact = false, focused = false, on
   };
 
   const showPairingInstructions = () => Alert.alert(
-    'נחבר את הטלפון לאפליקציה',
-    'במסך ההגדרות שייפתח:\n1. אם נפתח ״אפשרויות מפתח״, לחצו ״ניפוי באגים אלחוטי״ והפעילו אותו.\n2. לחצו ״צימוד מכשיר באמצעות קוד צימוד״.\n3. השאירו את חלון הקוד פתוח.\n4. משכו את וילון ההתראות, לחצו על התראת המקליט והזינו בה את שש הספרות.\n\nאחרי אישור הצימוד חזרו לאפליקציה.',
+    t('copy092'),
+    t('copy093'),
     [
-      { text: 'ביטול', style: 'cancel' },
-      { text: 'המשך להגדרות', onPress: () => { void beginPairing(); } },
+      { text: t('copy012'), style: 'cancel' },
+      { text: t('copy094'), onPress: () => { void beginPairing(); } },
     ],
   );
 
   const pairManually = async () => {
     const port = readPort(pairingPort);
     if (port === null || !/^\d{6}$/.test(pairingCode)) {
-      setLocalError('הזינו את המספר שבסוף כתובת הצימוד ואת קוד הצימוד בן שש הספרות.');
+      setLocalError(t('copy095'));
       return;
     }
     setLocalError(null);
@@ -80,7 +82,7 @@ export default function SystemSetupWizard({ compact = false, focused = false, on
   const connect = async (manual: boolean) => {
     const port = manual ? readPort(connectionPort) : 0;
     if (port === null) {
-      setLocalError('הזינו את המספר שבסוף הכתובת במסך הראשי של ״ניפוי באגים אלחוטי״.');
+      setLocalError(t('copy096'));
       return;
     }
     setLocalError(null);
@@ -94,152 +96,152 @@ export default function SystemSetupWizard({ compact = false, focused = false, on
     }
   };
 
-  const statusText = access.connecting ? 'מחבר את רכיב ההקלטה…'
-    : access.helperConnected ? 'רכיב ההקלטה פעיל — אפשר להקליט גם בלי Wi-Fi'
-    : pairingSetup?.pairing ? 'מאשר את קוד הצימוד עם הטלפון…'
-      : access.paired ? 'הצימוד נשמר. נותר לחבר את רכיב ההקלטה.'
-        : pairingSetup?.active && pairingSetup.localPortAvailable ? 'חלון הצימוד נמצא. הזינו את שש הספרות בהתראת המקליט.'
-          : pairingSetup?.active && pairingSetup.discovering ? 'ממתין לפתיחת חלון קוד הצימוד בהגדרות הטלפון…'
-            : pairingSetup?.active ? 'הצימוד מוכן. פתחו את חלון קוד הצימוד בטלפון.'
-        : access.wirelessDebuggingEnabled ? 'ההגדרה בטלפון מופעלת. נותר לאשר את הצימוד.'
-          : 'הקלטת שיחות דורשת הגדרה קצרה בטלפון.';
+  const statusText = access.connecting ? t('copy097')
+    : access.helperConnected ? t('copy098')
+    : pairingSetup?.pairing ? t('copy099')
+      : access.paired ? t('copy100')
+        : pairingSetup?.active && pairingSetup.localPortAvailable ? t('copy101')
+          : pairingSetup?.active && pairingSetup.discovering ? t('copy102')
+            : pairingSetup?.active ? t('copy103')
+        : access.wirelessDebuggingEnabled ? t('copy104')
+          : t('copy105');
   const pairingError = !access.paired || pairingSetup?.active ? pairingSetup?.error : null;
   const errorText = localError || pairingError || access.error;
 
   if (focused) {
     const step = phoneSetupStep(accessOverride === null ? null : access);
     const text = {
-      checking: ['בודקים את אפשרויות החיבור', 'נבדוק את מצב הטלפון לפני שנציג את הפעולה הבאה.'],
-      ready: ['חיבור ההקלטה פעיל', 'החיבור אומת. אפשר להמשיך גם בלי Wi-Fi ובלי להשאיר את הגדרת החיבור האלחוטי מופעלת.'],
-      unsupported: ['הקלטת שיחות אינה זמינה במכשיר הזה', 'חיבור השיחות דורש Android 14 ומעלה. התמיכה ב־Android 14/15 ניסיונית ועדיין ממתינה לבדיקה במכשיר אמיתי. אפשר להמשיך עם הקלטה ידנית מהמיקרופון.'],
-      developer: ['פותחים אפשרויות נוספות בטלפון', 'לחצו על הכפתור. ב־Samsung בחרו ״פרטי תוכנה״, לחצו שבע פעמים על ״מספר Build״ ואשרו את קוד הנעילה אם התבקשתם. חזרו לכאן כדי שנבדוק שההגדרה הופעלה.'],
-      wireless: ['מאפשרים את החיבור הראשוני', 'התחברו לרשת Wi-Fi. במסך שייפתח הפעילו ״ניפוי באגים אלחוטי״ ואשרו את הרשת. אם נפתח ״אפשרויות מפתח״, גללו אל אותה הגדרה. אחרי האישור חזרו לאפליקציה.'],
-      pair: ['מאשרים עם שש ספרות', 'נפתח את חלון הצימוד בטלפון. השאירו אותו פתוח, משכו את וילון ההתראות והזינו את הקוד בן שש הספרות בהתראת המקליט. אחרי האישור חזרו לכאן.'],
-      connect: ['מפעילים את חיבור ההקלטה', 'אישור החיבור כבר נשמר. כשהטלפון מחובר ל־Wi-Fi והחיבור האלחוטי מופעל, נוכל להפעיל את רכיב ההקלטה. לאחר ההפעלה אפשר להמשיך גם בלי Wi-Fi.'],
+      checking: [t('copy106'), t('copy107')],
+      ready: [t('copy108'), t('copy109')],
+      unsupported: [t('copy110'), t('copy111')],
+      developer: [t('copy112'), t('copy113')],
+      wireless: [t('copy114'), t('copy115')],
+      pair: [t('copy116'), t('copy117')],
+      connect: [t('copy118'), t('copy119')],
     }[step];
     return <View style={styles.card}>
       <Text style={styles.title}>{text[0]}</Text>
       <Text style={[styles.body, { marginTop: 12 }]}>{text[1]}</Text>
       {compatibilityText && <Text style={styles.small}>{compatibilityText}</Text>}
-      {step === 'developer' && <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('about'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>פתיחת אודות הטלפון</Text></TouchableOpacity>}
-      {step === 'wireless' && <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('wireless'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>פתיחת הגדרת החיבור</Text></TouchableOpacity>}
-      {step === 'checking' && <TouchableOpacity style={styles.secondaryButton} onPress={() => { void onStatusChanged?.(); }} accessibilityRole="button"><Text style={styles.secondaryText}>בדיקה נוספת</Text></TouchableOpacity>}
+      {step === 'developer' && <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('about'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy120')}</Text></TouchableOpacity>}
+      {step === 'wireless' && <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('wireless'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy121')}</Text></TouchableOpacity>}
+      {step === 'checking' && <TouchableOpacity style={styles.secondaryButton} onPress={() => { void onStatusChanged?.(); }} accessibilityRole="button"><Text style={styles.secondaryText}>{t('copy122')}</Text></TouchableOpacity>}
       {step === 'pair' && <>
-        {pairingSetup?.active && <Text style={styles.small} accessibilityLiveRegion="polite">{pairingSetup.pairing ? 'מאשר את הקוד…' : pairingSetup.localPortAvailable ? 'חלון הצימוד נמצא. אפשר להזין את הקוד בהתראה.' : 'ממתין לפתיחת חלון קוד הצימוד בטלפון.'}</Text>}
-        <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={showPairingInstructions} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>פתיחת חלון קוד הצימוד</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.textButton} onPress={() => setShowManualPairing(value => !value)} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{showManualPairing ? 'סגירת ההזנה הידנית' : 'ההתראה לא הופיעה? הזנה ידנית'}</Text></TouchableOpacity>
+        {pairingSetup?.active && <Text style={styles.small} accessibilityLiveRegion="polite">{pairingSetup.pairing ? t('copy123') : pairingSetup.localPortAvailable ? t('copy124') : t('copy125')}</Text>}
+        <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={showPairingInstructions} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy126')}</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.textButton} onPress={() => setShowManualPairing(value => !value)} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{showManualPairing ? t('copy127') : t('copy128')}</Text></TouchableOpacity>
       </>}
       {step === 'connect' && <>
-        <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void connect(false); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{access.connecting ? 'מפעיל את החיבור…' : 'הפעלת חיבור ההקלטה'}</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.textButton} onPress={() => setShowManualConnection(value => !value)} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{showManualConnection ? 'סגירת מספר החיבור' : 'החיבור לא נמצא? הזנת מספר ידנית'}</Text></TouchableOpacity>
+        <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void connect(false); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{access.connecting ? t('copy129') : t('copy130')}</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.textButton} onPress={() => setShowManualConnection(value => !value)} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{showManualConnection ? t('copy131') : t('copy132')}</Text></TouchableOpacity>
         {showManualConnection && <View style={styles.fallback}>
-          <Text style={styles.body}>במסך הראשי של ״ניפוי באגים אלחוטי״ מופיעה כתובת. הזינו רק את המספר אחרי ״:״. זהו מספר החיבור, לא המספר מחלון קוד הצימוד.</Text>
-          <TouchableOpacity style={styles.secondaryButton} onPress={() => { void openSetup('wireless'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>הצגת מספר החיבור בטלפון</Text></TouchableOpacity>
-          <TextInput style={styles.input} value={connectionPort} onChangeText={value => setConnectionPort(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={5} editable={!disabled} placeholder="מספר החיבור" placeholderTextColor={colors.muted} accessibilityLabel="המספר בסוף כתובת החיבור" />
-          <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void connect(true); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>חיבור עם המספר שהזנתי</Text></TouchableOpacity>
+          <Text style={styles.body}>{t('copy133')}</Text>
+          <TouchableOpacity style={styles.secondaryButton} onPress={() => { void openSetup('wireless'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>{t('copy134')}</Text></TouchableOpacity>
+          <TextInput style={styles.input} value={connectionPort} onChangeText={value => setConnectionPort(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={5} editable={!disabled} placeholder={t('copy135')} placeholderTextColor={colors.muted} accessibilityLabel={t('copy136')} />
+          <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void connect(true); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy137')}</Text></TouchableOpacity>
         </View>}
-        {errorText && <TouchableOpacity style={styles.textButton} onPress={showPairingInstructions} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>הטלפון ביטל את האישור? צימוד מחדש</Text></TouchableOpacity>}
-        {(pairingSetup?.active || showManualPairing) && <TouchableOpacity style={styles.textButton} onPress={() => setShowManualPairing(value => !value)} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{showManualPairing ? 'סגירת ההזנה הידנית' : 'ההתראה לא הופיעה? הזנה ידנית'}</Text></TouchableOpacity>}
+        {errorText && <TouchableOpacity style={styles.textButton} onPress={showPairingInstructions} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{t('copy138')}</Text></TouchableOpacity>}
+        {(pairingSetup?.active || showManualPairing) && <TouchableOpacity style={styles.textButton} onPress={() => setShowManualPairing(value => !value)} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{showManualPairing ? t('copy127') : t('copy128')}</Text></TouchableOpacity>}
       </>}
       {(step === 'pair' || step === 'connect') && showManualPairing && <View style={styles.fallback}>
-        <Text style={styles.body}>השאירו את חלון הקוד פתוח בהגדרות לצד המקליט במסך מפוצל. במסך האפליקציות האחרונות לחצו על סמל האפליקציה ובחרו ״מסך מפוצל״.</Text>
-        <Text style={styles.label}>המספר אחרי ״:״ בכתובת הצימוד</Text>
-        <TextInput style={styles.input} value={pairingPort} onChangeText={value => setPairingPort(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={5} editable={!disabled} placeholder="מספר הצימוד" placeholderTextColor={colors.muted} accessibilityLabel="המספר בסוף כתובת הצימוד" />
-        <Text style={styles.label}>קוד הצימוד בן שש הספרות</Text>
-        <TextInput style={styles.input} value={pairingCode} onChangeText={value => setPairingCode(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={6} editable={!disabled} secureTextEntry placeholder="שש הספרות" placeholderTextColor={colors.muted} accessibilityLabel="קוד הצימוד" />
-        <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void pairManually(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>אישור הקוד</Text></TouchableOpacity>
+        <Text style={styles.body}>{t('copy139')}</Text>
+        <Text style={styles.label}>{t('copy140')}</Text>
+        <TextInput style={styles.input} value={pairingPort} onChangeText={value => setPairingPort(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={5} editable={!disabled} placeholder={t('copy141')} placeholderTextColor={colors.muted} accessibilityLabel={t('copy142')} />
+        <Text style={styles.label}>{t('copy143')}</Text>
+        <TextInput style={styles.input} value={pairingCode} onChangeText={value => setPairingCode(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={6} editable={!disabled} secureTextEntry placeholder={t('copy144')} placeholderTextColor={colors.muted} accessibilityLabel={t('copy145')} />
+        <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void pairManually(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy146')}</Text></TouchableOpacity>
       </View>}
-      {errorText && <Text style={styles.error} accessibilityLiveRegion="polite">{localError?.startsWith('הזינו') ? localError : 'הפעולה לא הושלמה. ודאו שחיבור ה־Wi-Fi פעיל ונסו שוב. אפשר להשתמש בהזנה הידנית אם החיבור לא נמצא.'}</Text>}
+      {errorText && <Text style={styles.error} accessibilityLiveRegion="polite">{localError && localizeText(localError).startsWith(t('copy147')) ? localizeText(localError) : t('copy148')}</Text>}
     </View>;
   }
 
   if (!access.available) {
     return (
       <View style={styles.card}>
-        <Text style={styles.title}>הפעלת הקלטת שיחות</Text>
-        <Text style={styles.body}>{Platform.OS !== 'android' ? 'הפעלת הקלטת שיחות בדרך הזו זמינה בגרסת Android בלבד.' : deviceInfo ? 'החיבור דורש Android 14 ומעלה. ב־Android 14/15 התמיכה ניסיונית ועדיין ממתינה לבדיקה במכשיר אמיתי. אפשר להמשיך בהקלטה ידנית מהמיקרופון.' : 'בודק את אפשרויות ההקלטה בטלפון…'}</Text>
-        <Text style={styles.small}>הנתיב הזה אינו זמין ב־iPhone.</Text>
-        {errorText && <Text style={styles.error}>{errorText}</Text>}
+        <Text style={styles.title}>{t('copy149')}</Text>
+        <Text style={styles.body}>{Platform.OS !== 'android' ? t('copy150') : deviceInfo ? t('copy151') : t('copy152')}</Text>
+        <Text style={styles.small}>{t('copy153')}</Text>
+        {errorText && <Text style={styles.error}>{localizedError(errorText)}</Text>}
       </View>
     );
   }
 
   if (compact && onShowDetails) {
     return <View style={styles.card}>
-      <View style={styles.heading}><WaveMark size={38} /><Text style={styles.title}>חיבור קצר, ואז אפשר להקליט</Text></View>
-      <Text style={styles.body}>{access.connecting ? 'מחבר את רכיב ההקלטה…' : access.paired ? 'הצימוד כבר נשמר. מפעילים את הרכיב בחיבור ל-Wi-Fi וממשיכים גם בלעדיו.' : 'נעבור יחד על ההגדרות שהטלפון צריך. הכול מתבצע כאן, בלי אפליקציה נוספת.'}</Text>
+      <View style={styles.heading}><WaveMark size={38} /><Text style={styles.title}>{t('copy154')}</Text></View>
+      <Text style={styles.body}>{access.connecting ? t('copy097') : access.paired ? t('copy155') : t('copy156')}</Text>
       {compatibilityText && <Text style={styles.small}>{compatibilityText}</Text>}
-      <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={access.paired && canPair ? () => { void connect(false); } : onShowDetails} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{access.connecting ? 'מחבר…' : access.paired && canPair ? 'הפעלת רכיב ההקלטה' : 'להגדרה המונחית'}</Text></TouchableOpacity>
-      {errorText && <Text style={styles.error} accessibilityLiveRegion="polite">{errorText}</Text>}
+      <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={access.paired && canPair ? () => { void connect(false); } : onShowDetails} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{access.connecting ? t('copy157') : access.paired && canPair ? t('copy158') : t('copy159')}</Text></TouchableOpacity>
+      {errorText && <Text style={styles.error} accessibilityLiveRegion="polite">{localizedError(errorText)}</Text>}
     </View>;
   }
 
   return (
     <View style={styles.card}>
-      <View style={styles.heading}><WaveMark size={38} /><Text style={styles.title}>הפעלת הקלטת שיחות</Text></View>
+      <View style={styles.heading}><WaveMark size={38} /><Text style={styles.title}>{t('copy149')}</Text></View>
       {!access.helperConnected && <View style={styles.progress}>{[developerEnabled, access.wirelessDebuggingEnabled, access.paired].map((complete, index) => <View key={index} style={[styles.progressStep, complete && styles.progressComplete]} />)}</View>}
       <Text style={[styles.status, access.helperConnected && styles.ready]} accessibilityLiveRegion="polite">{statusText}</Text>
       {compatibilityText && <Text style={styles.small}>{compatibilityText}</Text>}
       {!compact && <Text style={styles.body}>{access.helperConnected
-        ? 'אם רכיב ההקלטה מפסיק לפעול, התחברו ל-Wi-Fi והפעילו אותו שוב.'
-        : 'להפעלת רכיב ההקלטה צריך להתחבר ל-Wi-Fi ולהפעיל ניפוי באגים אלחוטי. לאחר שהרכיב פעיל אפשר להקליט גם בלי Wi-Fi.'}</Text>}
-      {!access.helperConnected && <Text style={styles.body}>הכול מתבצע בטלפון. אין צורך במחשב או בהתקנת אפליקציה נוספת.</Text>}
+        ? t('copy160')
+        : t('copy161')}</Text>}
+      {!access.helperConnected && <Text style={styles.body}>{t('copy162')}</Text>}
       {!access.helperConnected && <>
-        {developerEnabled && <Text style={styles.completed}>✓ אפשרויות מפתח מופעלות</Text>}
-        {access.wirelessDebuggingEnabled && <Text style={styles.completed}>✓ החיבור האלחוטי מופעל</Text>}
+        {developerEnabled && <Text style={styles.completed}>{t('copy163')}</Text>}
+        {access.wirelessDebuggingEnabled && <Text style={styles.completed}>{t('copy164')}</Text>}
         {(!developerEnabled || (!compact && showSetupDetails)) && <>
-        <Text style={styles.step}>1. פותחים תפריט נוסף בטלפון</Text>
-        <Text style={styles.body}>אם ״אפשרויות מפתח״ כבר מופיע בהגדרות, עברו לשלב 2. אחרת: הכפתור הבא פותח ״אודות הטלפון״. ב־Samsung בחרו ״פרטי תוכנה״ ולחצו שבע פעמים על ״מספר Build״. אשרו את קוד הנעילה אם הטלפון מבקש, ואז חזרו לאפליקציה.</Text>
-        <TouchableOpacity style={[styles.secondaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('about'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>פתיחת אודות הטלפון</Text></TouchableOpacity>
+        <Text style={styles.step}>{t('copy165')}</Text>
+        <Text style={styles.body}>{t('copy166')}</Text>
+        <TouchableOpacity style={[styles.secondaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('about'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>{t('copy120')}</Text></TouchableOpacity>
         </>}
         {(developerEnabled && !access.wirelessDebuggingEnabled || (!compact && showSetupDetails)) && <>
-        <Text style={styles.step}>2. מאפשרים את החיבור בטלפון</Text>
-        <Text style={styles.body}>התחברו לרשת Wi-Fi. הכפתור הבא פותח את הגדרות החיבור או את ״אפשרויות מפתח״. אם נפתח תפריט ״אפשרויות מפתח״, גללו ולחצו ״ניפוי באגים אלחוטי״. הפעילו את המתג, אשרו את החיבור לרשת שלכם ואז חזרו לכאן לשלב 3.</Text>
-        <TouchableOpacity style={[styles.secondaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('wireless'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>פתיחת ההגדרה בטלפון</Text></TouchableOpacity>
+        <Text style={styles.step}>{t('copy167')}</Text>
+        <Text style={styles.body}>{t('copy168')}</Text>
+        <TouchableOpacity style={[styles.secondaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('wireless'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>{t('copy169')}</Text></TouchableOpacity>
         </>}
         {canPair && !access.paired && <>
-        <Text style={styles.step}>3. מאשרים בעזרת קוד קצר</Text>
-        <Text style={styles.body}>לחצו על הכפתור הבא. תקבלו הוראות והתראה שבה מזינים את הקוד שהטלפון מציג. השאירו את חלון קוד הצימוד פתוח בזמן הזנת הקוד בהתראה.</Text>
+        <Text style={styles.step}>{t('copy170')}</Text>
+        <Text style={styles.body}>{t('copy171')}</Text>
         </>}
-        {!compact && developerEnabled && <TouchableOpacity style={styles.textButton} onPress={() => setShowSetupDetails(!showSetupDetails)} accessibilityRole="button"><Text style={styles.link}>{showSetupDetails ? 'הסתרת השלבים שכבר הושלמו' : 'הצגת פרטי השלבים שהושלמו'}</Text></TouchableOpacity>}
+        {!compact && developerEnabled && <TouchableOpacity style={styles.textButton} onPress={() => setShowSetupDetails(!showSetupDetails)} accessibilityRole="button"><Text style={styles.link}>{showSetupDetails ? t('copy172') : t('copy173')}</Text></TouchableOpacity>}
       </>}
-      {!access.paired && canPair && <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={showPairingInstructions} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{pairingSetup?.pairing ? 'מאשר את הצימוד…' : 'הצג הוראות והפעל צימוד'}</Text></TouchableOpacity>}
+      {!access.paired && canPair && <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={showPairingInstructions} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{pairingSetup?.pairing ? t('copy174') : t('copy175')}</Text></TouchableOpacity>}
       {access.paired && !access.helperConnected && <>
         {canPair && <>
-        <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void connect(false); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{access.connecting ? 'מחבר…' : 'חיבור להקלטה'}</Text></TouchableOpacity>
-        <Text style={styles.small}>אם הטלפון ביטל את האישור או שהחיבור לא מצליח, אפשר לאשר אותו שוב.</Text>
-        <TouchableOpacity style={[styles.secondaryButton, disabled && styles.disabled]} onPress={showPairingInstructions} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>צימוד מחדש</Text></TouchableOpacity>
+        <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void connect(false); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{access.connecting ? t('copy157') : t('copy176')}</Text></TouchableOpacity>
+        <Text style={styles.small}>{t('copy177')}</Text>
+        <TouchableOpacity style={[styles.secondaryButton, disabled && styles.disabled]} onPress={showPairingInstructions} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>{t('copy178')}</Text></TouchableOpacity>
         </>}
       </>}
-      {compact && onShowDetails && <TouchableOpacity style={styles.textButton} onPress={onShowDetails} accessibilityRole="button"><Text style={styles.link}>הוראות צעד אחר צעד</Text></TouchableOpacity>}
+      {compact && onShowDetails && <TouchableOpacity style={styles.textButton} onPress={onShowDetails} accessibilityRole="button"><Text style={styles.link}>{t('copy179')}</Text></TouchableOpacity>}
       {!compact && !access.helperConnected && <>
-        <TouchableOpacity style={styles.textButton} onPress={() => setShowManualPairing(!showManualPairing)} accessibilityRole="button"><Text style={styles.link}>{showManualPairing ? 'סגירת ההזנה הידנית' : 'ההתראה לא הופיעה? אפשר להזין ידנית'}</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.textButton} onPress={() => setShowManualPairing(!showManualPairing)} accessibilityRole="button"><Text style={styles.link}>{showManualPairing ? t('copy127') : t('copy180')}</Text></TouchableOpacity>
         {showManualPairing && <View style={styles.fallback}>
-          <Text style={styles.step}>הזנת קוד כשהחלון נשאר פתוח</Text>
-          <Text style={styles.body}>פתחו את המקליט ואת הגדרות הטלפון במסך מפוצל: במסך האפליקציות האחרונות לחצו על סמל האפליקציה ובחרו ״פתח בתצוגת מסך מפוצל״. בחלק השני פתחו ״צימוד מכשיר באמצעות קוד צימוד״. סגירת חלון הקוד מבטלת אותו.</Text>
-          <TouchableOpacity style={[styles.secondaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('wireless'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>פתיחת הגדרות החיבור בטלפון</Text></TouchableOpacity>
-          <Text style={styles.label}>המספר שבסוף כתובת הצימוד</Text>
-          <Text style={styles.small}>העתיקו רק את המספר שאחרי הסימן ״:״ בחלון קוד הצימוד.</Text>
-          <TextInput style={styles.input} value={pairingPort} onChangeText={value => setPairingPort(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={5} editable={!disabled} placeholder="מספר הצימוד" placeholderTextColor="#777" accessibilityLabel="המספר בסוף כתובת הצימוד" />
-          <Text style={styles.label}>קוד הצימוד בן שש הספרות</Text>
-          <TextInput style={styles.input} value={pairingCode} onChangeText={value => setPairingCode(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={6} editable={!disabled} secureTextEntry placeholder="קוד בן שש ספרות" placeholderTextColor="#777" accessibilityLabel="קוד הצימוד" />
-          <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void pairManually(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>אישור הצימוד</Text></TouchableOpacity>
-          <TouchableOpacity style={styles.textButton} onPress={() => { void Linking.openSettings().catch(failure => setLocalError(messageOf(failure))); }} accessibilityRole="button"><Text style={styles.link}>פתיחת הרשאת ההתראות של האפליקציה</Text></TouchableOpacity>
+          <Text style={styles.step}>{t('copy181')}</Text>
+          <Text style={styles.body}>{t('copy182')}</Text>
+          <TouchableOpacity style={[styles.secondaryButton, disabled && styles.disabled]} onPress={() => { void openSetup('wireless'); }} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>{t('copy183')}</Text></TouchableOpacity>
+          <Text style={styles.label}>{t('copy184')}</Text>
+          <Text style={styles.small}>{t('copy185')}</Text>
+          <TextInput style={styles.input} value={pairingPort} onChangeText={value => setPairingPort(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={5} editable={!disabled} placeholder={t('copy141')} placeholderTextColor="#777" accessibilityLabel={t('copy142')} />
+          <Text style={styles.label}>{t('copy143')}</Text>
+          <TextInput style={styles.input} value={pairingCode} onChangeText={value => setPairingCode(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={6} editable={!disabled} secureTextEntry placeholder={t('copy186')} placeholderTextColor="#777" accessibilityLabel={t('copy145')} />
+          <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void pairManually(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy187')}</Text></TouchableOpacity>
+          <TouchableOpacity style={styles.textButton} onPress={() => { void Linking.openSettings().catch(failure => setLocalError(messageOf(failure))); }} accessibilityRole="button"><Text style={styles.link}>{t('copy188')}</Text></TouchableOpacity>
         </View>}
-        {access.paired && <TouchableOpacity style={styles.textButton} onPress={() => setShowManualConnection(!showManualConnection)} accessibilityRole="button"><Text style={styles.link}>{showManualConnection ? 'סגירת פרטי החיבור' : 'החיבור לא נמצא? הזינו את מספר החיבור'}</Text></TouchableOpacity>}
+        {access.paired && <TouchableOpacity style={styles.textButton} onPress={() => setShowManualConnection(!showManualConnection)} accessibilityRole="button"><Text style={styles.link}>{showManualConnection ? t('copy189') : t('copy190')}</Text></TouchableOpacity>}
         {access.paired && showManualConnection && <View style={styles.fallback}>
-          <Text style={styles.body}>במסך הראשי של ״ניפוי באגים אלחוטי״ מופיעה כתובת ומספר. הזינו כאן את המספר שאחרי ״:״. זהו מספר החיבור, והוא שונה מהמספר בחלון קוד הצימוד.</Text>
-          <TextInput style={styles.input} value={connectionPort} onChangeText={value => setConnectionPort(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={5} editable={!disabled} placeholder="מספר החיבור" placeholderTextColor="#777" accessibilityLabel="המספר בסוף כתובת החיבור" />
-          <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void connect(true); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>חיבור עם המספר שהזנתי</Text></TouchableOpacity>
+          <Text style={styles.body}>{t('copy191')}</Text>
+          <TextInput style={styles.input} value={connectionPort} onChangeText={value => setConnectionPort(value.replace(/\D/g, ''))} keyboardType="number-pad" maxLength={5} editable={!disabled} placeholder={t('copy135')} placeholderTextColor="#777" accessibilityLabel={t('copy136')} />
+          <TouchableOpacity style={[styles.primaryButton, disabled && styles.disabled]} onPress={() => { void connect(true); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy137')}</Text></TouchableOpacity>
         </View>}
       </>}
-      {errorText && <Text style={styles.error} accessibilityLiveRegion="polite">{errorText}</Text>}
-      {!compact && <Text style={styles.small}>אחרי אתחול הטלפון או הפעלה מחדש של האפליקציה ייתכן שתצטרכו להפעיל שוב את הרכיב בחיבור ל-Wi-Fi. סטטוס ״פעיל״ מופיע רק כשהאפליקציה אימתה את החיבור לרכיב.</Text>}
+      {errorText && <Text style={styles.error} accessibilityLiveRegion="polite">{localizedError(errorText)}</Text>}
+      {!compact && <Text style={styles.small}>{t('copy192')}</Text>}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { ...ui.card, padding: 20, marginBottom: 14 },
   heading: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12, marginBottom: 18 },
   title: { ...ui.label, fontSize: 17, flex: 1 },

@@ -44,9 +44,9 @@ class RecorderReadinessService : Service() {
 
     /** Called on main after foreground user activation and a fresh authenticated heartbeat. */
     @JvmStatic fun start(context: Context): CompletableFuture<Unit> {
-      check(Looper.myLooper() == Looper.getMainLooper()) { "יש להפעיל את המקליט מתוך מסך האפליקציה." }
-      check(!stopping) { "המקליט עדיין נכבה. המתן לסיום הכיבוי." }
-      check(UsbAudioBridge.isConnected()) { "רכיב ההקלטה אינו מחובר." }
+      check(Looper.myLooper() == Looper.getMainLooper()) { AppText.choose("יש להפעיל את המקליט מתוך מסך האפליקציה.", "Activate the recorder from the app.") }
+      check(!stopping) { AppText.choose("המקליט עדיין נכבה. המתן לסיום הכיבוי.", "The recorder is still shutting down. Wait for it to finish.") }
+      check(UsbAudioBridge.isConnected()) { AppText.choose("רכיב ההקלטה אינו מחובר.", "The recording component is disconnected.") }
       val result = CompletableFuture<Unit>()
       val ownerContext = context.applicationContext
       synchronized(lock) { pendingStarts.add(result) }
@@ -61,7 +61,7 @@ class RecorderReadinessService : Service() {
       mainHandler.postDelayed({
         if (!result.isDone) {
           synchronized(lock) { pendingStarts.remove(result) }
-          result.completeExceptionally(IllegalStateException("מצב המוכנות לא הופעל בזמן. חזור למסך האפליקציה ונסה שוב."))
+          result.completeExceptionally(IllegalStateException(AppText.choose("מצב המוכנות לא הופעל בזמן. חזור למסך האפליקציה ונסה שוב.", "Readiness did not start in time. Return to the app and try again.")))
           // The native activation owner also disconnects the helper on failure.
           activeService?.beginShutdown() ?: ownerContext.stopService(
             Intent(ownerContext, RecorderReadinessService::class.java))
@@ -87,11 +87,11 @@ class RecorderReadinessService : Service() {
     when (intent?.action) {
       ACTION_START -> {
         try {
-          check(!shutdownStarted.get() && !stopping) { "המקליט עדיין נכבה." }
-          check(UsbAudioBridge.isConnected()) { "רכיב ההקלטה אינו מחובר." }
+          check(!shutdownStarted.get() && !stopping) { AppText.choose("המקליט עדיין נכבה.", "The recorder is still shutting down.") }
+          check(UsbAudioBridge.isConnected()) { AppText.choose("רכיב ההקלטה אינו מחובר.", "The recording component is disconnected.") }
           showNotification(false)
           foreground = true
-          check(UsbAudioBridge.isConnected()) { "החיבור לרכיב ההקלטה אבד בזמן ההפעלה." }
+          check(UsbAudioBridge.isConnected()) { AppText.choose("החיבור לרכיב ההקלטה אבד בזמן ההפעלה.", "The recording component disconnected during activation.") }
           settleStarts()
           if (monitor == null) startMonitor()
         } catch (failure: Exception) {
@@ -102,7 +102,7 @@ class RecorderReadinessService : Service() {
       }
       ACTION_STOP -> beginShutdown()
       else -> {
-        settleStarts(IllegalStateException("מצב המוכנות דורש הפעלה מתוך האפליקציה."))
+        settleStarts(IllegalStateException(AppText.choose("מצב המוכנות דורש הפעלה מתוך האפליקציה.", "Activate readiness from the app.")))
         finishService()
       }
     }
@@ -136,7 +136,7 @@ class RecorderReadinessService : Service() {
     stopping = true
     AutoRecordingController.onOwnerStopping(applicationContext)
     RecordingService.disarmAutomatic(applicationContext)
-    settleStarts(IllegalStateException("המקליט נכבה."))
+    settleStarts(IllegalStateException(AppText.choose("המקליט נכבה.", "The recorder has shut down.")))
     if (foreground && !destroyed) {
       try { showNotification(true) } catch (failure: Exception) {
         Log.w("RecorderReadiness", "Could not update shutdown notification", failure)
@@ -177,11 +177,11 @@ class RecorderReadinessService : Service() {
   }
 
   private fun showNotification(turningOff: Boolean) {
-    val readyText = if (RecordingService.isAutomaticArmed()) "אפשר להקליט גם בלי Wi-Fi • הקלטה אוטומטית של שיחות WhatsApp פעילה"
-      else "אפשר להקליט גם בלי Wi-Fi • ההקלטה מתחילה רק בלחיצה"
+    val readyText = if (RecordingService.isAutomaticArmed()) AppText.choose("אפשר להקליט גם בלי Wi-Fi • הקלטה אוטומטית של שיחות WhatsApp פעילה", "Recording works without Wi-Fi. Automatic WhatsApp recording is armed")
+      else AppText.choose("אפשר להקליט גם בלי Wi-Fi • ההקלטה מתחילה רק בלחיצה", "Recording works without Wi-Fi. Recording starts when you press Record")
     val notifications = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= 26) notifications.createNotificationChannel(
-      NotificationChannel(CHANNEL, "מוכנות להקלטה", NotificationManager.IMPORTANCE_LOW))
+      NotificationChannel(CHANNEL, AppText.choose("מוכנות להקלטה", "Recording readiness"), NotificationManager.IMPORTANCE_LOW))
     val stopIntent = PendingIntent.getService(this, 2,
       Intent(this, RecorderReadinessService::class.java).setAction(ACTION_STOP),
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
@@ -190,12 +190,12 @@ class RecorderReadinessService : Service() {
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(this, CHANNEL) else Notification.Builder(this)
     val notification = builder.setSmallIcon(android.R.drawable.ic_btn_speak_now)
-      .setContentTitle(if (turningOff) "מכבה את המקליט" else "המקליט מוכן להקלטה")
-      .setContentText(if (turningOff) "ממתין לסיום ולשמירת ההקלטה" else readyText)
-      .setStyle(Notification.BigTextStyle().bigText(if (turningOff) "ממתין לסיום ולשמירת ההקלטה" else readyText))
+      .setContentTitle(if (turningOff) AppText.choose("מכבה את המקליט", "Shutting down the recorder") else AppText.choose("המקליט מוכן להקלטה", "The recorder is ready"))
+      .setContentText(if (turningOff) AppText.choose("ממתין לסיום ולשמירת ההקלטה", "Waiting for the recording to finish and save") else readyText)
+      .setStyle(Notification.BigTextStyle().bigText(if (turningOff) AppText.choose("ממתין לסיום ולשמירת ההקלטה", "Waiting for the recording to finish and save") else readyText))
       .setCategory(Notification.CATEGORY_SERVICE).setOngoing(true).setOnlyAlertOnce(true)
       .setContentIntent(openIntent)
-      .addAction(Notification.Action.Builder(null, "כיבוי המקליט", stopIntent).build()).build()
+      .addAction(Notification.Action.Builder(null, AppText.choose("כיבוי המקליט", "Turn off recorder"), stopIntent).build()).build()
     if (Build.VERSION.SDK_INT >= 34) startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
     else startForeground(NOTIFICATION_ID, notification)
   }
@@ -203,7 +203,7 @@ class RecorderReadinessService : Service() {
   override fun onDestroy() {
     destroyed = true
     monitor?.interrupt()
-    settleStarts(IllegalStateException("מצב המוכנות הופסק."))
+    settleStarts(IllegalStateException(AppText.choose("מצב המוכנות הופסק.", "Recording readiness stopped.")))
     // Unexpected service destruction must first let an active recorder save.
     if (!shutdownStarted.get() && (UsbAudioBridge.isTransportOpen() || RecordingService.isAutomaticArmed() ||
       RecordingService.isBusyForOwner())) beginShutdown()

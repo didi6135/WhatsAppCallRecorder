@@ -1,0 +1,62 @@
+// Original project utility, 0BSD. An external override; does not edit app dependencies.
+// Supply -PwaReco.spake2Aar=/absolute/path/to/rebuilt/spake2-android.aar.
+gradle.beforeProject { project ->
+    project.afterEvaluate {
+        if (project.rootProject.name == 'Spake2' && project.path == ':android') {
+            def libraryAndroid = project.extensions.getByName('android')
+            libraryAndroid.ndkVersion = '28.2.13676358'
+            libraryAndroid.externalNativeBuild.cmake.version = '3.22.1'
+        }
+        if (project.path != ':app') return
+        def localAar = project.findProperty('waReco.spake2Aar')
+        if (localAar) {
+            def artifact = project.file(localAar)
+            if (!artifact.isFile() || !artifact.name.endsWith('.aar')) {
+                throw new GradleException('waReco.spake2Aar must name an existing rebuilt AAR.')
+            }
+            def implementation = project.configurations.getByName('implementation')
+            def original = implementation.dependencies.findAll {
+                it.group == 'com.github.MuntashirAkon.spake2-java' && it.name == 'spake2-android'
+            }
+            if (original.size() != 1) {
+                throw new GradleException('Expected exactly one SPAKE2 implementation dependency.')
+            }
+            original.each { implementation.dependencies.remove(it) }
+            project.dependencies.add('implementation', project.files(artifact))
+        }
+        project.tasks.register('writeReleaseRedistributionInputs') {
+            doLast {
+                def destination = project.findProperty('waReco.inventoryOutput')
+                if (!destination) throw new GradleException('Set waReco.inventoryOutput to a private local JSON path.')
+                def hashFile = { file ->
+                    def hash = java.security.MessageDigest.getInstance('SHA-256')
+                    file.withInputStream { stream ->
+                        byte[] buffer = new byte[65536]
+                        int count
+                        while ((count = stream.read(buffer)) != -1) hash.update(buffer, 0, count)
+                    }
+                    hash.digest().encodeHex().toString()
+                }
+                def configuration = project.configurations.getByName('releaseRuntimeClasspath')
+                // Project modules expose multiple AGP secondary artifacts. Resolve
+                // the external Maven inputs separately; npm/autolinked project
+                // sources are reviewed alongside them, rather than guessed AARs.
+                def externalArtifacts = configuration.incoming.artifactView {
+                    componentFilter { id ->
+                        id instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier
+                    }
+                }.artifacts.artifacts
+                def entries = externalArtifacts.collect { artifact ->
+                    [id: artifact.id.componentIdentifier.toString(), sha256: hashFile(artifact.file),
+                     inputPath: artifact.file.absolutePath, extension: artifact.file.name.tokenize('.').last()]
+                }.sort { it.id }
+                def output = project.rootProject.file(destination)
+                if (output.exists()) throw new GradleException('Refusing to replace an existing inventory.')
+                output.parentFile.mkdirs()
+                output.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(
+                    [schema: 1, configuration: 'releaseRuntimeClasspath', artifacts: entries])) + '\n'
+                println('Private resolved-artifact inventory written; remove paths and review notices before public export.')
+            }
+        }
+    }
+}

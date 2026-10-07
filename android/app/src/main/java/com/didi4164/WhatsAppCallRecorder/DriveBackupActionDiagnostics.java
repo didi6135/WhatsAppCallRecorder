@@ -5,7 +5,7 @@ import java.util.*;
 /** Bounded process-local metadata only. This class has no queue, file, token or provider dependency. */
 public final class DriveBackupActionDiagnostics {
   private static final Set<String> CODES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-      "CONFIGURATION_REQUIRED", "AUTH_REQUIRED", "ACCOUNT_CHANGED", "FOLDER_UNAVAILABLE", "NETWORK",
+      "CONFIGURATION_REQUIRED", "GOOGLE_INTERNAL_ERROR", "AUTH_REQUIRED", "ACCOUNT_CHANGED", "FOLDER_UNAVAILABLE", "NETWORK",
       "RATE_LIMIT", "STORAGE_FULL", "LOCAL_QUEUE_UNAVAILABLE", "FOREGROUND_REQUIRED", "RECORDING_BUSY",
       "CONNECTION_BUSY", "NOT_CONNECTED", "UPLOAD_FAILED", "HTTP_ERROR", "REMOTE_MISMATCH")));
   public static final class Ticket {

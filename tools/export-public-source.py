@@ -17,11 +17,14 @@ PREFIXES = (
     'android/', 'src/', 'assets/', 'docs/', 'LICENSES/',
     'tools/usb-audio-helper/', 'tools/drive-backup-tests/', 'tools/ui-preview/',
     'tools/public-source-tests/',
+    'tools/release-compliance/',
+    'tools/telegram-backup-tests/',
+    'tools/telegram-backup-tests/', 'website/',
 )
 TOOL_FILES = {'tools/export-public-source.py', 'tools/test-drive-ui.cjs'}
 PRIVATE_PARTS = {
     '.git', '.planning', 'artifacts', 'node_modules', '.gradle', '.cxx',
-    '.idea', 'build', '__pycache__', '.expo', '.kotlin',
+    '.idea', 'build', '__pycache__', '.expo', '.kotlin', '.openai',
 }
 PRIVATE_SUFFIXES = {
     '.jks', '.keystore', '.pem', '.p12', '.p8', '.key', '.mobileprovision',

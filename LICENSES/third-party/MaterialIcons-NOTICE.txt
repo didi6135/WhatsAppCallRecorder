@@ -1,0 +1,10 @@
+MaterialIcons font distributed in react-native-vector-icons 10.2.0
+
+Copyright 2018 Google, Inc. All Rights Reserved.
+
+Version 1.017
+
+Exact font source: https://raw.githubusercontent.com/oblador/react-native-vector-icons/9152776633a488fec666bfd64205c9930c5425a4/Fonts/MaterialIcons.ttf
+SHA256: ef149f08bdd2ff09a4e2c8573476b7b0f3fbb15b623954ade59899e7175bedda
+
+See MaterialIcons-LICENSE.txt for the Apache-2.0 terms.

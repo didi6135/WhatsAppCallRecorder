@@ -1,4 +1,5 @@
-﻿import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { formatDuration, localizedError, t } from '../i18n/core';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -71,7 +72,7 @@ export interface RecordingContextType {
 
 const RecordingContext = createContext<RecordingContextType | undefined>(undefined);
 
-const foregroundRequired = () => new Error('יש להתחיל את ההקלטה כשהאפליקציה פתוחה על המסך.');
+const foregroundRequired = () => new Error(t('copy196'));
 
 // Android may resolve a permission request before its Activity resumes. Wait
 // only briefly for that return; ordinary background starts remain prohibited.
@@ -102,12 +103,7 @@ const waitForActiveForeground = async (afterPermissionDialog = false): Promise<v
   });
 };
 
-export const formatRecordingDuration = (durationMs: number): string => {
-  const seconds = Math.floor(Math.max(0, Number.isFinite(durationMs) ? durationMs : 0) / 1000);
-  return [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
-    .map(value => value.toString().padStart(2, '0'))
-    .join(':');
-};
+export const formatRecordingDuration = formatDuration;
 
 const nativeRecording = (recording: NativeRecording): Recording => ({
   ...recording,
@@ -122,7 +118,7 @@ const readLegacyRecordings = async (): Promise<Recording[]> => {
   if (!saved) return [];
 
   const parsed: unknown = JSON.parse(saved);
-  if (!Array.isArray(parsed)) throw new Error('רשימת ההקלטות הישנה אינה תקינה. המידע המקורי נשמר ללא שינוי.');
+  if (!Array.isArray(parsed)) throw new Error(t('copy197'));
 
   return parsed.flatMap((entry: unknown, index: number): Recording[] => {
     if (!entry || typeof entry !== 'object') return [];
@@ -132,7 +128,7 @@ const readLegacyRecordings = async (): Promise<Recording[]> => {
     return [{
       // A distinct namespace prevents old timestamp IDs from shadowing native IDs.
       id: `legacy:${index}:${item.id}`,
-      title: typeof item.title === 'string' ? item.title : 'הקלטה קודמת',
+      title: typeof item.title === 'string' ? item.title : t('copy198'),
       date: typeof item.date === 'string' ? item.date : '',
       duration: typeof item.duration === 'string' ? item.duration : '00:00:00',
       durationMs: typeof item.durationMs === 'number' ? item.durationMs : undefined,
@@ -145,9 +141,7 @@ const readLegacyRecordings = async (): Promise<Recording[]> => {
   });
 };
 
-const messageFor = (failure: unknown): string => failure instanceof Error
-  ? failure.message
-  : 'הפעולה לא הושלמה. נסה שוב.';
+const messageFor = (failure: unknown): string => localizedError(failure);
 
 const dateValue = (recording: Recording): number => {
   const value = Date.parse(recording.date);
@@ -187,7 +181,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const legacy = legacyResult.status === 'fulfilled' ? legacyResult.value : [];
     if (legacyResult.status === 'rejected' && mounted.current) {
-      setActionError(`לא הצלחנו לקרוא את ההקלטות הישנות. המידע המקורי נשמר. ${messageFor(legacyResult.reason)}`);
+      setActionError(t('legacyReadFailed'));
     }
 
     const currentNative = nativeResult.status === 'fulfilled'
@@ -242,7 +236,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   const runAction = useCallback(async <T,>(action: () => Promise<T>): Promise<T> => {
-    if (busyRef.current) throw new Error('פעולה אחרת עדיין מתבצעת. המתן לסיומה.');
+    if (busyRef.current) throw new Error(t('copy201'));
     busyRef.current = true;
     actionRevisionRef.current += 1;
     if (mounted.current) {
@@ -282,7 +276,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     await waitForActiveForeground();
     const granted = await requestNotificationPermission();
     await waitForActiveForeground(true);
-    if (!granted) throw new Error('כדי להזין את קוד הצימוד מתוך ההגדרות יש לאפשר התראות. אפשר גם להשתמש בהזנה הידנית.');
+    if (!granted) throw new Error(t('copy202'));
     await NativeRecorder.prepareSystemPairing();
   }), [runAction]);
 
@@ -296,17 +290,17 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const ensureSystemRecorder = useCallback(async (connectionPort = 0): Promise<void> => {
     await waitForActiveForeground();
     const access = await readSystemAccess();
-    if (!access.available) throw new Error('רכיב הקלטת השיחות דורש Android 14 ומעלה ואת הרשאות המערכת המתאימות. במכשיר זה אפשר להשתמש בהקלטת מיקרופון.');
+    if (!access.available) throw new Error(t('copy203'));
     // An authenticated live helper needs neither Wi-Fi nor a new ADB session.
     if (!access.helperConnected) {
-      if (!access.paired) throw new Error('יש להשלים את אשף ההגדרה ואת אישור קוד הצימוד לפני ההקלטה.');
-      if (!access.wirelessDebuggingEnabled) throw new Error('להפעלת רכיב ההקלטה יש להתחבר ל-Wi-Fi ולהפעיל ניפוי באגים אלחוטי.');
+      if (!access.paired) throw new Error(t('copy204'));
+      if (!access.wirelessDebuggingEnabled) throw new Error(t('copy205'));
       await NativeRecorder.connectSystemRecorder(connectionPort);
     }
     await readSystemAccess();
     const next = await NativeRecorder.getStatus();
     applyStatus(next);
-    if (!next.usbConnected) throw new Error('רכיב ההקלטה לא התחבר. התחבר ל-Wi-Fi וחזור לאשף ההגדרה כדי להפעיל אותו.');
+    if (!next.usbConnected) throw new Error(t('copy206'));
   }, [applyStatus, readSystemAccess]);
 
   const connectSystemRecorder = useCallback((connectionPort = 0) => runAction(() => ensureSystemRecorder(connectionPort)), [ensureSystemRecorder, runAction]);
@@ -318,11 +312,11 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const enableAutoRecording = useCallback(() => runAction(async () => {
     await waitForActiveForeground();
     const access = await NativeRecorder.getAutoRecordingStatus();
-    if (!access.notificationAccessGranted) throw new Error('אפשרו תחילה זיהוי שיחות דרך הרשאת גישה להתראות בהגדרות.');
-    if (!(await requestPermissions())) throw new Error('נדרשת הרשאת מיקרופון להפעלת הקלטה אוטומטית.');
+    if (!access.notificationAccessGranted) throw new Error(t('copy207'));
+    if (!(await requestPermissions())) throw new Error(t('copy208'));
     const notifications = await requestNotificationPermission();
     await waitForActiveForeground(true);
-    if (!notifications) throw new Error('נדרשת הרשאת התראות כדי להציג שהקלטה אוטומטית פעילה.');
+    if (!notifications) throw new Error(t('copy209'));
     await ensureSystemRecorder();
     await NativeRecorder.setAutoRecordingEnabled(true);
     await refreshAutoRecordingStatus();
@@ -339,7 +333,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const startRecording = useCallback((captureSource: CaptureSource = 'microphone') => runAction(async () => {
     if (Platform.OS !== 'android') {
-      throw new Error('הקלטה זו נתמכת ב-Android בלבד.');
+      throw new Error(t('copy210'));
     }
     await waitForActiveForeground();
     const current = await NativeRecorder.getStatus();
@@ -352,7 +346,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const alreadyGranted = await checkPermissions();
     const granted = alreadyGranted || await requestMicrophonePermissions();
     if (mounted.current) setHasPermissions(granted);
-    if (!granted) throw new Error('כדי להקליט יש לאפשר גישה למיקרופון בהגדרות האפליקציה.');
+    if (!granted) throw new Error(t('copy211'));
 
     await waitForActiveForeground(!alreadyGranted);
     if (AppState.currentState !== 'active') throw foregroundRequired();
@@ -378,9 +372,9 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const findWritableRecording = useCallback((id: string): Recording => {
     const recording = recordingsRef.current.find(item => item.id === id);
-    if (!recording) throw new Error('ההקלטה לא נמצאה. רענן את הרשימה.');
+    if (!recording) throw new Error(t('copy212'));
     if (recording.source === 'legacy') {
-      throw new Error('הקלטה קודמת נשמרת לקריאה בלבד כדי לשמור על הקובץ המקורי. מחיקה ושיתוף זמינים להקלטות החדשות.');
+      throw new Error(t('copy213'));
     }
     return recording;
   }, []);
@@ -471,7 +465,7 @@ export const RecordingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       connectSystemRecorder,
       openSystemAccessSetup,
       isBusy,
-      error: actionError || status.error,
+      error: actionError || status.error ? localizedError(actionError || status.error) : null,
       startRecording,
       stopRecording,
       deleteRecording,

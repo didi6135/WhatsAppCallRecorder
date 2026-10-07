@@ -1,3 +1,4 @@
+import { t } from '../i18n/core';
 import { NativeModules, Platform } from 'react-native';
 
 export type DriveBackupPhase = 'disconnected' | 'ready' | 'uploading' | 'paused' | 'needsConsent' | 'error';
@@ -38,53 +39,56 @@ interface DriveBackupModule {
 }
 
 const messages: Record<string, string> = {
-  CONFIGURATION_REQUIRED: 'חיבור Google Drive עדיין לא הוגדר עבור האפליקציה ב־Google Cloud. לא ניתן לגבות עד שההגדרה תושלם.',
-  AUTH_REQUIRED: 'Google מבקש אישור מחדש לחשבון. חברו את החשבון שוב כדי להמשיך בגיבוי.',
-  FOLDER_UNAVAILABLE: 'התיקייה אינה זמינה או שהגישה אליה השתנתה. בחרו תיקייה זמינה ואשרו את הגיבוי מחדש.',
-  ACCOUNT_CHANGED: 'החשבון השתנה. חברו את החשבון הרצוי, בחרו תיקייה ואשרו מחדש את הגיבוי.',
-  NETWORK: 'אין חיבור זמין ל־Google Drive. ההקלטות נשארות בטלפון; אפשר לנסות שוב כשהחיבור חוזר.',
-  RATE_LIMIT: 'Google הגביל זמנית את ההעלאות. ההקלטות נשארות בטלפון וניתן לנסות שוב בהמשך.',
-  STORAGE_FULL: 'אין מספיק מקום פנוי ב־Google Drive. פנו מקום בחשבון ונסו שוב.',
-  LOCAL_FILE_MISSING: 'אחד הקבצים אינו זמין עוד בטלפון ולכן לא ניתן לגבות אותו.',
-  LOCAL_FILE_CHANGED: 'אחד הקבצים השתנה בטלפון. הוא לא הועלה; בדקו את ההקלטה לפני ניסיון נוסף.',
-  REMOTE_MISMATCH: 'לא ניתן לאמת את הקובץ שהועלה. הוא לא מסומן כמגובה; אפשר לנסות שוב.',
-  RETRY_LIMIT: 'כמה ניסיונות גיבוי לא הושלמו. בדקו את החיבור והחשבון ואז נסו שוב.',
-  LOCAL_QUEUE_UNAVAILABLE: 'לא ניתן לקרוא את רשימת הגיבוי בטלפון. ההקלטות המקומיות נשמרות; נסו שוב.',
-  DRIVE_MODULE_UNAVAILABLE: 'גיבוי Google Drive אינו זמין בבנייה הזו של האפליקציה.',
-  DRIVE_ANDROID_ONLY: 'החיבור הזה ל־Google Drive זמין כרגע בגרסת Android.',
-  DRIVE_STATUS_INVALID: 'לא ניתן לאמת את מצב הגיבוי כרגע. נסו לבדוק שוב.',
-  RECORDING_ACTIVE: 'אפשר לשנות את החשבון והתיקייה לאחר סיום ההקלטה.',
-  RECORDING_BUSY: 'סיימו את ההקלטה הפעילה לפני שינוי החשבון או תיקיית הגיבוי.',
-  FOREGROUND_REQUIRED: 'פתחו את האפליקציה על המסך וחזרו להגדרות הגיבוי כדי להמשיך.',
-  CONNECTION_BUSY: 'חיבור או בחירת תיקייה כבר מתבצעים. סיימו את החלון של Google וחזרו לכאן.',
-  NOT_CONNECTED: 'חברו חשבון Google ובחרו תיקיית גיבוי כדי להמשיך.',
-  UPLOAD_FAILED: 'העלאת אחת ההקלטות לא הושלמה. הקובץ בטלפון נשמר; נסו לגבות שוב.',
-  HTTP_ERROR: 'החיבור ל־Google Drive לא הושלם. בדקו את החיבור לחשבון ונסו שוב.',
-  CREATE_CONFLICT: 'לא ניתן היה להשלים את יצירת קובץ הגיבוי. הוא אינו מסומן כמגובה; נסו שוב.',
+  get GOOGLE_INTERNAL_ERROR() { return t('googleInternalError'); },
+  get CONFIGURATION_REQUIRED() { return t('copy380'); },
+  get AUTH_REQUIRED() { return t('copy381'); },
+  get FOLDER_UNAVAILABLE() { return t('copy382'); },
+  get ACCOUNT_CHANGED() { return t('copy383'); },
+  get NETWORK() { return t('copy384'); },
+  get RATE_LIMIT() { return t('copy385'); },
+  get STORAGE_FULL() { return t('copy386'); },
+  get LOCAL_FILE_MISSING() { return t('copy387'); },
+  get LOCAL_FILE_CHANGED() { return t('copy388'); },
+  get REMOTE_MISMATCH() { return t('copy389'); },
+  get RETRY_LIMIT() { return t('copy390'); },
+  get LOCAL_QUEUE_UNAVAILABLE() { return t('copy391'); },
+  get DRIVE_MODULE_UNAVAILABLE() { return t('copy392'); },
+  get DRIVE_ANDROID_ONLY() { return t('copy393'); },
+  get DRIVE_STATUS_INVALID() { return t('copy394'); },
+  get RECORDING_ACTIVE() { return t('copy395'); },
+  get RECORDING_BUSY() { return t('copy396'); },
+  get FOREGROUND_REQUIRED() { return t('copy397'); },
+  get CONNECTION_BUSY() { return t('copy398'); },
+  get NOT_CONNECTED() { return t('copy399'); },
+  get UPLOAD_FAILED() { return t('copy400'); },
+  get HTTP_ERROR() { return t('copy401'); },
+  get CREATE_CONFLICT() { return t('copy402'); },
 };
 
 const knownCode = (code: unknown): code is string => typeof code === 'string' && Object.prototype.hasOwnProperty.call(messages, code);
 // UI copy is always app-owned, including failures from newer or incompatible native builds.
 export const driveErrorMessage = (code: string | null, _nativeMessage?: string | null): string =>
-  knownCode(code) ? messages[code] : 'הפעולה לא הושלמה. ההקלטות בטלפון נשמרות; נסו שוב.';
+  knownCode(code) ? messages[code] : t('copy403');
 
 const diagnosticCodes = new Set([
+  'GOOGLE_INTERNAL_ERROR',
   'CONFIGURATION_REQUIRED', 'AUTH_REQUIRED', 'ACCOUNT_CHANGED', 'FOLDER_UNAVAILABLE',
   'NETWORK', 'RATE_LIMIT', 'STORAGE_FULL', 'LOCAL_QUEUE_UNAVAILABLE', 'FOREGROUND_REQUIRED',
   'RECORDING_BUSY', 'CONNECTION_BUSY', 'NOT_CONNECTED', 'UPLOAD_FAILED', 'HTTP_ERROR', 'REMOTE_MISMATCH',
 ]);
 const attemptMessages: Record<string, string> = {
-  CONFIGURATION_REQUIRED: 'Google לא אישר את ניסיון החיבור עבור גרסה זו. נדרשת בדיקה של הגדרת האפליקציה ב־Google Cloud.',
-  AUTH_REQUIRED: 'Google מבקש אישור לחשבון. נסו את חיבור החשבון שוב.',
-  ACCOUNT_CHANGED: 'לא ניתן היה לאמת את החשבון שנבחר בניסיון הזה. נסו לחבר את החשבון הרצוי שוב.',
-  FOLDER_UNAVAILABLE: 'לא ניתן היה לאמת גישה לתיקייה בניסיון הבחירה. נסו לבחור תיקייה זמינה.',
-  NETWORK: 'ניסיון החיבור ל־Google Drive לא הושלם בגלל הרשת. אפשר לנסות שוב כשהחיבור חוזר.',
-  RATE_LIMIT: 'Google הגביל זמנית את הבקשה. אפשר לנסות שוב בהמשך.',
-  STORAGE_FULL: 'Google מדווח שאין מספיק מקום פנוי בחשבון. פנו מקום ונסו שוב.',
-  LOCAL_QUEUE_UNAVAILABLE: 'לא ניתן היה לקרוא את הגדרות הגיבוי המקומיות בניסיון הזה. נסו שוב.',
-  UPLOAD_FAILED: 'Google לא השלים את ניסיון החיבור או הבחירה. אפשר לנסות שוב.',
-  HTTP_ERROR: 'הבקשה ל־Google Drive לא הושלמה. בדקו את החיבור ונסו שוב.',
-  REMOTE_MISMATCH: 'לא ניתן היה לאמת את התשובה מ־Google Drive בניסיון הזה. נסו שוב.',
+  get GOOGLE_INTERNAL_ERROR() { return t('googleInternalError'); },
+  get CONFIGURATION_REQUIRED() { return t('copy404'); },
+  get AUTH_REQUIRED() { return t('copy405'); },
+  get ACCOUNT_CHANGED() { return t('copy406'); },
+  get FOLDER_UNAVAILABLE() { return t('copy407'); },
+  get NETWORK() { return t('copy408'); },
+  get RATE_LIMIT() { return t('copy409'); },
+  get STORAGE_FULL() { return t('copy410'); },
+  get LOCAL_QUEUE_UNAVAILABLE() { return t('copy411'); },
+  get UPLOAD_FAILED() { return t('copy412'); },
+  get HTTP_ERROR() { return t('copy413'); },
+  get REMOTE_MISMATCH() { return t('copy414'); },
 };
 export const driveActionErrorMessage = (code: string): string =>
   Object.prototype.hasOwnProperty.call(attemptMessages, code) ? attemptMessages[code] : driveErrorMessage(code);

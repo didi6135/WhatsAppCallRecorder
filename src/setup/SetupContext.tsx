@@ -1,3 +1,4 @@
+import { localizedError, t } from '../i18n/core';
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppState, PermissionsAndroid, Platform } from 'react-native';
@@ -5,7 +6,7 @@ import { NativeRecorder, SystemAccessStatus } from '../services/NativeRecorder';
 import { deriveSetupReadiness, EMPTY_SETUP_READINESS, SetupEvidence, SetupReadiness } from './readiness';
 
 const COMPLETION_KEY = 'recorder_setup_completion_v1';
-const CHECK_ERROR = 'לא ניתן לבדוק כרגע את מוכנות המקליט. חזרו לאפליקציה ונסו שוב.';
+const CHECK_ERROR = () => t('copy417');
 
 interface SetupSnapshot {
   evidence: SetupEvidence;
@@ -47,7 +48,7 @@ async function readSnapshot(): Promise<SetupSnapshot> {
       automatic: automatic.status === 'fulfilled' ? automatic.value : null,
     },
     nativeAvailable: android && recorder.status === 'fulfilled',
-    error: results.some(result => result.status === 'rejected') ? CHECK_ERROR : null,
+    error: results.some(result => result.status === 'rejected') ? CHECK_ERROR() : null,
   };
 }
 
@@ -81,19 +82,19 @@ export function SetupProvider({ children }: { children: React.ReactNode }) {
   const completeOnboarding = useCallback(async () => {
     const snapshot = await observe();
     if (!snapshot.nativeAvailable || !deriveSetupReadiness(snapshot.evidence).allReady)
-      throw new Error('נותרו הגדרות להשלמה. נבדוק את המצב ונציג את השלב הבא.');
+      throw new Error(t('copy418'));
     await persistCompletion('full');
   }, [observe, persistCompletion]);
 
   const completeManualOnboarding = useCallback(async () => {
-    if (Platform.OS !== 'android') throw new Error('הקלטה באפליקציה זמינה ב־Android בלבד.');
+    if (Platform.OS !== 'android') throw new Error(t('copy338'));
     // A manual choice explicitly revokes automatic mode; polling never changes it.
     await NativeRecorder.setAutoRecordingEnabled(false);
     const snapshot = await observe();
     const verified = deriveSetupReadiness(snapshot.evidence);
     if (!snapshot.nativeAvailable || !verified.microphone || !verified.notifications ||
       snapshot.evidence.automatic?.enabled !== false || snapshot.evidence.automatic.armed !== false)
-      throw new Error('כדי להמשיך ידנית יש לאפשר מיקרופון והתראות ולוודא שהקלטה אוטומטית כבויה.');
+      throw new Error(t('copy419'));
     await persistCompletion('manual');
   }, [observe, persistCompletion]);
 
@@ -111,7 +112,7 @@ export function SetupProvider({ children }: { children: React.ReactNode }) {
             'mode' in value && (value.mode === 'full' || value.mode === 'manual')) setCompleted(true);
         }
       } catch {
-        if (mounted.current) setSetupError('לא ניתן לקרוא את השלמת ההגדרה. ההקלטות והצימוד נשמרו; אפשר להשלים שוב.');
+        if (mounted.current) setSetupError(t('copy420'));
       } finally {
         bootstrapped = true;
         if (mounted.current) setLoading(false);
@@ -132,7 +133,7 @@ export function SetupProvider({ children }: { children: React.ReactNode }) {
   }, [observe, refresh]);
 
   return <SetupContext.Provider value={{ loading, completed, readiness, refresh, completeOnboarding,
-    completeManualOnboarding, setupError, supported: systemAccessStatus?.available ?? null,
+    completeManualOnboarding, setupError: setupError ? localizedError(setupError) : null, supported: systemAccessStatus?.available ?? null,
     systemAccessStatus }}>{children}</SetupContext.Provider>;
 }
 

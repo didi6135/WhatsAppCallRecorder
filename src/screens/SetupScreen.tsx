@@ -1,3 +1,4 @@
+import { localizedError, t, useLocalizedStyles } from '../i18n';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, AppState, Linking, PermissionsAndroid, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -14,12 +15,13 @@ import { colors, ui } from '../theme';
 
 const steps: SetupStep[] = ['microphone', 'notifications', 'activation', 'call_access', 'automatic'];
 const titles: Record<SetupStep, string> = {
-  loading: 'בודקים את הטלפון', checking: 'בודקים את מוכנות המקליט', microphone: 'מאפשרים שימוש במיקרופון', notifications: 'מאפשרים התראות למקליט',
-  activation: 'מחברים את ההקלטה לטלפון', call_access: 'מאפשרים זיהוי שיחות',
-  automatic: 'בוחרים איך להקליט', done: 'ההגדרות אומתו',
+  get loading() { return t('copy329'); }, get checking() { return t('copy330'); }, get microphone() { return t('copy331'); }, get notifications() { return t('copy332'); },
+  get activation() { return t('copy333'); }, get call_access() { return t('copy334'); },
+  get automatic() { return t('copy335'); }, get done() { return t('copy336'); },
 };
 
 export default function SetupScreen() {
+  const styles = useLocalizedStyles(baseStyles);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList, 'Setup'>>();
   const insets = useSafeAreaInsets();
   const { loading, completed, readiness, refresh, completeOnboarding, completeManualOnboarding,
@@ -43,33 +45,32 @@ export default function SetupScreen() {
       await action();
       await refresh();
     } catch (failure) {
-      setLocalError(failure instanceof Error && /[\u0590-\u05ff]/.test(failure.message)
-        ? failure.message : 'הפעולה לא הושלמה. אפשר לנסות שוב או לפתוח את הגדרות הטלפון.');
+      setLocalError(localizedError(failure, 'copy337'));
     } finally { setWorking(false); }
   };
   const openAppSettings = () => run(async () => { await Linking.openSettings(); });
   const microphone = () => run(async () => {
-    if (Platform.OS !== 'android') throw new Error('הקלטה באפליקציה זמינה ב־Android בלבד.');
+    if (Platform.OS !== 'android') throw new Error(t('copy338'));
     if (microphoneBlocked) { await Linking.openSettings(); return; }
     const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-      { title: 'הרשאת מיקרופון', message: 'המקליט צריך גישה למיקרופון כדי לשמור את הקול שלך.', buttonPositive: 'המשך', buttonNegative: 'לא עכשיו' });
+      { title: t('copy339'), message: t('copy340'), buttonPositive: t('continueAction'), buttonNegative: t('copy341') });
     setMicrophoneBlocked(result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN);
-    if (result !== PermissionsAndroid.RESULTS.GRANTED) setLocalError('המיקרופון עדיין לא אושר. אפשר לאשר את ההרשאה בהגדרות האפליקציה.');
+    if (result !== PermissionsAndroid.RESULTS.GRANTED) setLocalError(t('copy342'));
   });
   const notifications = () => run(async () => {
     const runtimeGranted = Platform.OS === 'android' && (Number(Platform.Version) < 33 ||
       await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS));
     if (runtimeGranted) await Linking.openSettings();
-    else if (!(await requestNotificationPermission())) setLocalError('ההתראות עדיין לא אושרו. הפעילו אותן בהגדרות האפליקציה וחזרו לכאן.');
+    else if (!(await requestNotificationPermission())) setLocalError(t('copy343'));
   });
   const finish = () => run(async () => {
     await completeOnboarding();
     navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
   }, false);
-  const manual = () => Alert.alert('ממשיכים עם הקלטה ידנית',
-    'המצב האוטומטי יכובה. אפשר להקליט מהמיקרופון בלחיצה; הקלטת שיחת WhatsApp ידנית דורשת גם חיבור פעיל לטלפון.', [
-      { text: 'חזרה להגדרה', style: 'cancel' },
-      { text: 'להמשיך ידנית', onPress: () => { void run(async () => {
+  const manual = () => Alert.alert(t('copy344'),
+    t('copy345'), [
+      { get text() { return t('copy346'); }, style: 'cancel' },
+      { get text() { return t('copy347'); }, onPress: () => { void run(async () => {
         await completeManualOnboarding();
         navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
       }); } },
@@ -79,60 +80,60 @@ export default function SetupScreen() {
   return <View style={styles.screen}>
     <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 22, paddingBottom: insets.bottom + 28 }]} keyboardShouldPersistTaps="handled">
       <View style={styles.heading}><WaveMark size={40} /><View style={styles.headingCopy}>
-        <Text style={styles.eyebrow}>{completed ? 'השלמת ההגדרות' : 'ברוכים הבאים למקליט השיחות'}</Text>
-        <Text style={styles.title}>נכין את הטלפון, צעד אחד בכל פעם.</Text>
+        <Text style={styles.eyebrow}>{completed ? t('copy348') : t('copy349')}</Text>
+        <Text style={styles.title}>{t('copy350')}</Text>
       </View></View>
-      {showProgress && <View style={styles.progress} accessibilityLabel={step === 'done' ? 'ההגדרה הושלמה' : `שלב ${currentIndex + 1} מתוך 5`}>
+      {showProgress && <View style={styles.progress} accessibilityLabel={step === 'done' ? t('copy351') : t('copy352', { p0: currentIndex + 1 })}>
         {steps.map((item, index) => <View key={item} style={[styles.progressDot, index <= currentIndex && styles.progressActive]} />)}
       </View>}
-      {showProgress && step !== 'done' && <Text style={styles.counter}>שלב {currentIndex + 1} מתוך 5</Text>}
+      {showProgress && step !== 'done' && <Text style={styles.counter}>{t('copy352', { p0: currentIndex + 1 })}</Text>}
       <Text style={styles.stepTitle} accessibilityRole="header">{titles[step]}</Text>
       {step === 'loading' && <ActivityIndicator size="large" color={colors.green} style={styles.spinner} />}
-      {step === 'checking' && <View style={styles.card}><Text style={styles.body}>בדיקת המקליט לא הושלמה. נבדוק שוב את המצב בפועל לפני סיום ההגדרה.</Text></View>}
+      {step === 'checking' && <View style={styles.card}><Text style={styles.body}>{t('copy355')}</Text></View>}
       {step === 'microphone' && <View style={styles.card}>
         <Text style={styles.body}>{Platform.OS === 'android'
-          ? 'ההרשאה מאפשרת לשמור את קול המיקרופון בהקלטה. במסך הבא של Android בחרו ״בזמן השימוש באפליקציה״ או ״אפשר״.'
-          : 'הגרסה הזו מיועדת ל־Android. הקלטה באפליקציה אינה זמינה כאן באייפון.'}</Text>
-        <TouchableOpacity style={[styles.primary, disabled && styles.disabled]} onPress={() => { void microphone(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{microphoneBlocked ? 'פתיחת הרשאת המיקרופון' : 'לאפשר מיקרופון'}</Text></TouchableOpacity>
-        {!microphoneBlocked && <TouchableOpacity style={styles.linkButton} onPress={() => { void openAppSettings(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>ההרשאה לא מופיעה? פתיחת הגדרות האפליקציה</Text></TouchableOpacity>}
+          ? t('copy356')
+          : t('copy357')}</Text>
+        <TouchableOpacity style={[styles.primary, disabled && styles.disabled]} onPress={() => { void microphone(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{microphoneBlocked ? t('copy358') : t('copy359')}</Text></TouchableOpacity>
+        {!microphoneBlocked && <TouchableOpacity style={styles.linkButton} onPress={() => { void openAppSettings(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{t('copy360')}</Text></TouchableOpacity>}
       </View>}
       {step === 'notifications' && <View style={styles.card}>
-        <Text style={styles.body}>ההתראה מציגה כשהמקליט פעיל ונותנת דרך לעצור אותו. היא גם מאפשרת להזין את קוד החיבור בלי לסגור את הגדרות הטלפון.</Text>
-        <Text style={styles.body}>אשרו התראות למקליט. אם נפתח דף ההגדרות, הפעילו גם את ערוץ ״הקלטת שיחות״ ואז חזרו לאפליקציה.</Text>
-        <TouchableOpacity style={[styles.primary, disabled && styles.disabled]} onPress={() => { void notifications(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>לאפשר התראות</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.linkButton} onPress={() => { void openAppSettings(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>פתיחת הגדרות ההתראות של האפליקציה</Text></TouchableOpacity>
+        <Text style={styles.body}>{t('copy361')}</Text>
+        <Text style={styles.body}>{t('copy362')}</Text>
+        <TouchableOpacity style={[styles.primary, disabled && styles.disabled]} onPress={() => { void notifications(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy363')}</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.linkButton} onPress={() => { void openAppSettings(); }} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{t('copy364')}</Text></TouchableOpacity>
       </View>}
       {step === 'activation' && <SystemSetupWizard focused accessOverride={systemAccessStatus} onStatusChanged={refresh} />}
       {step === 'call_access' && <View style={styles.card}>
-        <Text style={styles.body}>Android מבקש אישור נוסף כדי שהמקליט יוכל לקבל סימנים על מצב שיחת WhatsApp או WhatsApp Business.</Text>
-        <Text style={styles.body}>במסך שייפתח בחרו ״זיהוי שיחות WhatsApp״ של מקליט השיחות, הפעילו את הגישה ואשרו. חזרו לכאן כדי שנבדוק שהמערכת התחברה.</Text>
-        <Text style={styles.small}>המקליט משתמש במצב השיחה. שמות, מספרים ותוכן הודעות אינם נשמרים כחלק מהזיהוי.</Text>
-        <TouchableOpacity style={[styles.primary, disabled && styles.disabled]} onPress={() => { void run(openNotificationAccessSetup); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>פתיחת אישור זיהוי השיחות</Text></TouchableOpacity>
+        <Text style={styles.body}>{t('copy365')}</Text>
+        <Text style={styles.body}>{t('copy366')}</Text>
+        <Text style={styles.small}>{t('copy367')}</Text>
+        <TouchableOpacity style={[styles.primary, disabled && styles.disabled]} onPress={() => { void run(openNotificationAccessSetup); }} disabled={disabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy368')}</Text></TouchableOpacity>
       </View>}
       {step === 'automatic' && <View style={styles.card}>
-        <Text style={styles.body}>הפעלת המצב האוטומטי מכינה את המקליט להקלטה כשמזוהה שיחה. בזמן ההמתנה לא נשמר קול.</Text>
-        <Text style={styles.body}>יש לבצע שיחת בדיקה כדי לוודא שהזיהוי ושני הקולות עובדים במכשיר שלך.</Text>
+        <Text style={styles.body}>{t('copy369')}</Text>
+        <Text style={styles.body}>{t('copy370')}</Text>
         {firstAutomaticOptIn && <TouchableOpacity style={styles.consent} onPress={() => setConsent(value => !value)} accessibilityRole="checkbox" accessibilityState={{ checked: consent }} disabled={disabled}>
           <View style={[styles.checkbox, consent && styles.checkboxChecked]}><Text style={styles.checkmark}>{consent ? '✓' : ''}</Text></View>
-          <Text style={styles.consentText}>אשתמש בהקלטה בידיעת המשתתפים.</Text>
+          <Text style={styles.consentText}>{t('copy371')}</Text>
         </TouchableOpacity>}
-        <TouchableOpacity style={[styles.primary, ((firstAutomaticOptIn && !consent) || disabled) && styles.disabled]} onPress={() => { if (AppState.currentState === 'active') void run(enableAutoRecording); }} disabled={(firstAutomaticOptIn && !consent) || disabled} accessibilityRole="button"><Text style={styles.primaryText}>{firstAutomaticOptIn ? 'הפעלת המצב האוטומטי' : 'להפעיל מחדש'}</Text></TouchableOpacity>
+        <TouchableOpacity style={[styles.primary, ((firstAutomaticOptIn && !consent) || disabled) && styles.disabled]} onPress={() => { if (AppState.currentState === 'active') void run(enableAutoRecording); }} disabled={(firstAutomaticOptIn && !consent) || disabled} accessibilityRole="button"><Text style={styles.primaryText}>{firstAutomaticOptIn ? t('copy372') : t('copy373')}</Text></TouchableOpacity>
       </View>}
       {step === 'done' && <View style={styles.card}>
-        <Text style={styles.body}>המיקרופון, ההתראות, חיבור ההקלטה והמצב האוטומטי אומתו כפעילים כעת. אפשר לעבור למסך ההקלטה ולבצע שיחת בדיקה.</Text>
-        <TouchableOpacity style={[styles.primary, navigationDisabled && styles.disabled]} onPress={() => { void finish(); }} disabled={navigationDisabled} accessibilityRole="button"><Text style={styles.primaryText}>למסך ההקלטה</Text></TouchableOpacity>
+        <Text style={styles.body}>{t('copy374')}</Text>
+        <TouchableOpacity style={[styles.primary, navigationDisabled && styles.disabled]} onPress={() => { void finish(); }} disabled={navigationDisabled} accessibilityRole="button"><Text style={styles.primaryText}>{t('copy375')}</Text></TouchableOpacity>
       </View>}
-      {(localError || setupError) && <Text style={styles.error} accessibilityLiveRegion="polite">{localError || setupError}</Text>}
+      {(localError || setupError) && <Text style={styles.error} accessibilityLiveRegion="polite">{localizedError(localError || setupError)}</Text>}
       {working && <ActivityIndicator color={colors.green} style={styles.spinner} />}
-      {step !== 'loading' && step !== 'done' && <TouchableOpacity style={styles.linkButton} onPress={() => { void run(refresh); }} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>בדיקה נוספת של ההגדרות</Text></TouchableOpacity>}
-      {manualAvailable && <TouchableOpacity style={[styles.secondary, disabled && styles.disabled]} onPress={manual} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>להמשיך עם הקלטה ידנית</Text></TouchableOpacity>}
-      {completed && <TouchableOpacity style={styles.linkButton} onPress={() => { if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Home'); }} accessibilityRole="button"><Text style={styles.link}>חזרה לאפליקציה</Text></TouchableOpacity>}
-      <Text style={styles.footer}>בכל חזרה מהגדרות Android נבדוק מה אושר, ונציג רק את מה שעוד חסר.</Text>
+      {step !== 'loading' && step !== 'done' && <TouchableOpacity style={styles.linkButton} onPress={() => { void run(refresh); }} disabled={disabled} accessibilityRole="button"><Text style={styles.link}>{t('copy376')}</Text></TouchableOpacity>}
+      {manualAvailable && <TouchableOpacity style={[styles.secondary, disabled && styles.disabled]} onPress={manual} disabled={disabled} accessibilityRole="button"><Text style={styles.secondaryText}>{t('copy377')}</Text></TouchableOpacity>}
+      {completed && <TouchableOpacity style={styles.linkButton} onPress={() => { if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Home'); }} accessibilityRole="button"><Text style={styles.link}>{t('copy378')}</Text></TouchableOpacity>}
+      <Text style={styles.footer}>{t('copy379')}</Text>
     </ScrollView>
   </View>;
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   screen: ui.screen, content: { paddingHorizontal: 22 },
   heading: { flexDirection: 'row-reverse', alignItems: 'flex-start', gap: 14, marginBottom: 24 },
   headingCopy: { flex: 1 }, eyebrow: { ...ui.subtitle, fontSize: 12, marginBottom: 6 },

@@ -1,3 +1,4 @@
+import { t, useLocalization, useLocalizedStyles } from '../i18n';
 import React from 'react';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -21,10 +22,12 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
+  const styles = useLocalizedStyles(baseStyles);
+  const { isRTL } = useLocalization();
   const { loading, completed } = useSetup();
-  if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.green} /><Text style={styles.loadingText}>בודקים את הגדרות המקליט…</Text></View>;
+  if (loading) return <View style={styles.loading}><ActivityIndicator color={colors.green} /><Text style={styles.loadingText}>{t('copy215')}</Text></View>;
   return (
-    <NavigationContainer theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, primary: colors.green, background: colors.background, card: colors.background, text: colors.ink, border: colors.border, notification: colors.danger } }}>
+    <NavigationContainer direction={isRTL ? 'rtl' : 'ltr'} theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, primary: colors.green, background: colors.background, card: colors.background, text: colors.ink, border: colors.border, notification: colors.danger } }}>
       <Stack.Navigator
         initialRouteName={completed ? 'Home' : 'Setup'}
         screenOptions={{
@@ -32,19 +35,19 @@ export default function AppNavigator() {
           headerTintColor: colors.ink,
           headerTitleStyle: { fontWeight: '700', fontSize: 17 },
           headerTitleAlign: 'center',
-          headerBackTitle: 'חזרה',
+          headerBackTitle: t('copy216'),
         }}>
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'מקליט שיחות', headerShown: false }} />
-        <Stack.Screen name="Recordings" component={RecordingsScreen} options={{ title: 'ההקלטות שלי', headerShown: false }} />
-        <Stack.Screen name="Playback" component={PlaybackScreen} options={{ title: 'האזנה' }} />
-        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: 'הגדרות', headerShown: false }} />
-        <Stack.Screen name="Setup" component={SetupScreen} options={{ title: 'הגדרה מונחית', headerShown: false }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ title: t('copy217'), headerShown: false }} />
+        <Stack.Screen name="Recordings" component={RecordingsScreen} options={{ title: t('copy194'), headerShown: false }} />
+        <Stack.Screen name="Playback" component={PlaybackScreen} options={{ title: t('copy218') }} />
+        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: t('copy195'), headerShown: false }} />
+        <Stack.Screen name="Setup" component={SetupScreen} options={{ title: t('copy219'), headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background, gap: 16 },
   loadingText: { color: colors.muted, fontSize: 14, writingDirection: 'rtl', textAlign: 'center' },
 });

@@ -55,7 +55,7 @@ object UsbAudioBridge {
     internal val authenticatedActivityMs: Long get() = if (handshaken && !closed) lastSeen else 0L
     fun begin() {
       synchronized(sendLock) {
-        check(connected && !capturing) { "רכיב ההקלטה אינו זמין. חבר אותו שוב דרך מסך ההגדרות." }
+        check(connected && !capturing) { AppText.choose("רכיב ההקלטה אינו זמין. חבר אותו שוב דרך מסך ההגדרות.", "The recording component is unavailable. Reconnect it from Settings.") }
         frames.clear(); capturing = true; stopSent = false
         output.writeUTF("START"); output.flush()
       }
@@ -72,7 +72,7 @@ object UsbAudioBridge {
     fun next(timeoutMs: Long = 1000L): Frame? = frames.poll(timeoutMs, TimeUnit.MILLISECONDS)
     fun setCallMonitoring(enabled: Boolean) {
       synchronized(sendLock) {
-        check(connected) { "רכיב ההקלטה אינו מחובר." }
+        check(connected) { AppText.choose("רכיב ההקלטה אינו מחובר.", "The recording component is disconnected.") }
         callAudio = null
         callMonitorSince = SystemClock.elapsedRealtime()
         callMonitoring = enabled
@@ -87,26 +87,26 @@ object UsbAudioBridge {
     }
     private fun enqueue(frame: Frame) {
       if (!frames.offer(frame)) {
-        frames.clear(); frames.offer(Frame.Failure("זרם ה־USB התמלא; ההקלטה הופסקה כדי למנוע אובדן אודיו"))
+        frames.clear(); frames.offer(Frame.Failure(AppText.choose("זרם ה־USB התמלא; ההקלטה הופסקה כדי למנוע אובדן אודיו", "The USB audio buffer filled; recording stopped to prevent audio loss")))
         disconnect()
       }
     }
     internal fun receive() {
       try {
         socket.soTimeout = 6000
-        check(input.readUTF() == "WA_USB_2") { "גרסת רכיב ה־USB אינה תואמת" }
+        check(input.readUTF() == "WA_USB_2") { AppText.choose("גרסת רכיב ה־USB אינה תואמת", "The USB recording component version does not match") }
         val clientNonce = input.readUTF()
-        check(clientNonce.matches(Regex("[0-9a-f]{64}"))) { "אימות USB נכשל" }
+        check(clientNonce.matches(Regex("[0-9a-f]{64}"))) { AppText.choose("אימות USB נכשל", "USB authentication failed") }
         val serverNonce = randomHex()
         output.writeUTF(serverNonce)
         output.writeUTF(hmac(token, "SERVER|$clientNonce|$serverNonce")); output.flush()
         check(MessageDigest.isEqual(input.readUTF().toByteArray(Charsets.UTF_8),
-          hmac(token, "CLIENT|$clientNonce|$serverNonce").toByteArray(Charsets.UTF_8))) { "אימות USB נכשל" }
+          hmac(token, "CLIENT|$clientNonce|$serverNonce").toByteArray(Charsets.UTF_8))) { AppText.choose("אימות USB נכשל", "USB authentication failed") }
         val accepted = synchronized(lock) {
           if (current?.connected == true) false
           else { current?.disconnect(); current = this; handshaken = true; true }
         }
-        check(accepted) { "רכיב USB כבר מחובר" }
+        check(accepted) { AppText.choose("רכיב USB כבר מחובר", "A USB component is already connected") }
         lastSeen = SystemClock.elapsedRealtime()
         while (!closed) {
           val type = input.readUnsignedByte()
@@ -116,7 +116,7 @@ object UsbAudioBridge {
             1 -> {
               val flags = input.readUnsignedByte()
               val size = input.readInt()
-              check(size in 4..16384 && size % 4 == 0) { "מסגרת אודיו לא תקינה" }
+              check(size in 4..16384 && size % 4 == 0) { AppText.choose("מסגרת אודיו לא תקינה", "The audio frame is invalid") }
               val pcm = ByteArray(size); input.readFully(pcm)
               if (capturing) enqueue(Frame.Pcm(flags, pcm))
             }
@@ -128,8 +128,8 @@ object UsbAudioBridge {
               val ownerUid = input.readInt()
               val known = input.readBoolean()
               val observedAtMs = input.readLong()
-              check(mode in -1..6 && ownerUid >= -1) { "נתוני מצב שיחה לא תקינים" }
-              check(observedAtMs >= 0L && observedAtMs <= SystemClock.elapsedRealtime() + 1000L) { "זמן מצב השיחה אינו תקין" }
+              check(mode in -1..6 && ownerUid >= -1) { AppText.choose("נתוני מצב שיחה לא תקינים", "Call-state data is invalid") }
+              check(observedAtMs >= 0L && observedAtMs <= SystemClock.elapsedRealtime() + 1000L) { AppText.choose("זמן מצב השיחה אינו תקין", "The call-state timestamp is invalid") }
               // Metadata stays separate from PCM so idle monitoring cannot fill the audio queue.
               if (callMonitoring && observedAtMs >= callMonitorSince) callAudio = CallAudioSnapshot(mode, ownerUid, known, observedAtMs)
             }
@@ -146,7 +146,7 @@ object UsbAudioBridge {
                     it.voip, it.observedAtMs) })
               }
             }
-            else -> throw IOException("מסגרת USB לא מוכרת")
+            else -> throw IOException(AppText.choose("מסגרת USB לא מוכרת", "The USB frame is unknown"))
           }
         }
       } catch (e: Exception) {
@@ -220,7 +220,7 @@ object UsbAudioBridge {
   fun setCallMonitoring(enabled: Boolean) {
     val connection = current
     if (!enabled && connection?.connected != true) return
-    check(connection?.connected == true) { "רכיב ההקלטה אינו מחובר." }
+    check(connection?.connected == true) { AppText.choose("רכיב ההקלטה אינו מחובר.", "The recording component is disconnected.") }
     connection!!.setCallMonitoring(enabled)
   }
   fun disconnectCurrent() {
@@ -228,7 +228,7 @@ object UsbAudioBridge {
     connection?.disconnect()
   }
   fun getPairing(): Pairing = pairing?.let { it.copy(key = it.key.copyOf()) }
-    ?: throw IllegalStateException("רכיב השמע עדיין נטען; נסה שוב בעוד רגע")
+    ?: throw IllegalStateException(AppText.choose("רכיב השמע עדיין נטען; נסה שוב בעוד רגע", "The audio component is still loading; try again shortly"))
   private fun randomHex(): String = ByteArray(32).also { SecureRandom().nextBytes(it) }
     .joinToString("") { "%02x".format(it.toInt() and 255) }
   private fun hmac(key: ByteArray, message: String): String = Mac.getInstance("HmacSHA256").run {
@@ -236,7 +236,7 @@ object UsbAudioBridge {
     doFinal(message.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it.toInt() and 255) }
   }
   fun beginCapture(): Connection = synchronized(lock) {
-    val connection = current ?: throw IllegalStateException("יש לחבר את רכיב ההקלטה דרך מסך ההגדרות")
+    val connection = current ?: throw IllegalStateException(AppText.choose("יש לחבר את רכיב ההקלטה דרך מסך ההגדרות", "Connect the recording component from Settings"))
     connection.begin(); connection
   }
 }
